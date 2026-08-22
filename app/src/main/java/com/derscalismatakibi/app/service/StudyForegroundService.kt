@@ -6,10 +6,13 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.SurfaceTexture
 import android.os.Build
 import android.os.PowerManager
+import android.view.Surface
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
@@ -53,6 +56,8 @@ class StudyForegroundService : LifecycleService() {
     private var cameraProvider: ProcessCameraProvider? = null
     private val cameraExecutor = Executors.newSingleThreadExecutor()
     private var faceLandmarkerHelper: FaceLandmarkerHelper? = null
+    private var dummySurfaceTexture: SurfaceTexture? = null
+    private var dummySurface: Surface? = null
     private var wakeLock: PowerManager.WakeLock? = null
 
     override fun onCreate() {
@@ -155,10 +160,25 @@ class StudyForegroundService : LifecycleService() {
             } else {
                 CameraSelector.DEFAULT_BACK_CAMERA
             }
+            // Bazi telefonlarin (orn. Samsung) kamera donanim katmani, ekranda
+            // GORUNEN bir Preview yuzeyi olmadan sadece-analiz (ImageAnalysis-only)
+            // oturumlarini uygulama arka plana alinca sessizce yavaslatiyor/durduruyor
+            // - CameraX API seviyesinde baglanti "aktif" gorunse bile kare akisi
+            // kesiliyordu (bildirim donuyor, sayac ilerlemiyordu). Cozum: goze
+            // GORUNMEYEN ama donanima "birisi izliyor" sinyali veren gercek bir
+            // Preview yuzeyi (SurfaceTexture destekli) de baglamak.
+            val dummyPreview = Preview.Builder().build().also { p ->
+                val texture = SurfaceTexture(0).apply { setDefaultBufferSize(640, 480) }
+                val surface = Surface(texture)
+                dummySurfaceTexture = texture
+                dummySurface = surface
+                p.setSurfaceProvider { request ->
+                    request.provideSurface(surface, androidx.core.content.ContextCompat.getMainExecutor(this)) {}
+                }
+            }
             try {
                 provider.unbindAll()
-                // Onizleme YOK (arkaplanda gosterilecek bir Surface yok) - sadece analiz.
-                provider.bindToLifecycle(this, selector, imageAnalysis)
+                provider.bindToLifecycle(this, selector, dummyPreview, imageAnalysis)
             } catch (t: Throwable) {
                 StudyEngine.reportCameraError(t.message ?: "Kamera baglanamadi (arkaplan)")
             }
@@ -216,6 +236,10 @@ class StudyForegroundService : LifecycleService() {
         cameraProvider?.unbindAll()
         faceLandmarkerHelper?.close()
         cameraExecutor.shutdown()
+        dummySurface?.release()
+        dummySurfaceTexture?.release()
+        dummySurface = null
+        dummySurfaceTexture = null
         StudyEngine.finalizeSessionIfNeeded()
         super.onDestroy()
     }
