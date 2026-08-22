@@ -57,8 +57,15 @@ class StudyForegroundService : LifecycleService() {
 
     override fun onCreate() {
         super.onCreate()
-        StudyEngine.init(applicationContext)
-        createNotificationChannel()
+        try {
+            StudyEngine.init(applicationContext)
+            createNotificationChannel()
+        } catch (t: Throwable) {
+            // Bu sandbox'ta gercek cihazda test edilemediginden, sessiz cokme yerine
+            // hatayi StudyEngine uzerinden UI'da (kirmizi metin) gorunur kiliyoruz.
+            StudyEngine.reportCameraError("Servis baslatilamadi (onCreate): ${t.message}")
+            stopSelf()
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -69,7 +76,19 @@ class StudyForegroundService : LifecycleService() {
                 return START_NOT_STICKY
             }
             else -> {
-                startForeground(NOTIF_ID, buildNotification(StudyState.AWAY, 0.0))
+                try {
+                    // Android 14'te CAMERA izni o an verilmemisse (orn. kullanici izni
+                    // henuz onaylamadan anahtari actiysa) foregroundServiceType="camera"
+                    // ile bu cagri SecurityException/IllegalStateException firlatir ve
+                    // servis bildirim hic gorunmeden coker - bunu artik gorunur kiliyoruz.
+                    startForeground(NOTIF_ID, buildNotification(StudyState.AWAY, 0.0))
+                } catch (t: Throwable) {
+                    StudyEngine.reportCameraError(
+                        "Arkaplan bildirimi baslatilamadi (kamera izni verilmemis olabilir): ${t.message}",
+                    )
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
                 acquireWakeLock()
                 startCamera()
                 observeStateForNotification()

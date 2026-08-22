@@ -7,6 +7,7 @@ import com.derscalismatakibi.app.data.AppDatabase
 import com.derscalismatakibi.app.data.SettingsRepository
 import com.derscalismatakibi.app.util.ExportHelper
 import com.derscalismatakibi.app.util.NotificationHelper
+import com.derscalismatakibi.app.util.UsageStatsHelper
 import kotlinx.coroutines.flow.first
 
 /**
@@ -37,7 +38,18 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         } catch (t: Throwable) {
             null // takvim verisi olmadan da yedekleme/e-posta devam edebilir.
         }
-        val attachments = listOfNotNull(csvFile, scheduleFile)
+        // Uygulama Kullanimi izni ayrica verilmis olabilir (Kullanim ekraninden) -
+        // yoksa sessizce atla, yedeklemenin geri kalanini engelleme.
+        val usageFile = if (UsageStatsHelper.hasUsageAccess(applicationContext)) {
+            try {
+                ExportHelper.writeUsageCsv(applicationContext, UsageStatsHelper.loadTodayUsage(applicationContext))
+            } catch (t: Throwable) {
+                null
+            }
+        } else {
+            null
+        }
+        val attachments = listOfNotNull(csvFile, scheduleFile, usageFile)
 
         // 2) E-posta, sadece acik ve dolu ayarlanmissa.
         if (cfg.dailyBackupEnabled && cfg.backupEmail.isNotBlank() && cfg.backupEmailAppPassword.isNotBlank()) {

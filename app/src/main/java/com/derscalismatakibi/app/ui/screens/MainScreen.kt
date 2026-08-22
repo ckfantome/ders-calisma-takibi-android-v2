@@ -147,12 +147,30 @@ fun MainScreen(viewModel: StudyViewModel) {
                         checked = backgroundActive,
                         onCheckedChange = { checked ->
                             if (checked) {
-                                if (!BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)) {
-                                    batteryOptimizationLauncher.launch(
-                                        BatteryOptimizationHelper.requestIgnoreBatteryOptimizationsIntent(context)
-                                    )
+                                // Android 14'te CAMERA izni yoksa foregroundServiceType="camera"
+                                // ile startForeground() SecurityException firlatir ve servis
+                                // bildirimi hic gostermeden coker - once izni garanti et.
+                                if (!hasCameraPermission) {
+                                    viewModel.reportCameraError("Arkaplan takibi icin once kamera iznini vermen gerekiyor.")
+                                    permissionLauncher.launch(Manifest.permission.CAMERA)
+                                } else {
+                                    if (!BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)) {
+                                        try {
+                                            batteryOptimizationLauncher.launch(
+                                                BatteryOptimizationHelper.requestIgnoreBatteryOptimizationsIntent(context)
+                                            )
+                                        } catch (e: Exception) {
+                                            // Bazi ROM/kurumsal profillerde bu Intent'i acacak Activity
+                                            // olmayabilir - bu servisi baslatmayi ENGELLEMEMELI.
+                                            android.util.Log.w("BackgroundTracking", "Pil optimizasyonu izin ekrani acilamadi", e)
+                                        }
+                                    }
+                                    try {
+                                        androidx.core.content.ContextCompat.startForegroundService(context, StudyForegroundService.startIntent(context))
+                                    } catch (e: Exception) {
+                                        viewModel.reportCameraError("Arkaplan servisi baslatilamadi: ${e.message}")
+                                    }
                                 }
-                                androidx.core.content.ContextCompat.startForegroundService(context, StudyForegroundService.startIntent(context))
                             } else {
                                 context.startService(StudyForegroundService.stopIntent(context))
                             }

@@ -65,6 +65,21 @@ object ExportHelper {
         return file
     }
 
+    /** Uygulama Kullanimi verisini (bkz. UsageStatsHelper) gunluk yedegin
+     * ucuncu dosyasi olarak, sabit bir dosya adina CSV seklinde yazar. */
+    fun writeUsageCsv(context: Context, entries: List<AppUsageEntry>): File {
+        val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
+        val file = File(dir, "son_kullanim.csv")
+        FileWriter(file).use { writer ->
+            writer.append("uygulama,paket_adi,toplam_sn\n")
+            for (e in entries) {
+                fun esc(v: String) = "\"${v.replace("\"", "\"\"")}\""
+                writer.append("${esc(e.label)},${esc(e.packageName)},${e.totalMillis / 1000.0}\n")
+            }
+        }
+        return file
+    }
+
     fun buildShareIntent(context: Context, file: File): Intent {
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
         return Intent(Intent.ACTION_SEND).apply {
