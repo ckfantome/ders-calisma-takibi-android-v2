@@ -1,0 +1,36 @@
+package com.derscalismatakibi.app.core
+
+/**
+ * study_tracker2.py -> DEFAULT_CONFIG sozlugunun Kotlin karsiligi. Varsayilan
+ * degerler masaustu ile BIREBIR AYNI. DataStore'da bu alanlarin her biri ayri
+ * bir Preferences key olarak saklanir (bkz. viewmodel/SettingsRepository.kt).
+ */
+data class AppConfig(
+    val earClosedThreshold: Double = 0.21,
+    val yawMaxDeg: Double = 45.0,
+    val pitchDownMaxDeg: Double = 55.0,
+    val pitchUpMaxDeg: Double = 25.0,
+    val confirmAwaySeconds: Double = 6.0,
+    val confirmSleepSeconds: Double = 4.0,
+    val confirmResumeSeconds: Double = 2.0,
+    val pomodoroWorkMin: Int = 25,
+    val pomodoroBreakMin: Int = 5,
+    val pomodoroLongBreakMin: Int = 15,
+    val pomodoroCyclesBeforeLong: Int = 4,
+    val dailyGoalHours: Double = 4.0,
+    val weeklyGoalHours: Double = 20.0,
+    val autoPauseOnAway: Boolean = true,
+    val autoPauseOnSleep: Boolean = true,
+    val sessionNotePrompt: Boolean = true,
+    val speakingCountsAsAway: Boolean = false,
+    val speakingMarStdThreshold: Double = 0.018,
+    val speakingMarMinThreshold: Double = 0.028,
+    val speakingWindowSize: Int = 12,
+    val confirmSpeakingSeconds: Double = 8.0,
+    val useFrontCamera: Boolean = true,
+    val appPin: String = "1234",
+    val soundEnabled: Boolean = true,
+    val notificationsEnabled: Boolean = true,
+    /** "dark" / "light" / "system" - study_tracker2.py -> THEME_MODE. */
+    val themeMode: String = "system",
+)

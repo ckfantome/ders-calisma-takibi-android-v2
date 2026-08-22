@@ -1,0 +1,174 @@
+package com.derscalismatakibi.app.service
+
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.app.NotificationCompat
+import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
+import com.derscalismatakibi.app.MainActivity
+import com.derscalismatakibi.app.R
+import com.derscalismatakibi.app.camera.CameraAnalyzer
+import com.derscalismatakibi.app.camera.FaceLandmarkerHelper
+import com.derscalismatakibi.app.core.StudyEngine
+import com.derscalismatakibi.app.core.StudyState
+import com.derscalismatakibi.app.core.fmtHms
+import kotlinx.coroutines.launch
+import java.util.concurrent.Executors
+
+/**
+ * study_tracker2.py -> CameraWorker (QThread) + MainWindow'un Activity yasam
+ * dongusunden BAGIMSIZ calisan karsiligi. Kullanici "Arkaplanda Takip"i
+ * actiginda baslar; kamera+MediaPipe pipeline'ini KENDI yasam dongusunde
+ * (LifecycleService de bir LifecycleOwner'dir) tutar, boylece Activity arka
+ * plana alinsa/kapansa bile [StudyEngine] besleniyor ve takip devam eder.
+ *
+ * NOT: MainScreen'deki yerel kamera onizlemesiyle AYNI ANDA calismaz - ikisi de
+ * ayni CameraX ProcessCameraProvider'i bagladigi icin cakisir. Bu Servis
+ * calisirken MainScreen kendi baglamasini devre disi birakir (bkz.
+ * StudyEngine.backgroundTrackingActive) ve sadece durum metnini gosterir.
+ */
+class StudyForegroundService : LifecycleService() {
+    companion object {
+        const val ACTION_START = "com.derscalismatakibi.app.action.START_TRACKING"
+        const val ACTION_STOP = "com.derscalismatakibi.app.action.STOP_TRACKING"
+        private const val CHANNEL_ID = "study_tracker_foreground_channel"
+        private const val NOTIF_ID = 42
+
+        fun startIntent(context: Context): Intent =
+            Intent(context, StudyForegroundService::class.java).setAction(ACTION_START)
+
+        fun stopIntent(context: Context): Intent =
+            Intent(context, StudyForegroundService::class.java).setAction(ACTION_STOP)
+    }
+
+    private var cameraProvider: ProcessCameraProvider? = null
+    private val cameraExecutor = Executors.newSingleThreadExecutor()
+    private var faceLandmarkerHelper: FaceLandmarkerHelper? = null
+
+    override fun onCreate() {
+        super.onCreate()
+        StudyEngine.init(applicationContext)
+        createNotificationChannel()
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
+        when (intent?.action) {
+            ACTION_STOP -> {
+                stopSelf()
+                return START_NOT_STICKY
+            }
+            else -> {
+                startForeground(NOTIF_ID, buildNotification(StudyState.AWAY, 0.0))
+                startCamera()
+                observeStateForNotification()
+                StudyEngine.setBackgroundTrackingActive(true)
+            }
+        }
+        // Sistem kaynak sikintisinda servisi oldururse yeniden baslatsin (kullanici
+        // acikca "Durdur"a basmadikca takip devam etmeli).
+        return START_STICKY
+    }
+
+    private fun startCamera() {
+        val future = ProcessCameraProvider.getInstance(this)
+        future.addListener({
+            val provider = future.get()
+            cameraProvider = provider
+            val helper = try {
+                FaceLandmarkerHelper(applicationContext)
+            } catch (t: Throwable) {
+                StudyEngine.reportCameraError(t.message ?: "Kamera hatasi (arkaplan)")
+                return@addListener
+            }
+            faceLandmarkerHelper = helper
+
+            val imageAnalysis = ImageAnalysis.Builder()
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                .build()
+            imageAnalysis.setAnalyzer(
+                cameraExecutor,
+                CameraAnalyzer(
+                    helper,
+                    onResult = { points, w, h -> StudyEngine.onFrameAnalyzed(points, w, h) },
+                    onError = { StudyEngine.reportCameraError(it.message ?: "Kamera hatasi (arkaplan)") },
+                ),
+            )
+            val selector = if (StudyEngine.currentConfig().useFrontCamera) {
+                CameraSelector.DEFAULT_FRONT_CAMERA
+            } else {
+                CameraSelector.DEFAULT_BACK_CAMERA
+            }
+            try {
+                provider.unbindAll()
+                // Onizleme YOK (arkaplanda gosterilecek bir Surface yok) - sadece analiz.
+                provider.bindToLifecycle(this, selector, imageAnalysis)
+            } catch (t: Throwable) {
+                StudyEngine.reportCameraError(t.message ?: "Kamera baglanamadi (arkaplan)")
+            }
+        }, androidx.core.content.ContextCompat.getMainExecutor(this))
+    }
+
+    private fun observeStateForNotification() {
+        lifecycleScope.launch {
+            StudyEngine.uiState.collect { state ->
+                val manager = getSystemService(NotificationManager::class.java)
+                manager?.notify(NOTIF_ID, buildNotification(state.currentState, state.studyingSeconds))
+            }
+        }
+    }
+
+    private fun buildNotification(state: StudyState, studyingSeconds: Double): Notification {
+        val stateLabel = when (state) {
+            StudyState.STUDYING -> "Calisiyor"
+            StudyState.AWAY -> "Uzakta"
+            StudyState.SLEEPING -> "Uykulu"
+        }
+        val contentIntent = PendingIntent.getActivity(
+            this, 0,
+            Intent(this, MainActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP },
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        val stopIntent = PendingIntent.getService(
+            this, 0, stopIntent(this),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("Ders Calisma Takibi arkaplanda calisiyor")
+            .setContentText("$stateLabel · ${fmtHms(studyingSeconds)}")
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setContentIntent(contentIntent)
+            .addAction(0, "Durdur", stopIntent)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID, "Arkaplan Takibi", NotificationManager.IMPORTANCE_LOW,
+            ).apply { description = "Ders calisma takibinin arkaplanda calistigini gosteren surekli bildirim" }
+            getSystemService(NotificationManager::class.java)?.createNotificationChannel(channel)
+        }
+    }
+
+    override fun onDestroy() {
+        StudyEngine.setBackgroundTrackingActive(false)
+        cameraProvider?.unbindAll()
+        faceLandmarkerHelper?.close()
+        cameraExecutor.shutdown()
+        StudyEngine.finalizeSessionIfNeeded()
+        super.onDestroy()
+    }
+}

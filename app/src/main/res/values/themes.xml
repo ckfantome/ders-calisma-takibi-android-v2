@@ -1,0 +1,8 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Compose Material3 kendi temasini yonetiyor; bu sadece Activity acilmadan
+         once (splash oncesi) sistemin kullandigi minimal bir base theme. -->
+    <style name="Theme.DersCalismaTakibi" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#0E0F12</item>
+        <item name="android:windowBackground">#0E0F12</item>
+    </style>
+</resources>
