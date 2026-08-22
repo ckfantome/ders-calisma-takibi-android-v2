@@ -15,8 +15,13 @@ class CameraAnalyzer(
     private val helper: FaceLandmarkerHelper,
     private val onResult: (points: List<Point2D>?, width: Int, height: Int) -> Unit,
     private val onError: (Throwable) -> Unit,
+    // TESHIS AMACLI (gecici): CameraX'in bu analyzer'i GERCEKTEN cagirip cagirmadigini
+    // (kamera donaniminin arka planda kare gonderip gondermedigini) ayri ve en alt
+    // seviyede olcmek icin - MediaPipe/state-machine mantigindan tamamen bagimsiz.
+    private val onFrameReceived: () -> Unit = {},
 ) : ImageAnalysis.Analyzer {
     override fun analyze(imageProxy: ImageProxy) {
+        onFrameReceived()
         try {
             val (points, w, h) = helper.analyze(imageProxy)
             onResult(points, w, h)

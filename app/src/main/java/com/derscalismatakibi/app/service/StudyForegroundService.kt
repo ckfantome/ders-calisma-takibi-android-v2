@@ -26,6 +26,7 @@ import com.derscalismatakibi.app.core.StudyState
 import com.derscalismatakibi.app.core.fmtHms
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * study_tracker2.py -> CameraWorker (QThread) + MainWindow'un Activity yasam
@@ -60,6 +61,14 @@ class StudyForegroundService : LifecycleService() {
     private var dummySurface: Surface? = null
     private var wakeLock: PowerManager.WakeLock? = null
 
+    // TESHIS AMACLI (gecici): kamera donanimindan GERCEKTEN kare gelip gelmedigini
+    // dogrudan olcuyor - StudyEngine/MediaPipe mantigindan bagimsiz en alt seviye
+    // kontrol noktasi. Bildirimde "K:<sayi>" olarak gorunur; arka planda artmaya
+    // devam ediyorsa sorun kamerada degil ustteki mantiktadir, artmiyorsa sorun
+    // kameranin kendisinde/donanim-seviyesindedir.
+    private val frameCount = AtomicInteger(0)
+    private var lastFrameNotifyMs = 0L
+
     override fun onCreate() {
         super.onCreate()
         try {
@@ -86,7 +95,7 @@ class StudyForegroundService : LifecycleService() {
                     // henuz onaylamadan anahtari actiysa) foregroundServiceType="camera"
                     // ile bu cagri SecurityException/IllegalStateException firlatir ve
                     // servis bildirim hic gorunmeden coker - bunu artik gorunur kiliyoruz.
-                    startForeground(NOTIF_ID, buildNotification(StudyState.AWAY, 0.0))
+                    startForeground(NOTIF_ID, buildNotification(StudyState.AWAY, 0.0, 0))
                 } catch (t: Throwable) {
                     StudyEngine.reportCameraError(
                         "Arkaplan bildirimi baslatilamadi (kamera izni verilmemis olabilir): ${t.message}",
@@ -153,6 +162,7 @@ class StudyForegroundService : LifecycleService() {
                     helper,
                     onResult = { points, w, h -> StudyEngine.onFrameAnalyzed(points, w, h) },
                     onError = { StudyEngine.reportCameraError(it.message ?: "Kamera hatasi (arkaplan)") },
+                    onFrameReceived = ::onDiagnosticFrameReceived,
                 ),
             )
             val selector = if (StudyEngine.currentConfig().useFrontCamera) {
@@ -189,12 +199,25 @@ class StudyForegroundService : LifecycleService() {
         lifecycleScope.launch {
             StudyEngine.uiState.collect { state ->
                 val manager = getSystemService(NotificationManager::class.java)
-                manager?.notify(NOTIF_ID, buildNotification(state.currentState, state.studyingSeconds))
+                manager?.notify(NOTIF_ID, buildNotification(state.currentState, state.studyingSeconds, frameCount.get()))
             }
         }
     }
 
-    private fun buildNotification(state: StudyState, studyingSeconds: Double): Notification {
+    /** TESHIS AMACLI (gecici): CameraAnalyzer'in her cagrilisinda tetiklenir (StudyEngine'e
+     * hic ugramadan) - kamera donanimindan kare gelip gelmedigini dogrudan gosterir.
+     * Bildirimi saniyede birden fazla guncellemeyi onlemek icin kaba bir throttle var. */
+    private fun onDiagnosticFrameReceived() {
+        val n = frameCount.incrementAndGet()
+        val now = System.currentTimeMillis()
+        if (now - lastFrameNotifyMs < 1000) return
+        lastFrameNotifyMs = now
+        val manager = getSystemService(NotificationManager::class.java)
+        val current = StudyEngine.uiState.value
+        manager?.notify(NOTIF_ID, buildNotification(current.currentState, current.studyingSeconds, n))
+    }
+
+    private fun buildNotification(state: StudyState, studyingSeconds: Double, frameCount: Int): Notification {
         val stateLabel = when (state) {
             StudyState.STUDYING -> "Calisiyor"
             StudyState.AWAY -> "Uzakta"
@@ -212,7 +235,10 @@ class StudyForegroundService : LifecycleService() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("Ders Calisma Takibi arkaplanda calisiyor")
-            .setContentText("$stateLabel · ${fmtHms(studyingSeconds)}")
+            // "K:<n>" TESHIS AMACLI gecici bir sayac - her kamera karesinde artar,
+            // studyingSeconds'tan bagimsizdir. Arka planda artmayi surdurup
+            // surdurmedigi, sorunun kamerada mi mantikta mi oldugunu gosterecek.
+            .setContentText("$stateLabel · ${fmtHms(studyingSeconds)} · K:$frameCount")
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setContentIntent(contentIntent)
