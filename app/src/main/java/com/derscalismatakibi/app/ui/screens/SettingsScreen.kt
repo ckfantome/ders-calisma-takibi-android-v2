@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -23,12 +24,21 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.derscalismatakibi.app.core.Role
+import com.derscalismatakibi.app.core.UpdateChecker
+import com.derscalismatakibi.app.ui.UnknownSourcesDialog
+import com.derscalismatakibi.app.ui.UpdateAvailableDialog
+import com.derscalismatakibi.app.util.UpdateInstaller
 import com.derscalismatakibi.app.viewmodel.StudyViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * study_tracker2.py -> SettingsDialog (FIELD_META) icin basitlestirilmis Android
@@ -42,6 +52,12 @@ fun SettingsScreen(viewModel: StudyViewModel) {
     val cfg by viewModel.configState.collectAsState()
     val role by viewModel.role.collectAsState()
     val isAdmin = role == Role.ADMIN
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var checkingUpdate by remember { mutableStateOf(false) }
+    var updateCheckMessage by remember { mutableStateOf<String?>(null) }
+    var updateInfo by remember { mutableStateOf<UpdateChecker.UpdateInfo?>(null) }
+    var showUnknownSourcesDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -150,6 +166,61 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                 )
             }
         }
+
+        SettingsGroup("Guncelleme") {
+            Text(
+                "Uygulama GitHub uzerinden dagitiliyor (Play Store degil). Yeni bir surum " +
+                    "cikinca acilista otomatik haber verilir; istersen simdi de kontrol edebilirsin.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Button(
+                enabled = !checkingUpdate,
+                onClick = {
+                    checkingUpdate = true
+                    updateCheckMessage = null
+                    scope.launch {
+                        val currentVersion = try {
+                            context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "0.0.0"
+                        } catch (e: Exception) {
+                            "0.0.0"
+                        }
+                        val result = withContext(Dispatchers.IO) { UpdateChecker.checkForUpdate(currentVersion) }
+                        checkingUpdate = false
+                        if (result != null) {
+                            updateInfo = result
+                        } else {
+                            updateCheckMessage = "En son surumdesin."
+                        }
+                    }
+                },
+            ) { Text(if (checkingUpdate) "Kontrol ediliyor..." else "Guncellemeleri Kontrol Et") }
+            updateCheckMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+        }
+    }
+
+    updateInfo?.let { info ->
+        UpdateAvailableDialog(
+            info = info,
+            onDismiss = { updateInfo = null },
+            onInstall = {
+                if (UpdateInstaller.canInstallUnknownApps(context)) {
+                    UpdateInstaller.downloadAndInstall(context, info)
+                    updateInfo = null
+                } else {
+                    showUnknownSourcesDialog = true
+                }
+            },
+        )
+    }
+
+    if (showUnknownSourcesDialog) {
+        UnknownSourcesDialog(
+            onGoToSettings = {
+                showUnknownSourcesDialog = false
+                context.startActivity(UpdateInstaller.unknownAppsSettingsIntent(context))
+            },
+            onDismiss = { showUnknownSourcesDialog = false },
+        )
     }
 }
 

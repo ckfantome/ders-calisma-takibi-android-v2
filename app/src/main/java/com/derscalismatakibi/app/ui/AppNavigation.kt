@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -38,13 +40,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.derscalismatakibi.app.core.Role
+import com.derscalismatakibi.app.core.UpdateChecker
 import com.derscalismatakibi.app.ui.screens.MainScreen
 import com.derscalismatakibi.app.ui.screens.ScheduleScreen
 import com.derscalismatakibi.app.ui.screens.SettingsScreen
 import com.derscalismatakibi.app.ui.screens.StatsScreen
 import com.derscalismatakibi.app.ui.screens.UsageStatsScreen
+import com.derscalismatakibi.app.util.UpdateInstaller
 import com.derscalismatakibi.app.viewmodel.StudyViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private data class Destination(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
 
@@ -64,8 +70,22 @@ fun AppNavigation() {
     val role by viewModel.role.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     var showPinDialog by remember { mutableStateOf(false) }
     var showStudentConfirm by remember { mutableStateOf(false) }
+    var pendingUpdate by remember { mutableStateOf<UpdateChecker.UpdateInfo?>(null) }
+    var showUnknownSourcesDialog by remember { mutableStateOf(false) }
+
+    // Acilista bir kere, sessizce (kullaniciyi rahatsiz etmeden) guncelleme kontrolu.
+    LaunchedEffect(Unit) {
+        val currentVersion = try {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "0.0.0"
+        } catch (e: Exception) {
+            "0.0.0"
+        }
+        val info = withContext(Dispatchers.IO) { UpdateChecker.checkForUpdate(currentVersion) }
+        if (info != null) pendingUpdate = info
+    }
 
     Scaffold(
         topBar = {
@@ -151,6 +171,31 @@ fun AppNavigation() {
                 }) { Text("Tamam") }
             },
             dismissButton = { TextButton(onClick = { showPinDialog = false }) { Text("Iptal") } },
+        )
+    }
+
+    pendingUpdate?.let { info ->
+        UpdateAvailableDialog(
+            info = info,
+            onDismiss = { pendingUpdate = null },
+            onInstall = {
+                if (UpdateInstaller.canInstallUnknownApps(context)) {
+                    UpdateInstaller.downloadAndInstall(context, info)
+                    pendingUpdate = null
+                } else {
+                    showUnknownSourcesDialog = true
+                }
+            },
+        )
+    }
+
+    if (showUnknownSourcesDialog) {
+        UnknownSourcesDialog(
+            onGoToSettings = {
+                showUnknownSourcesDialog = false
+                context.startActivity(UpdateInstaller.unknownAppsSettingsIntent(context))
+            },
+            onDismiss = { showUnknownSourcesDialog = false },
         )
     }
 }
