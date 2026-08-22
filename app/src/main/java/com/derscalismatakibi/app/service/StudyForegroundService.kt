@@ -68,6 +68,8 @@ class StudyForegroundService : LifecycleService() {
     // kameranin kendisinde/donanim-seviyesindedir.
     private val frameCount = AtomicInteger(0)
     private var lastFrameNotifyMs = 0L
+    private val errorCount = AtomicInteger(0)
+    private var lastErrorMessage: String? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -161,7 +163,7 @@ class StudyForegroundService : LifecycleService() {
                 CameraAnalyzer(
                     helper,
                     onResult = { points, w, h -> StudyEngine.onFrameAnalyzed(points, w, h) },
-                    onError = { StudyEngine.reportCameraError(it.message ?: "Kamera hatasi (arkaplan)") },
+                    onError = ::onDiagnosticFrameError,
                     onFrameReceived = ::onDiagnosticFrameReceived,
                 ),
             )
@@ -199,7 +201,7 @@ class StudyForegroundService : LifecycleService() {
         lifecycleScope.launch {
             StudyEngine.uiState.collect { state ->
                 val manager = getSystemService(NotificationManager::class.java)
-                manager?.notify(NOTIF_ID, buildNotification(state.currentState, state.studyingSeconds, frameCount.get()))
+                manager?.notify(NOTIF_ID, buildNotification(state.currentState, state.studyingSeconds, frameCount.get(), lastErrorMessage))
             }
         }
     }
@@ -214,10 +216,23 @@ class StudyForegroundService : LifecycleService() {
         lastFrameNotifyMs = now
         val manager = getSystemService(NotificationManager::class.java)
         val current = StudyEngine.uiState.value
-        manager?.notify(NOTIF_ID, buildNotification(current.currentState, current.studyingSeconds, n))
+        manager?.notify(NOTIF_ID, buildNotification(current.currentState, current.studyingSeconds, n, lastErrorMessage))
     }
 
-    private fun buildNotification(state: StudyState, studyingSeconds: Double, frameCount: Int): Notification {
+    /** TESHIS AMACLI (gecici): K sayaci artmaya devam edip studyingSeconds donuyorsa,
+     * hatanin MediaPipe/StudyEngine tarafinda (CameraAnalyzer'in analiz/onResult
+     * adiminda yakaladigi bir istisna) oldugunu gosterir - bunu artik BILDIRIME de
+     * yaziyoruz ki uygulamayi tekrar acmadan gorulebilsin. */
+    private fun onDiagnosticFrameError(t: Throwable) {
+        val e = errorCount.incrementAndGet()
+        lastErrorMessage = "HATA($e): ${t::class.simpleName}: ${t.message}"
+        StudyEngine.reportCameraError(lastErrorMessage)
+        val manager = getSystemService(NotificationManager::class.java)
+        val current = StudyEngine.uiState.value
+        manager?.notify(NOTIF_ID, buildNotification(current.currentState, current.studyingSeconds, frameCount.get(), lastErrorMessage))
+    }
+
+    private fun buildNotification(state: StudyState, studyingSeconds: Double, frameCount: Int, errorMessage: String? = null): Notification {
         val stateLabel = when (state) {
             StudyState.STUDYING -> "Calisiyor"
             StudyState.AWAY -> "Uzakta"
@@ -232,19 +247,26 @@ class StudyForegroundService : LifecycleService() {
             this, 0, stopIntent(this),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        // "K:<n>" TESHIS AMACLI gecici bir sayac - her kamera karesinde artar,
+        // studyingSeconds'tan bagimsizdir. Arka planda artmayi surdurup
+        // surdurmedigi, sorunun kamerada mi mantikta mi oldugunu gosterecek.
+        val text = "$stateLabel · ${fmtHms(studyingSeconds)} · K:$frameCount" +
+            (errorMessage?.let { " ⚠" } ?: "")
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("Ders Calisma Takibi arkaplanda calisiyor")
-            // "K:<n>" TESHIS AMACLI gecici bir sayac - her kamera karesinde artar,
-            // studyingSeconds'tan bagimsizdir. Arka planda artmayi surdurup
-            // surdurmedigi, sorunun kamerada mi mantikta mi oldugunu gosterecek.
-            .setContentText("$stateLabel · ${fmtHms(studyingSeconds)} · K:$frameCount")
+            .setContentText(text)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setContentIntent(contentIntent)
             .addAction(0, "Durdur", stopIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build()
+        if (errorMessage != null) {
+            // TESHIS AMACLI: hata varsa genisletilince tam mesaji goster - uygulamayi
+            // tekrar acmadan, sadece bildirime dokunup genisleterek gorulebilsin.
+            builder.setStyle(NotificationCompat.BigTextStyle().bigText("$text\n$errorMessage"))
+        }
+        return builder.build()
     }
 
     private fun createNotificationChannel() {
