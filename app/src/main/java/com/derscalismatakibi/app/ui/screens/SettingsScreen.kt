@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -28,8 +30,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.derscalismatakibi.app.backup.BackupScheduler
 import com.derscalismatakibi.app.core.Role
 import com.derscalismatakibi.app.core.UpdateChecker
 import com.derscalismatakibi.app.ui.UnknownSourcesDialog
@@ -39,6 +43,9 @@ import com.derscalismatakibi.app.viewmodel.StudyViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * study_tracker2.py -> SettingsDialog (FIELD_META) icin basitlestirilmis Android
@@ -164,6 +171,84 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                     label = { Text("Ogrenci -> Yonetici gecisinde istenen PIN") },
                     visualTransformation = PasswordVisualTransformation(),
                 )
+            }
+        }
+
+        if (isAdmin) {
+            SettingsGroup("Yedekleme / E-posta") {
+                var emailField by remember { mutableStateOf(cfg.backupEmail) }
+                OutlinedTextField(
+                    value = emailField,
+                    onValueChange = { emailField = it; viewModel.updateConfig(cfg.copy(backupEmail = it)) },
+                    label = { Text("Admin E-posta (gonderen ve alici)") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                var passwordField by remember { mutableStateOf(cfg.backupEmailAppPassword) }
+                OutlinedTextField(
+                    value = passwordField,
+                    onValueChange = { passwordField = it; viewModel.updateConfig(cfg.copy(backupEmailAppPassword = it)) },
+                    label = { Text("Uygulama Sifresi (Gmail App Password)") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(
+                    "Gmail icin 2 Adimli Dogrulama acik olmali, normal sifre degil " +
+                        "'Uygulama Sifresi' kullan (myaccount.google.com/apppasswords).",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    var hourField by remember { mutableStateOf(cfg.backupHour.toString()) }
+                    OutlinedTextField(
+                        value = hourField,
+                        onValueChange = { text ->
+                            hourField = text
+                            text.toIntOrNull()?.let { h ->
+                                if (h in 0..23) {
+                                    viewModel.updateConfig(cfg.copy(backupHour = h))
+                                    BackupScheduler.reschedule(context, h, cfg.backupMinute)
+                                }
+                            }
+                        },
+                        label = { Text("Saat (0-23)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.width(120.dp),
+                    )
+                    var minuteField by remember { mutableStateOf(cfg.backupMinute.toString()) }
+                    OutlinedTextField(
+                        value = minuteField,
+                        onValueChange = { text ->
+                            minuteField = text
+                            text.toIntOrNull()?.let { m ->
+                                if (m in 0..59) {
+                                    viewModel.updateConfig(cfg.copy(backupMinute = m))
+                                    BackupScheduler.reschedule(context, cfg.backupHour, m)
+                                }
+                            }
+                        },
+                        label = { Text("Dakika (0-59)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.width(120.dp),
+                    )
+                }
+
+                SwitchRow("Gunluk Otomatik Yedekleme", cfg.dailyBackupEnabled, isAdmin) {
+                    viewModel.updateConfig(cfg.copy(dailyBackupEnabled = it))
+                }
+
+                val lastBackupText = if (cfg.lastBackupTimestamp > 0) {
+                    val dateStr = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale("tr")).format(Date(cfg.lastBackupTimestamp))
+                    "Son yedekleme: $dateStr - ${cfg.lastBackupStatus}"
+                } else {
+                    "Son yedekleme: henuz yapilmadi"
+                }
+                Text(lastBackupText, style = MaterialTheme.typography.bodySmall)
+
+                Button(onClick = { BackupScheduler.scheduleOneOffNow(context) }) {
+                    Text("Simdi Yedekle")
+                }
             }
         }
 

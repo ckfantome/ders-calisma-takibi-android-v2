@@ -33,4 +33,14 @@ data class AppConfig(
     val notificationsEnabled: Boolean = true,
     /** "dark" / "light" / "system" - study_tracker2.py -> THEME_MODE. */
     val themeMode: String = "system",
+    /** Gunluk otomatik yedekleme: cihaza kaydet + (doluysa) bu adrese kendi
+     * kendine e-posta gonder (Gmail SMTP, ayni hesap hem gonderen hem alici). */
+    val backupEmail: String = "",
+    val backupEmailAppPassword: String = "",
+    val dailyBackupEnabled: Boolean = false,
+    val backupHour: Int = 23,
+    val backupMinute: Int = 0,
+    val lastBackupTimestamp: Long = 0L,
+    /** "" | "ok" | "ok (sadece cihaza)" | "error: ..." */
+    val lastBackupStatus: String = "",
 )

@@ -12,8 +12,8 @@ android {
         applicationId = "com.derscalismatakibi.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
-        versionName = "0.4.0"
+        versionCode = 5
+        versionName = "0.5.0"
 
         // Buyuk assetler (yuz landmark modeli) sikistirilmadan paketlensin -
         // aksi halde MediaPipe calisirken asset'i acmakta sorun yasayabilir.
@@ -48,6 +48,11 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            // com.sun.mail:android-mail ve android-activation ayni META-INF
+            // dosyalarini (NOTICE.md, LICENSE.txt vb.) tasiyor, cakisiyor.
+            excludes += "/META-INF/NOTICE.md"
+            excludes += "/META-INF/LICENSE.txt"
+            excludes += "/META-INF/LICENSE.md"
         }
     }
 }
@@ -103,6 +108,13 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
     implementation("androidx.core:core-ktx:1.12.0")
+
+    // --- WorkManager (gunluk yedekleme/e-posta zamanlamasi) ---
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // --- JavaMail (SMTP ile gunluk yedek e-postasi) ---
+    implementation("com.sun.mail:android-mail:1.6.8")
+    implementation("com.sun.mail:android-activation:1.6.8")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

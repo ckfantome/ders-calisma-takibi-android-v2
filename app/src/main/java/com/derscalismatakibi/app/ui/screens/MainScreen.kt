@@ -51,6 +51,7 @@ import com.derscalismatakibi.app.core.Role
 import com.derscalismatakibi.app.core.StudyState
 import com.derscalismatakibi.app.core.fmtHms
 import com.derscalismatakibi.app.service.StudyForegroundService
+import com.derscalismatakibi.app.util.BatteryOptimizationHelper
 import com.derscalismatakibi.app.viewmodel.StudyViewModel
 import java.util.concurrent.Executors
 
@@ -85,6 +86,11 @@ fun MainScreen(viewModel: StudyViewModel) {
 
     val role by viewModel.role.collectAsState()
     val backgroundActive by viewModel.backgroundTrackingActive.collectAsState()
+    // Sonuc gozardi edilir (kullanici reddetse de servisi baslatiyoruz - sadece
+    // OEM tarafindan oldurulme ihtimali artmis olur, bloklayici degil).
+    val batteryOptimizationLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { }
     var showNotesDialog by remember { mutableStateOf(false) }
     var showResetConfirm by remember { mutableStateOf(false) }
     var showResetNotesDialog by remember { mutableStateOf(false) }
@@ -124,27 +130,41 @@ fun MainScreen(viewModel: StudyViewModel) {
         uiState.cameraError?.let { Text("Kamera hatasi: $it", color = MaterialTheme.colorScheme.error) }
 
         Card(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Arkaplanda Takip", style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        if (backgroundActive) "Acik - baska uygulamalara gecince de takip devam eder."
-                        else "Kapali - uygulamadan cikinca takip durur.",
-                        style = MaterialTheme.typography.bodySmall,
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Arkaplanda Takip", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            if (backgroundActive) "Acik - baska uygulamalara gecince de takip devam eder."
+                            else "Kapali - uygulamadan cikinca takip durur.",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    Switch(
+                        checked = backgroundActive,
+                        onCheckedChange = { checked ->
+                            if (checked) {
+                                if (!BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)) {
+                                    batteryOptimizationLauncher.launch(
+                                        BatteryOptimizationHelper.requestIgnoreBatteryOptimizationsIntent(context)
+                                    )
+                                }
+                                androidx.core.content.ContextCompat.startForegroundService(context, StudyForegroundService.startIntent(context))
+                            } else {
+                                context.startService(StudyForegroundService.stopIntent(context))
+                            }
+                        },
                     )
                 }
-                Switch(
-                    checked = backgroundActive,
-                    onCheckedChange = { checked ->
-                        if (checked) {
-                            androidx.core.content.ContextCompat.startForegroundService(context, StudyForegroundService.startIntent(context))
-                        } else {
-                            context.startService(StudyForegroundService.stopIntent(context))
-                        }
-                    },
+                Text(
+                    "Bazı telefon markalarında (Xiaomi/MIUI, Oppo/ColorOS, Huawei/EMUI, Samsung) " +
+                        "arkaplan takibinin kesintisiz çalışması için Ayarlar > Uygulamalar > Ders " +
+                        "Çalışma Takibi > Pil/Otomatik başlatma bölümünden uygulamaya izin vermen gerekebilir.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }

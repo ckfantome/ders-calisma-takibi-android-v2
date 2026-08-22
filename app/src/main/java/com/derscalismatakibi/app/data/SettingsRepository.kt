@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.derscalismatakibi.app.core.AppConfig
@@ -46,6 +47,13 @@ class SettingsRepository(private val context: Context) {
         val SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
         val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val BACKUP_EMAIL = stringPreferencesKey("backup_email")
+        val BACKUP_EMAIL_APP_PASSWORD = stringPreferencesKey("backup_email_app_password")
+        val DAILY_BACKUP_ENABLED = booleanPreferencesKey("daily_backup_enabled")
+        val BACKUP_HOUR = intPreferencesKey("backup_hour")
+        val BACKUP_MINUTE = intPreferencesKey("backup_minute")
+        val LAST_BACKUP_TIMESTAMP = longPreferencesKey("last_backup_timestamp")
+        val LAST_BACKUP_STATUS = stringPreferencesKey("last_backup_status")
     }
 
     val configFlow: Flow<AppConfig> = context.dataStore.data.map { prefs ->
@@ -77,6 +85,13 @@ class SettingsRepository(private val context: Context) {
             soundEnabled = prefs[Keys.SOUND_ENABLED] ?: defaults.soundEnabled,
             notificationsEnabled = prefs[Keys.NOTIFICATIONS_ENABLED] ?: defaults.notificationsEnabled,
             themeMode = prefs[Keys.THEME_MODE] ?: defaults.themeMode,
+            backupEmail = prefs[Keys.BACKUP_EMAIL] ?: defaults.backupEmail,
+            backupEmailAppPassword = prefs[Keys.BACKUP_EMAIL_APP_PASSWORD] ?: defaults.backupEmailAppPassword,
+            dailyBackupEnabled = prefs[Keys.DAILY_BACKUP_ENABLED] ?: defaults.dailyBackupEnabled,
+            backupHour = prefs[Keys.BACKUP_HOUR] ?: defaults.backupHour,
+            backupMinute = prefs[Keys.BACKUP_MINUTE] ?: defaults.backupMinute,
+            lastBackupTimestamp = prefs[Keys.LAST_BACKUP_TIMESTAMP] ?: defaults.lastBackupTimestamp,
+            lastBackupStatus = prefs[Keys.LAST_BACKUP_STATUS] ?: defaults.lastBackupStatus,
         )
     }
 
@@ -108,6 +123,13 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.SOUND_ENABLED] = cfg.soundEnabled
             prefs[Keys.NOTIFICATIONS_ENABLED] = cfg.notificationsEnabled
             prefs[Keys.THEME_MODE] = cfg.themeMode
+            prefs[Keys.BACKUP_EMAIL] = cfg.backupEmail
+            prefs[Keys.BACKUP_EMAIL_APP_PASSWORD] = cfg.backupEmailAppPassword
+            prefs[Keys.DAILY_BACKUP_ENABLED] = cfg.dailyBackupEnabled
+            prefs[Keys.BACKUP_HOUR] = cfg.backupHour
+            prefs[Keys.BACKUP_MINUTE] = cfg.backupMinute
+            prefs[Keys.LAST_BACKUP_TIMESTAMP] = cfg.lastBackupTimestamp
+            prefs[Keys.LAST_BACKUP_STATUS] = cfg.lastBackupStatus
         }
     }
 }

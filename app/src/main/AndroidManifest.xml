@@ -6,6 +6,12 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+    <!-- Arkaplan takibinin OEM pil yoneticileri tarafindan oldurulmesini
+         azaltmak icin kullaniciya istisna istemi gosterebilmek amaciyla. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Gunluk yedekleme e-postasinin SMTP ile gonderilebilmesi icin. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- GitHub uzerinden guncelleme: indirilen APK'yi kurabilmek icin. Normal
          izin dialoguyla ISTENEMEZ, kullanici Ayarlar > Bilinmeyen kaynaklar'dan
          acikca vermeli (bkz. util/UpdateInstaller.kt). -->
@@ -19,6 +25,7 @@
     <uses-feature android:name="android.hardware.camera.front" android:required="false" />
 
     <application
+        android:name=".StudyTrackerApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"

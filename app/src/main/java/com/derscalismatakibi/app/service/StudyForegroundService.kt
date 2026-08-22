@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.PowerManager
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -52,6 +53,7 @@ class StudyForegroundService : LifecycleService() {
     private var cameraProvider: ProcessCameraProvider? = null
     private val cameraExecutor = Executors.newSingleThreadExecutor()
     private var faceLandmarkerHelper: FaceLandmarkerHelper? = null
+    private var wakeLock: PowerManager.WakeLock? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -68,6 +70,7 @@ class StudyForegroundService : LifecycleService() {
             }
             else -> {
                 startForeground(NOTIF_ID, buildNotification(StudyState.AWAY, 0.0))
+                acquireWakeLock()
                 startCamera()
                 observeStateForNotification()
                 StudyEngine.setBackgroundTrackingActive(true)
@@ -76,6 +79,31 @@ class StudyForegroundService : LifecycleService() {
         // Sistem kaynak sikintisinda servisi oldururse yeniden baslatsin (kullanici
         // acikca "Durdur"a basmadikca takip devam etmeli).
         return START_STICKY
+    }
+
+    /** Ekran kapaliyken CPU'nun uykuya gecip kamera analizini durdurmasini onler.
+     * Suresiz acquire() ASLA cagrilmaz - servis herhangi bir nedenle onDestroy'u
+     * atlarsa (OEM sert kill) bile 10 saat sonra kendiliginden serbest kalir. */
+    private fun acquireWakeLock() {
+        if (wakeLock?.isHeld == true) return
+        val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return
+        wakeLock = powerManager.newWakeLock(
+            PowerManager.PARTIAL_WAKE_LOCK, "DersCalismaTakibi:BackgroundTracking",
+        ).apply { acquire(10 * 60 * 60 * 1000L) }
+    }
+
+    private fun releaseWakeLock() {
+        wakeLock?.let { if (it.isHeld) it.release() }
+        wakeLock = null
+    }
+
+    /** Kullanici uygulamayi Son Kullanilanlar'dan kaydirinca cagrilir (OEM pil
+     * yoneticilerinin servisi tamamen oldurdugu en yaygin senaryo). Kendi
+     * kendini AlarmManager ile yeniden baslatmiyoruz (bkz. plan notu) - sadece
+     * UI'in en azindan temiz/dogru bir durum gozlemlemesini sagliyoruz. */
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        StudyEngine.setBackgroundTrackingActive(false)
+        super.onTaskRemoved(rootIntent)
     }
 
     private fun startCamera() {
@@ -165,6 +193,7 @@ class StudyForegroundService : LifecycleService() {
 
     override fun onDestroy() {
         StudyEngine.setBackgroundTrackingActive(false)
+        releaseWakeLock()
         cameraProvider?.unbindAll()
         faceLandmarkerHelper?.close()
         cameraExecutor.shutdown()
