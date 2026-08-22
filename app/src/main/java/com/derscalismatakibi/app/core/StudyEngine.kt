@@ -102,11 +102,22 @@ object StudyEngine {
     private var slotStartAwaySeconds = 0.0
 
     /** Idempotent baslatma: hem MainActivity/StudyViewModel hem de Servis kendi
-     * `onCreate`'inde bunu cagirabilir, sadece ILK cagri gercekten kurulum yapar. */
+     * `onCreate`'inde bunu cagirabilir, sadece ILK cagri gercekten kurulum yapar.
+     *
+     * ONEMLI: OpenCV'nin native kutuphanesi (kafa pozu icin solvePnP) BURADA
+     * yuklenir, MainActivity'de DEGIL. Gercek cihazda dogrulanan hata: eger
+     * yukleme sadece MainActivity.onCreate()'te olursa, Arkaplan Servisi bu
+     * Activity hic calismadan (orn. sistem sureci ozellikle servisi ayakta
+     * tutmak icin yeniden baslatirsa) baslatilirsa, org.opencv.core.Mat
+     * kullanan HER kare "UnsatisfiedLinkError: No implementation found for
+     * long org.opencv.core.Mat.n_Mat()" ile sessizce basarisiz oluyordu -
+     * kamera kareleri geliyordu (K sayaci artiyordu) ama analiz hep hata
+     * veriyordu, bu yuzden calisma suresi hicbir zaman ilerlemiyordu. */
     @Synchronized
     fun init(context: Context) {
         if (initialized) return
         initialized = true
+        org.opencv.android.OpenCVLoader.initDebug()
         appContext = context.applicationContext
         db = AppDatabase.getInstance(appContext)
         settingsRepository = SettingsRepository(appContext)

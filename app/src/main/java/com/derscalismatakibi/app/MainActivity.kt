@@ -14,7 +14,6 @@ import androidx.lifecycle.ViewModelProvider
 import com.derscalismatakibi.app.ui.AppNavigation
 import com.derscalismatakibi.app.ui.theme.DersCalismaTakibiTheme
 import com.derscalismatakibi.app.viewmodel.StudyViewModel
-import org.opencv.android.OpenCVLoader
 
 class MainActivity : ComponentActivity() {
     private lateinit var viewModel: StudyViewModel
@@ -22,14 +21,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // OpenCV'nin (solvePnP - kafa pozu hesaplamasi icin) native kutuphanesini
-        // yukler. NOT: org.opencv:opencv Maven Central AAR'inin surumune gore bu
-        // cagriya HIC gerek kalmayabilir de (bazi surumler otomatik yukleniyor) -
-        // eger FrameAnalyzer.kt'deki estimateHeadPose() calisirken
-        // UnsatisfiedLinkError alirsan bu, README'deki "Olasi Ilk Kurulum
-        // Sorunlari" bolumunde ayrintili anlatilan bilinen bir risk alanidir.
-        OpenCVLoader.initDebug()
-
+        // OpenCV yuklemesi artik StudyEngine.init() icinde (bkz. o dosyadaki not) -
+        // BURADA DEGIL, cunku sadece burada olursa Arkaplan Servisi bu Activity hic
+        // calismadan (orn. sistem sureci yeniden baslatinca) baslarsa native
+        // kutuphane hic yuklenmemis oluyordu (UnsatisfiedLinkError, gercek cihazda
+        // dogrulanan bir hata - bkz. StudyEngine.kt).
         enableEdgeToEdge()
         viewModel = ViewModelProvider(this)[StudyViewModel::class.java]
 
