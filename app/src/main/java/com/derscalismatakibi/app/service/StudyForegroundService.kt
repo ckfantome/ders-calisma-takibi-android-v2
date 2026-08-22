@@ -24,6 +24,7 @@ import com.derscalismatakibi.app.camera.FaceLandmarkerHelper
 import com.derscalismatakibi.app.core.StudyEngine
 import com.derscalismatakibi.app.core.StudyState
 import com.derscalismatakibi.app.core.fmtHms
+import com.derscalismatakibi.app.util.AppLogger
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
@@ -73,12 +74,14 @@ class StudyForegroundService : LifecycleService() {
 
     override fun onCreate() {
         super.onCreate()
+        AppLogger.log("Servis", "onCreate")
         try {
             StudyEngine.init(applicationContext)
             createNotificationChannel()
         } catch (t: Throwable) {
             // Bu sandbox'ta gercek cihazda test edilemediginden, sessiz cokme yerine
             // hatayi StudyEngine uzerinden UI'da (kirmizi metin) gorunur kiliyoruz.
+            AppLogger.logError("Servis", "onCreate basarisiz", t)
             StudyEngine.reportCameraError("Servis baslatilamadi (onCreate): ${t.message}")
             stopSelf()
         }
@@ -86,8 +89,10 @@ class StudyForegroundService : LifecycleService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
+        AppLogger.log("Servis", "onStartCommand action=${intent?.action}")
         when (intent?.action) {
             ACTION_STOP -> {
+                AppLogger.log("Servis", "Durdur aksiyonu - stopSelf")
                 stopSelf()
                 return START_NOT_STICKY
             }
@@ -98,7 +103,9 @@ class StudyForegroundService : LifecycleService() {
                     // ile bu cagri SecurityException/IllegalStateException firlatir ve
                     // servis bildirim hic gorunmeden coker - bunu artik gorunur kiliyoruz.
                     startForeground(NOTIF_ID, buildNotification(StudyState.AWAY, 0.0, 0))
+                    AppLogger.log("Servis", "startForeground basarili")
                 } catch (t: Throwable) {
+                    AppLogger.logError("Servis", "startForeground basarisiz", t)
                     StudyEngine.reportCameraError(
                         "Arkaplan bildirimi baslatilamadi (kamera izni verilmemis olabilir): ${t.message}",
                     )
@@ -137,6 +144,7 @@ class StudyForegroundService : LifecycleService() {
      * kendini AlarmManager ile yeniden baslatmiyoruz (bkz. plan notu) - sadece
      * UI'in en azindan temiz/dogru bir durum gozlemlemesini sagliyoruz. */
     override fun onTaskRemoved(rootIntent: Intent?) {
+        AppLogger.log("Servis", "onTaskRemoved (uygulama Son Kullanilanlar'dan kaldirildi)")
         StudyEngine.setBackgroundTrackingActive(false)
         super.onTaskRemoved(rootIntent)
     }
@@ -149,6 +157,7 @@ class StudyForegroundService : LifecycleService() {
             val helper = try {
                 FaceLandmarkerHelper(applicationContext)
             } catch (t: Throwable) {
+                AppLogger.logError("Servis", "FaceLandmarkerHelper olusturulamadi", t)
                 StudyEngine.reportCameraError(t.message ?: "Kamera hatasi (arkaplan)")
                 return@addListener
             }
@@ -191,7 +200,9 @@ class StudyForegroundService : LifecycleService() {
             try {
                 provider.unbindAll()
                 provider.bindToLifecycle(this, selector, dummyPreview, imageAnalysis)
+                AppLogger.log("Servis", "Kamera baglandi (${if (StudyEngine.currentConfig().useFrontCamera) "on" else "arka"} kamera)")
             } catch (t: Throwable) {
+                AppLogger.logError("Servis", "Kamera baglanamadi", t)
                 StudyEngine.reportCameraError(t.message ?: "Kamera baglanamadi (arkaplan)")
             }
         }, androidx.core.content.ContextCompat.getMainExecutor(this))
@@ -279,6 +290,7 @@ class StudyForegroundService : LifecycleService() {
     }
 
     override fun onDestroy() {
+        AppLogger.log("Servis", "onDestroy")
         StudyEngine.setBackgroundTrackingActive(false)
         releaseWakeLock()
         cameraProvider?.unbindAll()

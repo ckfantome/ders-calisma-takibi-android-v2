@@ -53,6 +53,7 @@ import com.derscalismatakibi.app.core.Role
 import com.derscalismatakibi.app.core.StudyState
 import com.derscalismatakibi.app.core.fmtHms
 import com.derscalismatakibi.app.service.StudyForegroundService
+import com.derscalismatakibi.app.util.AppLogger
 import com.derscalismatakibi.app.util.BatteryOptimizationHelper
 import com.derscalismatakibi.app.viewmodel.StudyViewModel
 import java.util.concurrent.Executors
@@ -69,7 +70,10 @@ fun MainScreen(viewModel: StudyViewModel) {
     }
     val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
-    ) { granted -> hasCameraPermission = granted }
+    ) { granted ->
+        AppLogger.log("MainScreen", "Kamera izni sonucu: $granted")
+        hasCameraPermission = granted
+    }
 
     LaunchedEffect(Unit) {
         if (!hasCameraPermission) permissionLauncher.launch(Manifest.permission.CAMERA)
@@ -154,32 +158,38 @@ fun MainScreen(viewModel: StudyViewModel) {
                     Switch(
                         checked = backgroundActive,
                         onCheckedChange = { checked ->
+                            AppLogger.log("MainScreen", "Arkaplanda Takip anahtari: $checked")
                             if (checked) {
                                 // Android 14'te CAMERA izni yoksa foregroundServiceType="camera"
                                 // ile startForeground() SecurityException firlatir ve servis
                                 // bildirimi hic gostermeden coker - once izni garanti et.
                                 if (!hasCameraPermission) {
+                                    AppLogger.log("MainScreen", "Kamera izni yok - izin isteniyor")
                                     viewModel.reportCameraError("Arkaplan takibi icin once kamera iznini vermen gerekiyor.")
                                     permissionLauncher.launch(Manifest.permission.CAMERA)
                                 } else {
                                     if (!BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)) {
                                         try {
+                                            AppLogger.log("MainScreen", "Pil optimizasyonu izin ekrani aciliyor")
                                             batteryOptimizationLauncher.launch(
                                                 BatteryOptimizationHelper.requestIgnoreBatteryOptimizationsIntent(context)
                                             )
                                         } catch (e: Exception) {
                                             // Bazi ROM/kurumsal profillerde bu Intent'i acacak Activity
                                             // olmayabilir - bu servisi baslatmayi ENGELLEMEMELI.
-                                            android.util.Log.w("BackgroundTracking", "Pil optimizasyonu izin ekrani acilamadi", e)
+                                            AppLogger.logError("MainScreen", "Pil optimizasyonu izin ekrani acilamadi", e)
                                         }
                                     }
                                     try {
                                         androidx.core.content.ContextCompat.startForegroundService(context, StudyForegroundService.startIntent(context))
+                                        AppLogger.log("MainScreen", "startForegroundService cagrildi")
                                     } catch (e: Exception) {
+                                        AppLogger.logError("MainScreen", "startForegroundService cagrisi basarisiz", e)
                                         viewModel.reportCameraError("Arkaplan servisi baslatilamadi: ${e.message}")
                                     }
                                 }
                             } else {
+                                AppLogger.log("MainScreen", "Durdur aksiyonu gonderiliyor")
                                 context.startService(StudyForegroundService.stopIntent(context))
                             }
                         },

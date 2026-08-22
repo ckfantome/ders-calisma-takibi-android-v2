@@ -5,6 +5,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.derscalismatakibi.app.data.AppDatabase
 import com.derscalismatakibi.app.data.SettingsRepository
+import com.derscalismatakibi.app.util.AppLogger
 import com.derscalismatakibi.app.util.ExportHelper
 import com.derscalismatakibi.app.util.NotificationHelper
 import com.derscalismatakibi.app.util.UsageStatsHelper
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.first
  */
 class DailyBackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext, params) {
     override suspend fun doWork(): Result {
+        AppLogger.log("Yedekleme", "Gunluk yedekleme baslatildi")
         val settingsRepo = SettingsRepository(applicationContext)
         val cfg = settingsRepo.configFlow.first()
         val db = AppDatabase.getInstance(applicationContext)
@@ -30,6 +32,7 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         val csvFile = try {
             ExportHelper.writeDailyBackupCsv(applicationContext, sessions)
         } catch (t: Throwable) {
+            AppLogger.logError("Yedekleme", "CSV dosyasi yazilamadi", t)
             settingsRepo.update(cfg.copy(lastBackupStatus = "error: dosya yazilamadi (${t.message})"))
             return Result.retry()
         }
@@ -55,17 +58,20 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         if (cfg.dailyBackupEnabled && cfg.backupEmail.isNotBlank() && cfg.backupEmailAppPassword.isNotBlank()) {
             when (val sendResult = SmtpBackupSender.send(cfg.backupEmail, cfg.backupEmailAppPassword, attachments)) {
                 is SmtpBackupSender.Result.Success -> {
+                    AppLogger.log("Yedekleme", "E-posta basariyla gonderildi (${attachments.size} ek)")
                     settingsRepo.update(
                         cfg.copy(lastBackupTimestamp = System.currentTimeMillis(), lastBackupStatus = "ok"),
                     )
                     return Result.success()
                 }
                 is SmtpBackupSender.Result.TransientFailure -> {
+                    AppLogger.logError("Yedekleme", "E-posta gecici hata - tekrar denenecek: ${sendResult.message}")
                     settingsRepo.update(cfg.copy(lastBackupStatus = "error: gonderim basarisiz, tekrar denenecek"))
                     notifyFailure(notificationHelper, "Gunluk yedekleme e-postasi gonderilemedi, tekrar denenecek.")
                     return Result.retry()
                 }
                 is SmtpBackupSender.Result.PermanentFailure -> {
+                    AppLogger.logError("Yedekleme", "E-posta kalici hata: ${sendResult.message}")
                     settingsRepo.update(cfg.copy(lastBackupStatus = "error: ${sendResult.message}"))
                     notifyFailure(notificationHelper, "Gunluk yedekleme e-postasi gonderilemedi: ${sendResult.message}")
                     return Result.failure()
@@ -74,6 +80,7 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         }
 
         // E-posta kapali/eksik - sadece cihaza yedekleme basarili sayilir.
+        AppLogger.log("Yedekleme", "Sadece cihaza yazildi (e-posta kapali/eksik ayar)")
         settingsRepo.update(
             cfg.copy(lastBackupTimestamp = System.currentTimeMillis(), lastBackupStatus = "ok (sadece cihaza)"),
         )

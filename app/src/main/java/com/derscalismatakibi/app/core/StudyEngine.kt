@@ -6,6 +6,7 @@ import com.derscalismatakibi.app.data.DailyTotal
 import com.derscalismatakibi.app.data.ScheduleSlotEntity
 import com.derscalismatakibi.app.data.SessionEntity
 import com.derscalismatakibi.app.data.SettingsRepository
+import com.derscalismatakibi.app.util.AppLogger
 import com.derscalismatakibi.app.util.ExportHelper
 import com.derscalismatakibi.app.util.NotificationHelper
 import android.content.Intent
@@ -117,7 +118,9 @@ object StudyEngine {
     fun init(context: Context) {
         if (initialized) return
         initialized = true
+        AppLogger.init(context)
         org.opencv.android.OpenCVLoader.initDebug()
+        AppLogger.log("StudyEngine", "Motor baslatildi (OpenCV yuklendi)")
         appContext = context.applicationContext
         db = AppDatabase.getInstance(appContext)
         settingsRepository = SettingsRepository(appContext)
@@ -154,9 +157,11 @@ object StudyEngine {
                         "Mola zamani (${cfg.pomodoroBreakMin} dk)"
                     }
                     notificationHelper.notify("Pomodoro tamamlandi!", msg, cfg.notificationsEnabled)
+                    AppLogger.log("Pomodoro", "Calisma tamamlandi -> ${tick.state} (dongu: ${pomodoro.cyclesCompleted})")
                 } else if (tick.justFinishedBreak) {
                     notificationHelper.beep(cfg.soundEnabled)
                     notificationHelper.notify("Mola bitti", "Calismaya devam etmek icin Pomodoro'yu baslat.", cfg.notificationsEnabled)
+                    AppLogger.log("Pomodoro", "Mola bitti")
                 }
                 publishPomodoro(tick)
                 processScheduleTracking()
@@ -167,30 +172,37 @@ object StudyEngine {
     fun currentConfig(): AppConfig = cfg
 
     fun updateConfig(newCfg: AppConfig) {
+        AppLogger.log("StudyEngine", "Ayarlar guncellendi")
         engineScope.launch { settingsRepository.update(newCfg) }
     }
 
     fun reportCameraError(message: String?) {
+        if (message != null) AppLogger.logError("Kamera", message)
         _uiState.value = _uiState.value.copy(cameraError = message)
     }
 
     fun tryUnlockAdmin(pin: String): Boolean {
         if (pin == cfg.appPin) {
             _role.value = Role.ADMIN
+            AppLogger.log("Rol", "Yonetici moduna gecildi")
             return true
         }
+        AppLogger.log("Rol", "Yonetici PIN denemesi basarisiz")
         return false
     }
 
     fun switchToStudent() {
         _role.value = Role.STUDENT
+        AppLogger.log("Rol", "Ogrenci moduna gecildi")
     }
 
     fun addScheduleSlot(day: Int, start: String, end: String, kind: String) {
+        AppLogger.log("Takvim", "Aralik eklendi: gun=$day $start-$end ($kind)")
         engineScope.launch { db.scheduleDao().insert(ScheduleSlotEntity(day = day, startTime = start, endTime = end, kind = kind)) }
     }
 
     fun deleteScheduleSlot(entity: ScheduleSlotEntity) {
+        AppLogger.log("Takvim", "Aralik silindi: gun=${entity.day} ${entity.startTime}-${entity.endTime}")
         engineScope.launch { db.scheduleDao().delete(entity) }
     }
 
@@ -204,6 +216,7 @@ object StudyEngine {
     fun startScheduleTracking() {
         _scheduleTrackingEnabled.value = true
         activeSlot = null
+        AppLogger.log("Takvim", "Takvim takibi baslatildi")
         processScheduleTracking()
     }
 
@@ -211,6 +224,7 @@ object StudyEngine {
         closeActiveScheduleSlot()
         activeSlot = null
         _scheduleTrackingEnabled.value = false
+        AppLogger.log("Takvim", "Takvim takibi durduruldu")
     }
 
     private fun processScheduleTracking() {
@@ -224,6 +238,7 @@ object StudyEngine {
         closeActiveScheduleSlot()
         activeSlot = slot
         if (slot != null) {
+            AppLogger.log("Takvim", "Aktif dilim: ${slot.startTime}-${slot.endTime} (${slot.kind})")
             slotStartStudyingSeconds = session.studyingSeconds
             slotStartAwaySeconds = session.awaySeconds
             if (slot.kind == SLOT_KIND_WORK && pomodoro.state == PomodoroState.IDLE) {
@@ -293,6 +308,10 @@ object StudyEngine {
             stateMachine.update(effective.observedState, now)
         }
 
+        if (state != _uiState.value.currentState) {
+            AppLogger.log("Durum", "${_uiState.value.currentState} -> $state")
+        }
+
         when (state) {
             StudyState.STUDYING -> session.studyingSeconds += dtElapsed
             StudyState.SLEEPING -> session.sleepingSeconds += dtElapsed
@@ -340,6 +359,7 @@ object StudyEngine {
 
     fun togglePomodoro() {
         if (pomodoro.state == PomodoroState.IDLE) notificationHelper.beep(cfg.soundEnabled)
+        AppLogger.log("Pomodoro", "Kullanici toggle - onceki durum: ${pomodoro.state}")
         when (pomodoro.state) {
             PomodoroState.IDLE -> pomodoro.start()
             PomodoroState.PAUSED -> pomodoro.resume()
@@ -356,6 +376,7 @@ object StudyEngine {
             return false
         }
         pomodoro.startManualBreak()
+        AppLogger.log("Pomodoro", "Manuel mola baslatildi")
         publishPomodoro(pomodoro.tick())
         return true
     }
@@ -367,6 +388,7 @@ object StudyEngine {
     }
 
     fun resetGoal(notes: String = "", tags: String = "") {
+        AppLogger.log("StudyEngine", "Hedef sifirlaniyor (toplam: ${session.totalSeconds()} sn)")
         closeActiveScheduleSlot()
         activeSlot = null
         engineScope.launch {
@@ -394,6 +416,7 @@ object StudyEngine {
     }
 
     private suspend fun saveSession(s: Session, notes: String, tags: String) {
+        AppLogger.log("StudyEngine", "Oturum kaydediliyor: calisma=${s.studyingSeconds}sn uzakta=${s.awaySeconds}sn uyku=${s.sleepingSeconds}sn")
         val dateFmt = SimpleDateFormat("yyyy-MM-dd", Locale.US)
         val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.US)
         val start = Date(s.startTimeMillis)

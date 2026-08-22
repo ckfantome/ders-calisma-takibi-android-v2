@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
 import com.derscalismatakibi.app.ui.AppNavigation
 import com.derscalismatakibi.app.ui.theme.DersCalismaTakibiTheme
+import com.derscalismatakibi.app.util.AppLogger
 import com.derscalismatakibi.app.viewmodel.StudyViewModel
 
 class MainActivity : ComponentActivity() {
@@ -20,6 +21,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppLogger.log("MainActivity", "onCreate")
 
         // OpenCV yuklemesi artik StudyEngine.init() icinde (bkz. o dosyadaki not) -
         // BURADA DEGIL, cunku sadece burada olursa Arkaplan Servisi bu Activity hic
@@ -49,6 +51,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
+        AppLogger.log("MainActivity", "onStop (arkaplan servisi aktif: ${com.derscalismatakibi.app.core.StudyEngine.backgroundTrackingActive.value})")
         // study_tracker2.py -> MainWindow.closeEvent(): uygulama arka plana
         // atildiginda mevcut oturumu (bossa kaydetmeden) kaydeder. ANCAK
         // Arkaplan Takip Servisi calisiyorsa oturumu SONLANDIRMIYORUZ - takip

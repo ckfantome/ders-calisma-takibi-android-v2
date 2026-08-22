@@ -12,8 +12,8 @@ android {
         applicationId = "com.derscalismatakibi.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 12
-        versionName = "0.12.0"
+        versionCode = 13
+        versionName = "0.13.0"
 
         // Buyuk assetler (yuz landmark modeli) sikistirilmadan paketlensin -
         // aksi halde MediaPipe calisirken asset'i acmakta sorun yasayabilir.

@@ -1,6 +1,7 @@
 package com.derscalismatakibi.app.core
 
 import android.util.Log
+import com.derscalismatakibi.app.util.AppLogger
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -46,7 +47,11 @@ object UpdateChecker {
             val json = JSONObject(body)
             val tag = json.optString("tag_name", "")
             val version = tag.removePrefix("v")
-            if (version.isBlank() || !isNewer(version, currentVersionName)) return null
+            if (version.isBlank() || !isNewer(version, currentVersionName)) {
+                AppLogger.log("Guncelleme", "Kontrol edildi - en son surumde (mevcut: $currentVersionName, uzak: $version)")
+                return null
+            }
+            AppLogger.log("Guncelleme", "Yeni surum bulundu: $version (mevcut: $currentVersionName)")
 
             val assets = json.optJSONArray("assets") ?: return null
             var url: String? = null
@@ -69,6 +74,7 @@ object UpdateChecker {
             )
         } catch (e: Exception) {
             Log.w("UpdateChecker", "Guncelleme kontrolu basarisiz: ${e.message}")
+            AppLogger.logError("Guncelleme", "Kontrol basarisiz", e)
             null
         }
     }

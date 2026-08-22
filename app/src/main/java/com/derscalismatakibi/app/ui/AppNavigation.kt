@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,6 +42,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.derscalismatakibi.app.core.Role
 import com.derscalismatakibi.app.core.UpdateChecker
+import com.derscalismatakibi.app.ui.screens.LogsScreen
 import com.derscalismatakibi.app.ui.screens.MainScreen
 import com.derscalismatakibi.app.ui.screens.ScheduleScreen
 import com.derscalismatakibi.app.ui.screens.SettingsScreen
@@ -59,6 +61,7 @@ private val destinations = listOf(
     Destination("schedule", "Takvim", Icons.Filled.CalendarMonth),
     Destination("stats", "Istatistikler", Icons.Filled.BarChart),
     Destination("usage", "Kullanim", Icons.Filled.Apps),
+    Destination("logs", "Loglar", Icons.Filled.Article),
     Destination("settings", "Ayarlar", Icons.Filled.Settings),
 )
 
@@ -130,6 +133,7 @@ fun AppNavigation() {
             composable("schedule") { ScheduleScreen(viewModel) }
             composable("stats") { StatsScreen(viewModel) }
             composable("usage") { UsageStatsScreen() }
+            composable("logs") { LogsScreen() }
             composable("settings") { SettingsScreen(viewModel) }
         }
     }

@@ -4,4 +4,7 @@
     <!-- UpdateInstaller.kt: DownloadManager.Request.setDestinationInExternalFilesDir
          ile Environment.DIRECTORY_DOWNLOADS ("Download") altina indirilen guncelleme APK'si. -->
     <external-files-path name="downloads" path="Download/" />
+    <!-- AppLogger.kt: kalici log dosyasi (debug_log.txt) - Loglar ekranindaki
+         "Paylas" butonu bu klasoru FileProvider ile paylasir. -->
+    <external-files-path name="logs" path="logs/" />
 </paths>

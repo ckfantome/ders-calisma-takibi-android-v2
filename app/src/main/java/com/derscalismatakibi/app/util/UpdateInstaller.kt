@@ -34,6 +34,7 @@ object UpdateInstaller {
 
     /** Indirmeyi baslatir; indirme bitince sistem kurulum ekranini otomatik acar. */
     fun downloadAndInstall(context: Context, info: UpdateChecker.UpdateInfo) {
+        AppLogger.log("Guncelleme", "Indirme baslatildi: v${info.version}")
         val targetFile = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), FILE_NAME)
         if (targetFile.exists()) targetFile.delete()
 
@@ -52,6 +53,7 @@ object UpdateInstaller {
                 val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
                 if (id != downloadId) return
                 appContext.unregisterReceiver(this)
+                AppLogger.log("Guncelleme", "Indirme tamamlandi, kurulum ekrani aciliyor")
                 val uri = FileProvider.getUriForFile(appContext, "${appContext.packageName}.fileprovider", targetFile)
                 val installIntent = Intent(Intent.ACTION_VIEW).apply {
                     setDataAndType(uri, "application/vnd.android.package-archive")
