@@ -71,6 +71,12 @@ class StudyForegroundService : LifecycleService() {
     private var lastFrameNotifyMs = 0L
     private val errorCount = AtomicInteger(0)
     private var lastErrorMessage: String? = null
+    private var lastNotifiedState: StudyState? = null
+    // STUDYING'e girince (simdi - o ana kadarki calisma saniyesi) olarak sabitlenir;
+    // Android'in kendi native "chronometer" widget'i buradan itibaren SANIYEDE
+    // BIR notify() CAGIRMADAN kendi kendine anlik tikler - Samsung'un sik notify()
+    // cagrilarini gorsel olarak bogdugu/gec guncelledigi soruna karsi kalici cozum.
+    private var studyingBaseMs: Long? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -211,6 +217,17 @@ class StudyForegroundService : LifecycleService() {
     private fun observeStateForNotification() {
         lifecycleScope.launch {
             StudyEngine.uiState.collect { state ->
+                // ONEMLI: eskiden HER karede (STUDYING iken saniyede 5-15 kez) notify()
+                // cagriliyordu - Samsung bunu bogup bildirimi donduruyordu. Artik SADECE
+                // durum GERCEKTEN degisince cagiriyoruz; sure artik chronometer ile
+                // notify()'dan bagimsiz akiyor.
+                if (state.currentState == lastNotifiedState) return@collect
+                lastNotifiedState = state.currentState
+                studyingBaseMs = if (state.currentState == StudyState.STUDYING) {
+                    System.currentTimeMillis() - (state.studyingSeconds * 1000).toLong()
+                } else {
+                    null
+                }
                 val manager = getSystemService(NotificationManager::class.java)
                 manager?.notify(NOTIF_ID, buildNotification(state.currentState, state.studyingSeconds, frameCount.get(), lastErrorMessage))
             }
@@ -262,8 +279,13 @@ class StudyForegroundService : LifecycleService() {
         // "K:<n>" TESHIS AMACLI gecici bir sayac - her kamera karesinde artar,
         // studyingSeconds'tan bagimsizdir. Arka planda artmayi surdurup
         // surdurmedigi, sorunun kamerada mi mantikta mi oldugunu gosterecek.
-        val text = "$stateLabel · ${fmtHms(studyingSeconds)} · K:$frameCount" +
-            (errorMessage?.let { " ⚠" } ?: "")
+        // Chronometer aktifken (STUDYING) sure ayrica metne yazilmaz - Android'in
+        // kendi canli sayaci basliktaki saat alaninda gosterir.
+        val text = if (studyingBaseMs != null) {
+            "$stateLabel · K:$frameCount" + (errorMessage?.let { " ⚠" } ?: "")
+        } else {
+            "$stateLabel · ${fmtHms(studyingSeconds)} · K:$frameCount" + (errorMessage?.let { " ⚠" } ?: "")
+        }
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("Ders Calisma Takibi arkaplanda calisiyor")
@@ -273,6 +295,8 @@ class StudyForegroundService : LifecycleService() {
             .setContentIntent(contentIntent)
             .addAction(0, "Durdur", stopIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setUsesChronometer(studyingBaseMs != null)
+        studyingBaseMs?.let { builder.setWhen(it).setShowWhen(true) }
         if (errorMessage != null) {
             // TESHIS AMACLI: hata varsa genisletilince tam mesaji goster - uygulamayi
             // tekrar acmadan, sadece bildirime dokunup genisleterek gorulebilsin.
