@@ -225,6 +225,7 @@ class StudyForegroundService : LifecycleService() {
         val now = System.currentTimeMillis()
         if (now - lastFrameNotifyMs < 1000) return
         lastFrameNotifyMs = now
+        AppLogger.log("Kare", "K=$n")
         val manager = getSystemService(NotificationManager::class.java)
         val current = StudyEngine.uiState.value
         manager?.notify(NOTIF_ID, buildNotification(current.currentState, current.studyingSeconds, n, lastErrorMessage))

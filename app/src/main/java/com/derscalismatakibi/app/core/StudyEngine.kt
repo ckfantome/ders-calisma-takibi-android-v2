@@ -411,7 +411,12 @@ object StudyEngine {
         closeActiveScheduleSlot()
         activeSlot = null
         if (session.totalSeconds() > 0) {
-            engineScope.launch { saveSession(session, session.notes, session.tags) }
+            // session'i ONCE sifirla (async kaydetmeden once) - yoksa Servis.onDestroy
+            // ve Activity.onStop art arda tetiklenince (bkz. log: ayni oturum 2-3 kez
+            // kaydedilmisti) ayni oturum tekrar tekrar DB'ye insert ediliyordu.
+            val toSave = session
+            session = Session()
+            engineScope.launch { saveSession(toSave, toSave.notes, toSave.tags) }
         }
     }
 
