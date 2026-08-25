@@ -147,6 +147,12 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             SwitchRow("Bildirimler", cfg.notificationsEnabled, isAdmin) {
                 viewModel.updateConfig(cfg.copy(notificationsEnabled = it))
             }
+            SwitchRow("Oturum Sonunda Not Sor", cfg.sessionNotePrompt, isAdmin) {
+                viewModel.updateConfig(cfg.copy(sessionNotePrompt = it))
+            }
+            SwitchRow("Konusurken 'Uzakta' Sayilsin", cfg.speakingCountsAsAway, isAdmin) {
+                viewModel.updateConfig(cfg.copy(speakingCountsAsAway = it))
+            }
         }
 
         SettingsGroup("Tema") {
