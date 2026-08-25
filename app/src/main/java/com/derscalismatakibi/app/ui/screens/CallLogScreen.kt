@@ -113,9 +113,9 @@ private fun loadCalls(context: android.content.Context): List<CallEntry> {
     context.contentResolver.query(
         CallLog.Calls.CONTENT_URI,
         arrayOf(CallLog.Calls.CACHED_NAME, CallLog.Calls.NUMBER, CallLog.Calls.TYPE, CallLog.Calls.DURATION, CallLog.Calls.DATE),
-        null, null, "${CallLog.Calls.DATE} DESC LIMIT 50",
+        null, null, "${CallLog.Calls.DATE} DESC",
     )?.use { cursor ->
-        while (cursor.moveToNext()) {
+        while (cursor.moveToNext() && result.size < 50) {
             val name = cursor.getString(0) ?: cursor.getString(1) ?: "Bilinmeyen"
             val type = when (cursor.getInt(2)) {
                 CallLog.Calls.INCOMING_TYPE -> "Gelen"
@@ -134,9 +134,9 @@ private fun loadSms(context: android.content.Context): List<SmsEntry> {
     context.contentResolver.query(
         Telephony.Sms.CONTENT_URI,
         arrayOf(Telephony.Sms.ADDRESS, Telephony.Sms.BODY, Telephony.Sms.DATE),
-        null, null, "${Telephony.Sms.DATE} DESC LIMIT 50",
+        null, null, "${Telephony.Sms.DATE} DESC",
     )?.use { cursor ->
-        while (cursor.moveToNext()) {
+        while (cursor.moveToNext() && result.size < 50) {
             val address = cursor.getString(0) ?: "Bilinmeyen"
             val body = (cursor.getString(1) ?: "").take(50)
             result.add(SmsEntry(address, body, cursor.getLong(2)))
