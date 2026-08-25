@@ -47,4 +47,9 @@ data class AppConfig(
     val privacyConsentAccepted: Boolean = false,
     val privacyConsentVersion: Int = 0,
     val privacyConsentTimestamp: Long = 0L,
+    /** Guvenli bolge (geofence) - StudyEngine 30sn'de bir son bilinen konumu kontrol eder. */
+    val safeZoneEnabled: Boolean = false,
+    val safeZoneLat: Double = 0.0,
+    val safeZoneLng: Double = 0.0,
+    val safeZoneRadiusMeters: Double = 200.0,
 )

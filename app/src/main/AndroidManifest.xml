@@ -21,6 +21,13 @@
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
+    <!-- Ebeveyn-denetim: arama/mesaj ozeti, konum/guvenli bolge (normal runtime
+         izin dialoguyla istenir). Bildirim erisimi (asagida) ozel bir izindir. -->
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-feature android:name="android.hardware.camera" android:required="true" />
     <uses-feature android:name="android.hardware.camera.front" android:required="false" />
 
@@ -47,6 +54,17 @@
             android:name=".service.StudyForegroundService"
             android:exported="false"
             android:foregroundServiceType="camera" />
+
+        <!-- Bildirim log - ozel izin, kullanici Ayarlar > Bildirim erisimi'nden
+             acikca vermeli (Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS). -->
+        <service
+            android:name=".service.AppNotificationListenerService"
+            android:exported="false"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
 
         <provider
             android:name="androidx.core.content.FileProvider"

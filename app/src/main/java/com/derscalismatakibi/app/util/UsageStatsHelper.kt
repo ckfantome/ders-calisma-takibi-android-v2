@@ -1,6 +1,7 @@
 package com.derscalismatakibi.app.util
 
 import android.app.AppOpsManager
+import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.pm.PackageManager
@@ -15,8 +16,31 @@ import java.util.Calendar
  * ilk 50 uygulama) AYNEN korunuyor.
  */
 data class AppUsageEntry(val label: String, val packageName: String, val totalMillis: Long)
+data class AppEventEntry(val label: String, val timestamp: Long, val type: String)
 
 object UsageStatsHelper {
+    /** Bugun (00:00 - simdi) acilan/kapanan uygulama olaylari, en yeni once, ilk 100. */
+    fun loadTodayEvents(context: Context): List<AppEventEntry> {
+        val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
+        val pm = context.packageManager
+        val events = usm.queryEvents(cal.timeInMillis, System.currentTimeMillis())
+        val result = mutableListOf<AppEventEntry>()
+        val event = UsageEvents.Event()
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            val type = when (event.eventType) {
+                UsageEvents.Event.MOVE_TO_FOREGROUND -> "Acildi"
+                UsageEvents.Event.MOVE_TO_BACKGROUND -> "Kapandi"
+                else -> continue
+            }
+            if (event.packageName == context.packageName) continue
+            result.add(AppEventEntry(appLabel(pm, event.packageName), event.timeStamp, type))
+        }
+        return result.asReversed().take(100)
+    }
     fun hasUsageAccess(context: Context): Boolean {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
         val mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName)

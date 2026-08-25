@@ -253,6 +253,21 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             }
         }
 
+        SettingsGroup("Bildirim Erisimi") {
+            val nlContext = LocalContext.current
+            val enabled = androidx.core.app.NotificationManagerCompat.getEnabledListenerPackages(nlContext).contains(nlContext.packageName)
+            Text(
+                if (enabled) "Bildirim erisimi acik - diger uygulamalardan gelen bildirimler Loglar'a yaziliyor."
+                else "Diger uygulamalardan gelen bildirimleri kaydetmek icin ozel bir izin gerekiyor (normal izin kutusuyla verilmez).",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (!enabled) {
+                Button(onClick = { nlContext.startActivity(android.content.Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }) {
+                    Text("Ayarlara Git")
+                }
+            }
+        }
+
         SettingsGroup("Guncelleme") {
             Text(
                 "Uygulama GitHub uzerinden dagitiliyor (Play Store degil). Yeni bir surum " +

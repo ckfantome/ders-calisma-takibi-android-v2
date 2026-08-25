@@ -167,6 +167,36 @@ object StudyEngine {
                 processScheduleTracking()
             }
         }
+        // Ebeveyn-denetim: guvenli bolge (geofence) - 30sn'de bir son bilinen
+        // konumu kontrol eder, sadece icerde/disarda DURUMU DEGISINCE loglar/bildirir.
+        engineScope.launch {
+            while (true) {
+                delay(30_000)
+                checkSafeZone()
+            }
+        }
+    }
+
+    private var insideSafeZone: Boolean? = null
+
+    private fun checkSafeZone() {
+        if (!cfg.safeZoneEnabled) return
+        if (android.content.pm.PackageManager.PERMISSION_GRANTED !=
+            androidx.core.content.ContextCompat.checkSelfPermission(appContext, android.Manifest.permission.ACCESS_FINE_LOCATION)
+        ) return
+        val lm = appContext.getSystemService(Context.LOCATION_SERVICE) as? android.location.LocationManager ?: return
+        val loc = try {
+            lm.getProviders(true).firstNotNullOfOrNull { lm.getLastKnownLocation(it) }
+        } catch (_: SecurityException) { null } ?: return
+        val distance = com.derscalismatakibi.app.util.LocationHelper.distanceMeters(
+            loc.latitude, loc.longitude, cfg.safeZoneLat, cfg.safeZoneLng,
+        )
+        val inside = distance <= cfg.safeZoneRadiusMeters
+        if (inside == insideSafeZone) return
+        insideSafeZone = inside
+        val msg = if (inside) "Guvenli bolgeye girildi" else "Guvenli bolgeden cikildi - ${distance.toInt()}m uzakta"
+        AppLogger.log("Konum", msg)
+        notificationHelper.notify("Guvenli Bolge", msg, cfg.notificationsEnabled)
     }
 
     fun currentConfig(): AppConfig = cfg
