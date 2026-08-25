@@ -17,8 +17,12 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -36,6 +40,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -94,6 +99,9 @@ fun AppNavigation() {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    // 9 hedef bir alt navigasyon cubuguna sigmiyordu (etiketler 2 satira kirilip
+    // kalabaliklasiyordu) - cekmece (drawer) menude sinir yok, daha okunakli.
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
     var showPinDialog by remember { mutableStateOf(false) }
     var showStudentConfirm by remember { mutableStateOf(false) }
     var pendingUpdate by remember { mutableStateOf<UpdateChecker.UpdateInfo?>(null) }
@@ -110,29 +118,16 @@ fun AppNavigation() {
         if (info != null) pendingUpdate = info
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Ders Calisma Takibi") },
-                actions = {
-                    IconButton(onClick = {
-                        if (role == Role.ADMIN) showStudentConfirm = true else showPinDialog = true
-                    }) {
-                        Icon(
-                            if (role == Role.ADMIN) Icons.Filled.LockOpen else Icons.Filled.Lock,
-                            contentDescription = "Yonetici / Ogrenci modu",
-                        )
-                    }
-                },
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        bottomBar = {
-            NavigationBar {
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
                 val backStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = backStackEntry?.destination
                 destinations.forEach { dest ->
-                    NavigationBarItem(
+                    NavigationDrawerItem(
+                        label = { Text(dest.label) },
+                        icon = { Icon(dest.icon, contentDescription = null) },
                         selected = currentDestination?.hierarchy?.any { it.route == dest.route } == true,
                         onClick = {
                             navController.navigate(dest.route) {
@@ -140,24 +135,48 @@ fun AppNavigation() {
                                 launchSingleTop = true
                                 restoreState = true
                             }
+                            scope.launch { drawerState.close() }
                         },
-                        icon = { Icon(dest.icon, contentDescription = dest.label) },
-                        label = { Text(dest.label) },
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                     )
                 }
             }
         },
-    ) { padding ->
-        NavHost(navController = navController, startDestination = "main", modifier = Modifier.padding(padding)) {
-            composable("main") { MainScreen(viewModel) }
-            composable("schedule") { ScheduleScreen(viewModel) }
-            composable("stats") { StatsScreen(viewModel) }
-            composable("usage") { UsageStatsScreen() }
-            composable("logs") { LogsScreen() }
-            composable("calllog") { CallLogScreen() }
-            composable("location") { LocationScreen(viewModel) }
-            composable("device") { DeviceReportScreen() }
-            composable("settings") { SettingsScreen(viewModel) }
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Ders Calisma Takibi") },
+                    navigationIcon = {
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                            Icon(Icons.Filled.Menu, contentDescription = "Menu")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = {
+                            if (role == Role.ADMIN) showStudentConfirm = true else showPinDialog = true
+                        }) {
+                            Icon(
+                                if (role == Role.ADMIN) Icons.Filled.LockOpen else Icons.Filled.Lock,
+                                contentDescription = "Yonetici / Ogrenci modu",
+                            )
+                        }
+                    },
+                )
+            },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+        ) { padding ->
+            NavHost(navController = navController, startDestination = "main", modifier = Modifier.padding(padding)) {
+                composable("main") { MainScreen(viewModel) }
+                composable("schedule") { ScheduleScreen(viewModel) }
+                composable("stats") { StatsScreen(viewModel) }
+                composable("usage") { UsageStatsScreen() }
+                composable("logs") { LogsScreen() }
+                composable("calllog") { CallLogScreen() }
+                composable("location") { LocationScreen(viewModel) }
+                composable("device") { DeviceReportScreen() }
+                composable("settings") { SettingsScreen(viewModel) }
+            }
         }
     }
 

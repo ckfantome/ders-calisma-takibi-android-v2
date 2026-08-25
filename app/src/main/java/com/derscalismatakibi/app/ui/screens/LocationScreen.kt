@@ -68,6 +68,10 @@ fun LocationScreen(viewModel: StudyViewModel) {
     Column(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Konum", style = MaterialTheme.typography.headlineSmall)
 
+        // ONEMLI: burada 'return@Column' KULLANILMAZ - Compose'un composer grup
+        // takibini bozup recompose sirasinda "Stack.pop: Index -1" ile rastgele
+        // coktugu gercek cihaz/emulator testinde dogrulandi. Bunun yerine TUM
+        // govde tek bir if/else agaciyla kapsanip yapisal olarak tutarli tutulur.
         if (!hasFine) {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -75,39 +79,39 @@ fun LocationScreen(viewModel: StudyViewModel) {
                     Button(onClick = { fineLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION) }) { Text("Izin Ver") }
                 }
             }
-            return@Column
-        }
-        if (!hasBackground) {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Arkaplanda konum icin ek izin", style = MaterialTheme.typography.titleMedium)
-                    Text("Uygulama kapaliyken de guvenli bolge kontrolu icin gerekiyor.", style = MaterialTheme.typography.bodySmall)
-                    Button(onClick = { backgroundLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION) }) { Text("Izin Ver") }
+        } else {
+            if (!hasBackground) {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Arkaplanda konum icin ek izin", style = MaterialTheme.typography.titleMedium)
+                        Text("Uygulama kapaliyken de guvenli bolge kontrolu icin gerekiyor.", style = MaterialTheme.typography.bodySmall)
+                        Button(onClick = { backgroundLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION) }) { Text("Izin Ver") }
+                    }
                 }
             }
-        }
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Guvenli Bolge", style = MaterialTheme.typography.titleMedium)
-                Text(distanceText, style = MaterialTheme.typography.bodyMedium)
-                Row2(cfg.safeZoneEnabled) { checked -> viewModel.updateConfig(cfg.copy(safeZoneEnabled = checked)) }
-                OutlinedTextField(value = latText, onValueChange = { latText = it }, label = { Text("Enlem") })
-                OutlinedTextField(value = lngText, onValueChange = { lngText = it }, label = { Text("Boylam") })
-                OutlinedTextField(value = radiusText, onValueChange = { radiusText = it }, label = { Text("Yaricap (metre)") })
-                Button(onClick = {
-                    val loc = lastKnownLocation(context)
-                    if (loc != null) { latText = loc.first.toString(); lngText = loc.second.toString() }
-                }) { Text("Suradan Ayarla: Su anki konumum") }
-                Button(onClick = {
-                    viewModel.updateConfig(
-                        cfg.copy(
-                            safeZoneLat = latText.toDoubleOrNull() ?: cfg.safeZoneLat,
-                            safeZoneLng = lngText.toDoubleOrNull() ?: cfg.safeZoneLng,
-                            safeZoneRadiusMeters = radiusText.toDoubleOrNull() ?: cfg.safeZoneRadiusMeters,
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Guvenli Bolge", style = MaterialTheme.typography.titleMedium)
+                    Text(distanceText, style = MaterialTheme.typography.bodyMedium)
+                    Row2(cfg.safeZoneEnabled) { checked -> viewModel.updateConfig(cfg.copy(safeZoneEnabled = checked)) }
+                    OutlinedTextField(value = latText, onValueChange = { latText = it }, label = { Text("Enlem") })
+                    OutlinedTextField(value = lngText, onValueChange = { lngText = it }, label = { Text("Boylam") })
+                    OutlinedTextField(value = radiusText, onValueChange = { radiusText = it }, label = { Text("Yaricap (metre)") })
+                    Button(onClick = {
+                        val loc = lastKnownLocation(context)
+                        if (loc != null) { latText = loc.first.toString(); lngText = loc.second.toString() }
+                    }) { Text("Suradan Ayarla: Su anki konumum") }
+                    Button(onClick = {
+                        viewModel.updateConfig(
+                            cfg.copy(
+                                safeZoneLat = latText.toDoubleOrNull() ?: cfg.safeZoneLat,
+                                safeZoneLng = lngText.toDoubleOrNull() ?: cfg.safeZoneLng,
+                                safeZoneRadiusMeters = radiusText.toDoubleOrNull() ?: cfg.safeZoneRadiusMeters,
+                            )
                         )
-                    )
-                }) { Text("Kaydet") }
+                    }) { Text("Kaydet") }
+                }
             }
         }
     }
