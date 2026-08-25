@@ -59,6 +59,7 @@ class SettingsRepository(private val context: Context) {
         val PRIVACY_CONSENT_VERSION = intPreferencesKey("privacy_consent_version")
         val PRIVACY_CONSENT_TIMESTAMP = longPreferencesKey("privacy_consent_timestamp")
         val SAFE_ZONE_ENABLED = booleanPreferencesKey("safe_zone_enabled")
+        val EXAM_MODE_ENABLED = booleanPreferencesKey("exam_mode_enabled")
         val SAFE_ZONE_LAT = doublePreferencesKey("safe_zone_lat")
         val SAFE_ZONE_LNG = doublePreferencesKey("safe_zone_lng")
         val SAFE_ZONE_RADIUS = doublePreferencesKey("safe_zone_radius_meters")
@@ -105,6 +106,7 @@ class SettingsRepository(private val context: Context) {
             privacyConsentVersion = prefs[Keys.PRIVACY_CONSENT_VERSION] ?: defaults.privacyConsentVersion,
             privacyConsentTimestamp = prefs[Keys.PRIVACY_CONSENT_TIMESTAMP] ?: defaults.privacyConsentTimestamp,
             safeZoneEnabled = prefs[Keys.SAFE_ZONE_ENABLED] ?: defaults.safeZoneEnabled,
+            examModeEnabled = prefs[Keys.EXAM_MODE_ENABLED] ?: defaults.examModeEnabled,
             safeZoneLat = prefs[Keys.SAFE_ZONE_LAT] ?: defaults.safeZoneLat,
             safeZoneLng = prefs[Keys.SAFE_ZONE_LNG] ?: defaults.safeZoneLng,
             safeZoneRadiusMeters = prefs[Keys.SAFE_ZONE_RADIUS] ?: defaults.safeZoneRadiusMeters,
@@ -151,6 +153,7 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.PRIVACY_CONSENT_VERSION] = cfg.privacyConsentVersion
             prefs[Keys.PRIVACY_CONSENT_TIMESTAMP] = cfg.privacyConsentTimestamp
             prefs[Keys.SAFE_ZONE_ENABLED] = cfg.safeZoneEnabled
+            prefs[Keys.EXAM_MODE_ENABLED] = cfg.examModeEnabled
             prefs[Keys.SAFE_ZONE_LAT] = cfg.safeZoneLat
             prefs[Keys.SAFE_ZONE_LNG] = cfg.safeZoneLng
             prefs[Keys.SAFE_ZONE_RADIUS] = cfg.safeZoneRadiusMeters

@@ -9,6 +9,7 @@ import com.derscalismatakibi.app.data.SettingsRepository
 import com.derscalismatakibi.app.util.AppLogger
 import com.derscalismatakibi.app.util.ExportHelper
 import com.derscalismatakibi.app.util.NotificationHelper
+import com.derscalismatakibi.app.util.UsageStatsHelper
 import android.content.Intent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -95,6 +96,9 @@ object StudyEngine {
     lateinit var scheduleSlots: StateFlow<List<ScheduleSlotEntity>>
         private set
 
+    lateinit var blockedApps: StateFlow<List<com.derscalismatakibi.app.data.BlockedAppEntity>>
+        private set
+
     private val _scheduleTrackingEnabled = MutableStateFlow(false)
     val scheduleTrackingEnabled: StateFlow<Boolean> = _scheduleTrackingEnabled.asStateFlow()
 
@@ -130,6 +134,7 @@ object StudyEngine {
 
         configState = settingsRepository.configFlow.stateIn(engineScope, SharingStarted.Eagerly, AppConfig())
         scheduleSlots = db.scheduleDao().observeAll().stateIn(engineScope, SharingStarted.Eagerly, emptyList())
+        blockedApps = db.blockedAppDao().observeAll().stateIn(engineScope, SharingStarted.Eagerly, emptyList())
 
         engineScope.launch {
             settingsRepository.configFlow.collect { newCfg ->
@@ -234,6 +239,25 @@ object StudyEngine {
     fun deleteScheduleSlot(entity: ScheduleSlotEntity) {
         AppLogger.log("Takvim", "Aralik silindi: gun=${entity.day} ${entity.startTime}-${entity.endTime}")
         engineScope.launch { db.scheduleDao().delete(entity) }
+    }
+
+    fun addBlockedApp(packageName: String, appLabel: String, dailyLimitMinutes: Int?, studyHoursOnly: Boolean) {
+        AppLogger.log("UygulamaKilidi", "Eklendi: $packageName (limit=$dailyLimitMinutes, calismaSaati=$studyHoursOnly)")
+        engineScope.launch {
+            db.blockedAppDao().insert(
+                com.derscalismatakibi.app.data.BlockedAppEntity(
+                    packageName = packageName,
+                    appLabel = appLabel,
+                    dailyLimitMinutes = dailyLimitMinutes,
+                    studyHoursOnly = studyHoursOnly,
+                ),
+            )
+        }
+    }
+
+    fun deleteBlockedApp(entity: com.derscalismatakibi.app.data.BlockedAppEntity) {
+        AppLogger.log("UygulamaKilidi", "Kaldirildi: ${entity.packageName}")
+        engineScope.launch { db.blockedAppDao().delete(entity) }
     }
 
     fun todaysScheduleSummary(): String {
@@ -488,4 +512,25 @@ object StudyEngine {
     }
 
     suspend fun dailyTotals(limit: Int = 30): List<DailyTotal> = db.sessionDao().dailyTotals(limit)
+
+    /** Uygulama Kilidi: hem AppBlockAccessibilityService hem (ileride) UI ayni
+     * mantigi kullansin diye tek yerde. Sinav Modu > gunluk sure siniri > calisma
+     * saati oncelik sirasiyla kontrol edilir. */
+    suspend fun isPackageBlocked(pkg: String): BlockReason? {
+        val entry = db.blockedAppDao().all().find { it.packageName == pkg } ?: return null
+        if (cfg.examModeEnabled) return BlockReason.ExamMode
+        val limitMin = entry.dailyLimitMinutes
+        if (limitMin != null) {
+            val usedMin = UsageStatsHelper.loadTodayUsage(appContext).find { it.packageName == pkg }?.totalMillis?.div(60000) ?: 0L
+            if (usedMin >= limitMin) return BlockReason.DailyLimit
+        }
+        if (entry.studyHoursOnly && activeSlot?.kind == SLOT_KIND_WORK) return BlockReason.StudyHours
+        return null
+    }
+}
+
+sealed class BlockReason {
+    object StudyHours : BlockReason()
+    object ExamMode : BlockReason()
+    object DailyLimit : BlockReason()
 }

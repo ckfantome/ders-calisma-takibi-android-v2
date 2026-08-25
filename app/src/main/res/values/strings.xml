@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Ders Calisma Takibi</string>
+    <string name="accessibility_service_description">Uygulama Kilidi listesindeki uygulamalar acildiginda tespit edip engellemek icin hangi uygulamanin on planda oldugunu izler. Ekran icerigini okumaz.</string>
 </resources>

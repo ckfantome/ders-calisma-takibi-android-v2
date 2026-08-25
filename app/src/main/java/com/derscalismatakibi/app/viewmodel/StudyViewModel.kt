@@ -28,6 +28,7 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
     val configState: StateFlow<AppConfig> get() = StudyEngine.configState
     val role: StateFlow<Role> get() = StudyEngine.role
     val scheduleSlots: StateFlow<List<ScheduleSlotEntity>> get() = StudyEngine.scheduleSlots
+    val blockedApps: StateFlow<List<com.derscalismatakibi.app.data.BlockedAppEntity>> get() = StudyEngine.blockedApps
     val scheduleTrackingEnabled: StateFlow<Boolean> get() = StudyEngine.scheduleTrackingEnabled
     val backgroundTrackingActive: StateFlow<Boolean> get() = StudyEngine.backgroundTrackingActive
 
@@ -40,6 +41,9 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
 
     fun addScheduleSlot(day: Int, start: String, end: String, kind: String) = StudyEngine.addScheduleSlot(day, start, end, kind)
     fun deleteScheduleSlot(entity: ScheduleSlotEntity) = StudyEngine.deleteScheduleSlot(entity)
+    fun addBlockedApp(packageName: String, appLabel: String, dailyLimitMinutes: Int?, studyHoursOnly: Boolean) =
+        StudyEngine.addBlockedApp(packageName, appLabel, dailyLimitMinutes, studyHoursOnly)
+    fun deleteBlockedApp(entity: com.derscalismatakibi.app.data.BlockedAppEntity) = StudyEngine.deleteBlockedApp(entity)
     fun todaysScheduleSummary(): String = StudyEngine.todaysScheduleSummary()
     fun startScheduleTracking() = StudyEngine.startScheduleTracking()
     fun stopScheduleTracking() = StudyEngine.stopScheduleTracking()

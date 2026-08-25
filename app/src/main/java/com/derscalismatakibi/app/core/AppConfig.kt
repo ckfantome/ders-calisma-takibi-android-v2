@@ -54,4 +54,6 @@ data class AppConfig(
     val safeZoneLat: Double = 0.0,
     val safeZoneLng: Double = 0.0,
     val safeZoneRadiusMeters: Double = 200.0,
+    /** Uygulama Kilidi: acikken listedeki TUM uygulamalar kosulsuz engellenir. */
+    val examModeEnabled: Boolean = false,
 )

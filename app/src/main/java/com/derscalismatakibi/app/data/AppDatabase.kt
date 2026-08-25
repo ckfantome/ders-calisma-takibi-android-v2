@@ -30,10 +30,26 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 
-@Database(entities = [SessionEntity::class, ScheduleSlotEntity::class], version = 2, exportSchema = true)
+/** v2 -> v3: `blocked_apps` tablosu eklendi (Uygulama Kilidi). MIGRATION_1_2'deki
+ * ayni yontem: entity tanimindan elle turetilen CREATE TABLE, veri kaybi yok. */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `blocked_apps` (" +
+                "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`package_name` TEXT NOT NULL, " +
+                "`app_label` TEXT NOT NULL, " +
+                "`daily_limit_minutes` INTEGER, " +
+                "`study_hours_only` INTEGER NOT NULL)"
+        )
+    }
+}
+
+@Database(entities = [SessionEntity::class, ScheduleSlotEntity::class, BlockedAppEntity::class], version = 3, exportSchema = true)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun sessionDao(): SessionDao
     abstract fun scheduleDao(): ScheduleDao
+    abstract fun blockedAppDao(): BlockedAppDao
 
     companion object {
         @Volatile
@@ -46,7 +62,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "study_tracker.db",
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build().also { INSTANCE = it }
             }
         }

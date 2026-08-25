@@ -51,6 +51,7 @@ import androidx.navigation.compose.rememberNavController
 import com.derscalismatakibi.app.core.Role
 import com.derscalismatakibi.app.core.UpdateChecker
 import com.derscalismatakibi.app.legal.PrivacyConsent
+import com.derscalismatakibi.app.ui.screens.AppBlockScreen
 import com.derscalismatakibi.app.ui.screens.CallLogScreen
 import com.derscalismatakibi.app.ui.screens.LocationScreen
 import com.derscalismatakibi.app.ui.screens.LogsScreen
@@ -78,6 +79,7 @@ private val destinations = listOf(
     Destination("calllog", "Arama/SMS", Icons.Filled.Phone),
     Destination("location", "Konum", Icons.Filled.Place),
     Destination("device", "Cihaz", Icons.Filled.BatteryStd),
+    Destination("appblock", "Uygulama Kilidi", Icons.Filled.Lock),
     Destination("settings", "Ayarlar", Icons.Filled.Settings),
 )
 
@@ -175,6 +177,7 @@ fun AppNavigation() {
                 composable("calllog") { CallLogScreen() }
                 composable("location") { LocationScreen(viewModel) }
                 composable("device") { DeviceReportScreen() }
+                composable("appblock") { AppBlockScreen(viewModel) }
                 composable("settings") { SettingsScreen(viewModel) }
             }
         }
