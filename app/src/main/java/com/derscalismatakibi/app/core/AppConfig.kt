@@ -43,4 +43,8 @@ data class AppConfig(
     val lastBackupTimestamp: Long = 0L,
     /** "" | "ok" | "ok (sadece cihaza)" | "error: ..." */
     val lastBackupStatus: String = "",
+    /** legal/PrivacyConsent.kt -> KVKK/gizlilik onayi. */
+    val privacyConsentAccepted: Boolean = false,
+    val privacyConsentVersion: Int = 0,
+    val privacyConsentTimestamp: Long = 0L,
 )

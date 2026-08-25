@@ -42,7 +42,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.derscalismatakibi.app.core.Role
 import com.derscalismatakibi.app.core.UpdateChecker
+import com.derscalismatakibi.app.legal.PrivacyConsent
 import com.derscalismatakibi.app.ui.screens.LogsScreen
+import com.derscalismatakibi.app.ui.screens.PrivacyConsentScreen
 import com.derscalismatakibi.app.ui.screens.MainScreen
 import com.derscalismatakibi.app.ui.screens.ScheduleScreen
 import com.derscalismatakibi.app.ui.screens.SettingsScreen
@@ -70,6 +72,15 @@ private val destinations = listOf(
 fun AppNavigation() {
     val navController = rememberNavController()
     val viewModel: StudyViewModel = viewModel()
+
+    // KVKK/gizlilik onayi verilmeden (veya metin surumu yukseltilip yeniden onay
+    // gerekince) ASAGIDAKI Scaffold/NavHost'un TAMAMI erisilemez - once bu.
+    val consentCfg by viewModel.configState.collectAsState()
+    if (!consentCfg.privacyConsentAccepted || consentCfg.privacyConsentVersion < PrivacyConsent.VERSION) {
+        PrivacyConsentScreen(viewModel)
+        return
+    }
+
     val role by viewModel.role.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()

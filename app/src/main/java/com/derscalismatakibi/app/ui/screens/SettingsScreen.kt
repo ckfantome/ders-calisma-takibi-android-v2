@@ -65,6 +65,7 @@ fun SettingsScreen(viewModel: StudyViewModel) {
     var updateCheckMessage by remember { mutableStateOf<String?>(null) }
     var updateInfo by remember { mutableStateOf<UpdateChecker.UpdateInfo?>(null) }
     var showUnknownSourcesDialog by remember { mutableStateOf(false) }
+    var showPrivacyDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -281,6 +282,27 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             ) { Text(if (checkingUpdate) "Kontrol ediliyor..." else "Guncellemeleri Kontrol Et") }
             updateCheckMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
         }
+
+        SettingsGroup("Gizlilik") {
+            Button(onClick = { showPrivacyDialog = true }) { Text("Gizlilik Politikasini Goruntule") }
+        }
+    }
+
+    if (showPrivacyDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showPrivacyDialog = false },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = { showPrivacyDialog = false }) { Text("Kapat") }
+            },
+            title = { Text("Gizlilik Politikasi") },
+            text = {
+                Text(
+                    com.derscalismatakibi.app.legal.PrivacyConsent.TEXT,
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            },
+        )
     }
 
     updateInfo?.let { info ->

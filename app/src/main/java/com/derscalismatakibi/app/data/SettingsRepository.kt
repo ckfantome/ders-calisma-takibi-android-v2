@@ -54,6 +54,9 @@ class SettingsRepository(private val context: Context) {
         val BACKUP_MINUTE = intPreferencesKey("backup_minute")
         val LAST_BACKUP_TIMESTAMP = longPreferencesKey("last_backup_timestamp")
         val LAST_BACKUP_STATUS = stringPreferencesKey("last_backup_status")
+        val PRIVACY_CONSENT_ACCEPTED = booleanPreferencesKey("privacy_consent_accepted")
+        val PRIVACY_CONSENT_VERSION = intPreferencesKey("privacy_consent_version")
+        val PRIVACY_CONSENT_TIMESTAMP = longPreferencesKey("privacy_consent_timestamp")
     }
 
     val configFlow: Flow<AppConfig> = context.dataStore.data.map { prefs ->
@@ -92,6 +95,9 @@ class SettingsRepository(private val context: Context) {
             backupMinute = prefs[Keys.BACKUP_MINUTE] ?: defaults.backupMinute,
             lastBackupTimestamp = prefs[Keys.LAST_BACKUP_TIMESTAMP] ?: defaults.lastBackupTimestamp,
             lastBackupStatus = prefs[Keys.LAST_BACKUP_STATUS] ?: defaults.lastBackupStatus,
+            privacyConsentAccepted = prefs[Keys.PRIVACY_CONSENT_ACCEPTED] ?: defaults.privacyConsentAccepted,
+            privacyConsentVersion = prefs[Keys.PRIVACY_CONSENT_VERSION] ?: defaults.privacyConsentVersion,
+            privacyConsentTimestamp = prefs[Keys.PRIVACY_CONSENT_TIMESTAMP] ?: defaults.privacyConsentTimestamp,
         )
     }
 
@@ -130,6 +136,9 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.BACKUP_MINUTE] = cfg.backupMinute
             prefs[Keys.LAST_BACKUP_TIMESTAMP] = cfg.lastBackupTimestamp
             prefs[Keys.LAST_BACKUP_STATUS] = cfg.lastBackupStatus
+            prefs[Keys.PRIVACY_CONSENT_ACCEPTED] = cfg.privacyConsentAccepted
+            prefs[Keys.PRIVACY_CONSENT_VERSION] = cfg.privacyConsentVersion
+            prefs[Keys.PRIVACY_CONSENT_TIMESTAMP] = cfg.privacyConsentTimestamp
         }
     }
 }
