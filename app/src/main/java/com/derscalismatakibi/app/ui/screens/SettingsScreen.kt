@@ -163,6 +163,24 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             }
         }
 
+        SettingsGroup("Dil / Language") {
+            val langOptions = listOf("tr" to "Turkce", "en" to "English")
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                langOptions.forEachIndexed { index, (value, label) ->
+                    SegmentedButton(
+                        selected = cfg.appLanguage == value,
+                        onClick = { if (isAdmin) viewModel.updateConfig(cfg.copy(appLanguage = value)) },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = langOptions.size),
+                        enabled = isAdmin,
+                    ) { Text(label) }
+                }
+            }
+            Text(
+                "Not: Sadece sistem dilini degistirir (Android 13+). Uygulama ekranlarindaki metinler henuz cevrilmedi.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+
         if (isAdmin) {
             SettingsGroup("Yonetici PIN") {
                 var pinField by remember { mutableStateOf(cfg.appPin) }

@@ -47,6 +47,7 @@ class SettingsRepository(private val context: Context) {
         val SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
         val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val APP_LANGUAGE = stringPreferencesKey("app_language")
         val BACKUP_EMAIL = stringPreferencesKey("backup_email")
         val BACKUP_EMAIL_APP_PASSWORD = stringPreferencesKey("backup_email_app_password")
         val DAILY_BACKUP_ENABLED = booleanPreferencesKey("daily_backup_enabled")
@@ -92,6 +93,7 @@ class SettingsRepository(private val context: Context) {
             soundEnabled = prefs[Keys.SOUND_ENABLED] ?: defaults.soundEnabled,
             notificationsEnabled = prefs[Keys.NOTIFICATIONS_ENABLED] ?: defaults.notificationsEnabled,
             themeMode = prefs[Keys.THEME_MODE] ?: defaults.themeMode,
+            appLanguage = prefs[Keys.APP_LANGUAGE] ?: defaults.appLanguage,
             backupEmail = prefs[Keys.BACKUP_EMAIL] ?: defaults.backupEmail,
             backupEmailAppPassword = prefs[Keys.BACKUP_EMAIL_APP_PASSWORD] ?: defaults.backupEmailAppPassword,
             dailyBackupEnabled = prefs[Keys.DAILY_BACKUP_ENABLED] ?: defaults.dailyBackupEnabled,
@@ -137,6 +139,7 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.SOUND_ENABLED] = cfg.soundEnabled
             prefs[Keys.NOTIFICATIONS_ENABLED] = cfg.notificationsEnabled
             prefs[Keys.THEME_MODE] = cfg.themeMode
+            prefs[Keys.APP_LANGUAGE] = cfg.appLanguage
             prefs[Keys.BACKUP_EMAIL] = cfg.backupEmail
             prefs[Keys.BACKUP_EMAIL_APP_PASSWORD] = cfg.backupEmailAppPassword
             prefs[Keys.DAILY_BACKUP_ENABLED] = cfg.dailyBackupEnabled

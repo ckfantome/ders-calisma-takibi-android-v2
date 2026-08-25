@@ -33,6 +33,8 @@ data class AppConfig(
     val notificationsEnabled: Boolean = true,
     /** "dark" / "light" / "system" - study_tracker2.py -> THEME_MODE. */
     val themeMode: String = "system",
+    /** "tr" / "en" - API 33+ cihazlarda LocaleManager ile uygulanir. */
+    val appLanguage: String = "tr",
     /** Gunluk otomatik yedekleme: cihaza kaydet + (doluysa) bu adrese kendi
      * kendine e-posta gonder (Gmail SMTP, ayni hesap hem gonderen hem alici). */
     val backupEmail: String = "",

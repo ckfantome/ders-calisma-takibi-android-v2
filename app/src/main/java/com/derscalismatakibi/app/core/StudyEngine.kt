@@ -267,8 +267,21 @@ object StudyEngine {
         if (slot == activeSlot) return
         closeActiveScheduleSlot()
         activeSlot = slot
+        // Ders programina gore otomatik profil: Calisma diliminde uzakta/uyku onay
+        // surelerini yariya indirir (daha hassas takip), Mola'da veya dilim disinda
+        // normal esiklere doner. ponytail: ayri "strict mode" config alanlari yerine
+        // stateMachine.setConfig'i mevcut cfg'nin turetilmis bir kopyasiyla cagirmak
+        // yeterli - kalici bir ayar degil, sadece dilim suresince gecerli.
+        stateMachine.setConfig(
+            if (slot?.kind == SLOT_KIND_WORK) {
+                cfg.copy(confirmAwaySeconds = cfg.confirmAwaySeconds / 2, confirmSleepSeconds = cfg.confirmSleepSeconds / 2)
+            } else {
+                cfg
+            }
+        )
         if (slot != null) {
             AppLogger.log("Takvim", "Aktif dilim: ${slot.startTime}-${slot.endTime} (${slot.kind})")
+            if (slot.kind == SLOT_KIND_WORK) AppLogger.log("Profil", "Calisma profiline gecildi (sikistirilmis onay sureleri)")
             slotStartStudyingSeconds = session.studyingSeconds
             slotStartAwaySeconds = session.awaySeconds
             if (slot.kind == SLOT_KIND_WORK && pomodoro.state == PomodoroState.IDLE) {

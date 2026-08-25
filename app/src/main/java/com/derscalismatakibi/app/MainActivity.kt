@@ -1,12 +1,16 @@
 package com.derscalismatakibi.app
 
+import android.app.LocaleManager
+import android.os.Build
 import android.os.Bundle
+import android.os.LocaleList
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -40,6 +44,14 @@ class MainActivity : ComponentActivity() {
                 "dark" -> true
                 "light" -> false
                 else -> systemDark
+            }
+            // ponytail: API 33 altinda per-app dil degistirme AppCompatDelegate (yeni
+            // bagimlilik) gerektirir - eklenmedi, sadece 33+ native LocaleManager kullanildi.
+            LaunchedEffect(cfg.appLanguage) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    getSystemService(LocaleManager::class.java)?.applicationLocales =
+                        LocaleList.forLanguageTags(cfg.appLanguage)
+                }
             }
             DersCalismaTakibiTheme(darkTheme = darkTheme) {
                 Surface(modifier = Modifier.fillMaxSize()) {

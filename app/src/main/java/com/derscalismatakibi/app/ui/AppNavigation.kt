@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.BatteryStd
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,6 +49,7 @@ import com.derscalismatakibi.app.legal.PrivacyConsent
 import com.derscalismatakibi.app.ui.screens.CallLogScreen
 import com.derscalismatakibi.app.ui.screens.LocationScreen
 import com.derscalismatakibi.app.ui.screens.LogsScreen
+import com.derscalismatakibi.app.ui.screens.DeviceReportScreen
 import com.derscalismatakibi.app.ui.screens.PrivacyConsentScreen
 import com.derscalismatakibi.app.ui.screens.MainScreen
 import com.derscalismatakibi.app.ui.screens.ScheduleScreen
@@ -70,6 +72,7 @@ private val destinations = listOf(
     Destination("logs", "Loglar", Icons.Filled.Article),
     Destination("calllog", "Arama/SMS", Icons.Filled.Phone),
     Destination("location", "Konum", Icons.Filled.Place),
+    Destination("device", "Cihaz", Icons.Filled.BatteryStd),
     Destination("settings", "Ayarlar", Icons.Filled.Settings),
 )
 
@@ -153,6 +156,7 @@ fun AppNavigation() {
             composable("logs") { LogsScreen() }
             composable("calllog") { CallLogScreen() }
             composable("location") { LocationScreen(viewModel) }
+            composable("device") { DeviceReportScreen() }
             composable("settings") { SettingsScreen(viewModel) }
         }
     }
