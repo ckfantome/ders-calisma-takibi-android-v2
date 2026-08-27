@@ -33,8 +33,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private data class CallEntry(val name: String, val type: String, val durationSec: Long, val date: Long)
-private data class SmsEntry(val address: String, val preview: String, val date: Long)
+data class CallEntry(val name: String, val type: String, val durationSec: Long, val date: Long)
+data class SmsEntry(val address: String, val preview: String, val date: Long)
 
 /** Ebeveyn-denetim: arama gecmisi + SMS ozeti. READ_CALL_LOG/READ_SMS normal
  * (dangerous) runtime izinlerdir - MainScreen'deki kamera izni deseniyle
@@ -108,7 +108,7 @@ fun CallLogScreen() {
     }
 }
 
-private fun loadCalls(context: android.content.Context): List<CallEntry> {
+fun loadCalls(context: android.content.Context): List<CallEntry> {
     val result = mutableListOf<CallEntry>()
     context.contentResolver.query(
         CallLog.Calls.CONTENT_URI,
@@ -129,7 +129,7 @@ private fun loadCalls(context: android.content.Context): List<CallEntry> {
     return result
 }
 
-private fun loadSms(context: android.content.Context): List<SmsEntry> {
+fun loadSms(context: android.content.Context): List<SmsEntry> {
     val result = mutableListOf<SmsEntry>()
     context.contentResolver.query(
         Telephony.Sms.CONTENT_URI,

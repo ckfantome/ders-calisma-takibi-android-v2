@@ -52,7 +52,17 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         } else {
             null
         }
-        val attachments = listOfNotNull(csvFile, scheduleFile, usageFile)
+        // Kullanicinin istegi: "tum bilgiler" gonderilsin - izin verilmis her
+        // veri kaynagi (arama/SMS, cihaz raporu, uygulama kilidi durumu, tam
+        // debug logu) da gunluk e-postaya eklenir. Izin/veri yoksa ilgili
+        // fonksiyon sessizce null/bos doner, gunluk yedeklemenin geri kalanini
+        // engellemez.
+        val callSmsFile = try { ExportHelper.writeCallSmsCsv(applicationContext) } catch (t: Throwable) { null }
+        val deviceReportFile = try { ExportHelper.writeDeviceReportTxt(applicationContext) } catch (t: Throwable) { null }
+        val blockedApps = try { db.blockedAppDao().all() } catch (t: Throwable) { emptyList() }
+        val blockedAppsFile = try { ExportHelper.writeBlockedAppsTxt(applicationContext, blockedApps, cfg.examModeEnabled) } catch (t: Throwable) { null }
+        val logFile = AppLogger.currentLogFile()?.takeIf { it.exists() }
+        val attachments = listOfNotNull(csvFile, scheduleFile, usageFile, callSmsFile, deviceReportFile, blockedAppsFile, logFile)
 
         // 2) E-posta, sadece acik ve dolu ayarlanmissa.
         if (cfg.dailyBackupEnabled && cfg.backupEmail.isNotBlank() && cfg.backupEmailAppPassword.isNotBlank()) {

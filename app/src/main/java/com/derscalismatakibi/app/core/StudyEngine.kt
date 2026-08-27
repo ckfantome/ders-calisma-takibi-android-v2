@@ -202,6 +202,25 @@ object StudyEngine {
         val msg = if (inside) "Guvenli bolgeye girildi" else "Guvenli bolgeden cikildi - ${distance.toInt()}m uzakta"
         AppLogger.log("Konum", msg)
         notificationHelper.notify("Guvenli Bolge", msg, cfg.notificationsEnabled)
+        if (!inside) sendInstantAlertEmail("Guvenli Bolge Disinda", msg)
+    }
+
+    /** Gunluk ozetin aksine (bkz. DailyBackupWorker), bunlar "hemen" gonderilmesi
+     * gereken az sayida onemli olay icin (guvenli bolgeden cikma, sinav modunda
+     * engellenen uygulama acilmaya calisilmasi) - ayni SMTP ayarlarini kullanir,
+     * WorkManager beklemeden dogrudan IO thread'inde, sonucu beklemeden gonderir. */
+    fun sendInstantAlertEmail(subject: String, body: String) {
+        if (cfg.backupEmail.isBlank() || cfg.backupEmailAppPassword.isBlank()) return
+        val email = cfg.backupEmail
+        val password = cfg.backupEmailAppPassword
+        engineScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            when (com.derscalismatakibi.app.backup.SmtpBackupSender.send(email, password, subject = "Ders Calisma Takibi - $subject", body = body)) {
+                is com.derscalismatakibi.app.backup.SmtpBackupSender.Result.Success ->
+                    AppLogger.log("AnlikUyari", "E-posta gonderildi: $subject")
+                else ->
+                    AppLogger.logError("AnlikUyari", "E-posta gonderilemedi: $subject")
+            }
+        }
     }
 
     fun currentConfig(): AppConfig = cfg

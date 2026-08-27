@@ -86,7 +86,7 @@ fun DeviceReportScreen() {
 /** ponytail: TYPE_WIFI/TYPE_MOBILE deprecated ama tek-cihaz ozet raporu icin
  * NetworkCapabilities'e gecmeye gerek yok - basit ve calisiyor. Izin/veri
  * yoksa sessizce 0 doner (kart "izin gerekiyor" mesajiyla zaten kapatiliyor). */
-private fun todayNetworkUsageMb(context: Context): Pair<Double, Double> {
+fun todayNetworkUsageMb(context: Context): Pair<Double, Double> {
     val nsm = context.getSystemService(Context.NETWORK_STATS_SERVICE) as? NetworkStatsManager ?: return 0.0 to 0.0
     val cal = java.util.Calendar.getInstance().apply {
         set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)

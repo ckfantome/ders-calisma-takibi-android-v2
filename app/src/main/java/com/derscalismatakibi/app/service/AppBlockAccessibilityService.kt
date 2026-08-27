@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.content.Intent
 import android.view.accessibility.AccessibilityEvent
 import com.derscalismatakibi.app.BlockedActivity
+import com.derscalismatakibi.app.core.BlockReason
 import com.derscalismatakibi.app.core.StudyEngine
 import com.derscalismatakibi.app.util.AppLogger
 import kotlinx.coroutines.CoroutineScope
@@ -25,6 +26,17 @@ class AppBlockAccessibilityService : AccessibilityService() {
             StudyEngine.init(applicationContext)
             val reason = StudyEngine.isPackageBlocked(pkg) ?: return@launch
             AppLogger.log("UygulamaKilidi", "$pkg engellendi: $reason")
+            if (reason == BlockReason.ExamMode) {
+                val label = try {
+                    packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
+                } catch (_: Exception) {
+                    pkg
+                }
+                StudyEngine.sendInstantAlertEmail(
+                    "Sinav Modunda Engellenen Uygulama",
+                    "$label ($pkg) sinav/odev modu acikken acilmaya calisildi.",
+                )
+            }
             startActivity(
                 Intent(applicationContext, BlockedActivity::class.java).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

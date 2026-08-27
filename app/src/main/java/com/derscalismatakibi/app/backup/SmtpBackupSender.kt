@@ -34,7 +34,13 @@ object SmtpBackupSender {
         data class PermanentFailure(val message: String) : Result()
     }
 
-    fun send(toAndFrom: String, appPassword: String, attachments: List<File>): Result {
+    fun send(
+        toAndFrom: String,
+        appPassword: String,
+        attachments: List<File> = emptyList(),
+        subject: String = "Ders Calisma Takibi - Gunluk Yedek (${todayLabel()})",
+        body: String = "Ekte ${todayLabel()} tarihli otomatik gunluk yedek bulunuyor.",
+    ): Result {
         val props = Properties().apply {
             put("mail.smtp.auth", "true")
             put("mail.smtp.starttls.enable", "true")
@@ -51,12 +57,12 @@ object SmtpBackupSender {
             val message = MimeMessage(session).apply {
                 setFrom(InternetAddress(toAndFrom))
                 setRecipient(Message.RecipientType.TO, InternetAddress(toAndFrom))
-                subject = "Ders Calisma Takibi - Gunluk Yedek (${todayLabel()})"
+                this.subject = subject
             }
-            val body = MimeMultipart().apply {
+            val multipart = MimeMultipart().apply {
                 addBodyPart(
                     MimeBodyPart().apply {
-                        setText("Ekte ${todayLabel()} tarihli otomatik gunluk yedek bulunuyor.")
+                        setText(body)
                     }
                 )
                 for (file in attachments) {
@@ -68,7 +74,7 @@ object SmtpBackupSender {
                     )
                 }
             }
-            message.setContent(body)
+            message.setContent(multipart)
             Transport.send(message)
             Result.Success
         } catch (e: AuthenticationFailedException) {

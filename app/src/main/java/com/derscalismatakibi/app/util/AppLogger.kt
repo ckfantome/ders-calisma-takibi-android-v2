@@ -71,6 +71,10 @@ object AppLogger {
         }
     }
 
+    /** DailyBackupWorker'in "tum bilgiler" e-postasina dogrudan ek olarak
+     * ekleyebilmesi icin - Loglar ekranindaki Paylas ile ayni dosya. */
+    fun currentLogFile(): File? = logFile
+
     /** Paylasim ekrani icin FileProvider Uri'sina saran hazir bir Intent. */
     fun buildShareIntent(context: Context): Intent? {
         val file = logFile ?: return null
