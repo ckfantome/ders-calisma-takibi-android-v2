@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.derscalismatakibi.app.ui.rememberResumeTrigger
 import com.derscalismatakibi.app.util.UsageStatsHelper
 
 /**
@@ -36,8 +37,9 @@ fun DeviceReportScreen() {
     var charging by remember { mutableStateOf(false) }
     var wifiMb by remember { mutableStateOf(-1.0) }
     var mobileMb by remember { mutableStateOf(-1.0) }
+    val resumeTrigger = rememberResumeTrigger()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(resumeTrigger) {
         val batteryStatus = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         val level = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
         val scale = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1

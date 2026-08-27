@@ -1,7 +1,6 @@
 package com.derscalismatakibi.app.ui.screens
 
 import android.content.Intent
-import android.content.pm.ApplicationInfo
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.derscalismatakibi.app.core.Role
 import com.derscalismatakibi.app.data.BlockedAppEntity
+import com.derscalismatakibi.app.ui.rememberResumeTrigger
 import com.derscalismatakibi.app.viewmodel.StudyViewModel
 
 /**
@@ -45,12 +45,18 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
 
     var hasAccess by remember { mutableStateOf(isAccessibilityServiceEnabled(context)) }
     var installedApps by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
+    val resumeTrigger = rememberResumeTrigger()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(resumeTrigger) {
         hasAccess = isAccessibilityServiceEnabled(context)
         val pm = context.packageManager
+        // FLAG_SYSTEM filtresi KALDIRILDI: bircok OEM'de (ozellikle Samsung) YouTube,
+        // Samsung Internet, hatta bazen Instagram/Facebook gibi tam olarak ebeveynin
+        // engellemek istedigi uygulamalar onceden yuklu geldigi icin FLAG_SYSTEM
+        // tasiyor - bu yuzden liste bombos gorunuyordu. Baslatma (launcher) simgesi
+        // olan her uygulama (kendimiz haric) yeterli bir kriter.
         installedApps = pm.getInstalledApplications(0)
-            .filter { it.packageName != context.packageName && (it.flags and ApplicationInfo.FLAG_SYSTEM == 0) }
+            .filter { it.packageName != context.packageName }
             .mapNotNull { info -> pm.getLaunchIntentForPackage(info.packageName)?.let { info.packageName to pm.getApplicationLabel(info).toString() } }
             .sortedBy { it.second.lowercase() }
     }

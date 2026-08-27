@@ -31,6 +31,18 @@
     <uses-feature android:name="android.hardware.camera" android:required="true" />
     <uses-feature android:name="android.hardware.camera.front" android:required="false" />
 
+    <!-- Android 11+ paket gorunurlugu kisitlamasi: bu deklarasyon olmadan
+         PackageManager.getInstalledApplications() gercek cihazlarda neredeyse
+         bos donuyor, bu yuzden Uygulama Kilidi'ndeki "Uygulama Ekle" listesi
+         calismıyordu. Sadece baslatilabilir (launcher) uygulamalari gormek
+         yeterli, QUERY_ALL_PACKAGES gibi daha genis bir izin gerekmiyor. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
     <application
         android:name=".StudyTrackerApp"
         android:allowBackup="true"

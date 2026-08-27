@@ -30,6 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.derscalismatakibi.app.util.LocationHelper
 import com.derscalismatakibi.app.viewmodel.StudyViewModel
+import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /** Ebeveyn-denetim: konum + guvenli bolge ayarlari. Konum kontrolu StudyEngine'de
  * (30sn'de bir, arkaplan servisi calisirken de) yapilir - bu ekran sadece ayar+durum. */
@@ -54,14 +58,25 @@ fun LocationScreen(viewModel: StudyViewModel) {
     var lngText by remember { mutableStateOf(cfg.safeZoneLng.toString()) }
     var radiusText by remember { mutableStateOf(cfg.safeZoneRadiusMeters.toString()) }
     var distanceText by remember { mutableStateOf("") }
+    var liveLat by remember { mutableStateOf<Double?>(null) }
+    var liveLng by remember { mutableStateOf<Double?>(null) }
+    var liveUpdatedAt by remember { mutableStateOf("") }
 
-    LaunchedEffect(hasFine, cfg.safeZoneLat, cfg.safeZoneLng) {
-        if (hasFine) {
+    // Ekran acikken anlik konumu 10sn'de bir tazele - StudyEngine'deki arkaplan
+    // guvenli-bolge kontrolunden (30sn) BAGIMSIZ, sadece bu ekran gorunurken calisir.
+    LaunchedEffect(hasFine) {
+        while (hasFine) {
             val loc = lastKnownLocation(context)
-            distanceText = if (loc != null) {
+            if (loc != null) {
+                liveLat = loc.first
+                liveLng = loc.second
+                liveUpdatedAt = SimpleDateFormat("HH:mm:ss", Locale("tr")).format(Date())
                 val d = LocationHelper.distanceMeters(loc.first, loc.second, cfg.safeZoneLat, cfg.safeZoneLng)
-                if (d <= cfg.safeZoneRadiusMeters) "Guvenli bolgede" else "Disarida, ${d.toInt()}m uzakta"
-            } else "Konum henuz alinamadi"
+                distanceText = if (d <= cfg.safeZoneRadiusMeters) "Guvenli bolgede" else "Disarida, ${d.toInt()}m uzakta"
+            } else {
+                distanceText = "Konum henuz alinamadi"
+            }
+            delay(10_000)
         }
     }
 
@@ -86,6 +101,19 @@ fun LocationScreen(viewModel: StudyViewModel) {
                         Text("Arkaplanda konum icin ek izin", style = MaterialTheme.typography.titleMedium)
                         Text("Uygulama kapaliyken de guvenli bolge kontrolu icin gerekiyor.", style = MaterialTheme.typography.bodySmall)
                         Button(onClick = { backgroundLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION) }) { Text("Izin Ver") }
+                    }
+                }
+            }
+
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Anlik Konum", style = MaterialTheme.typography.titleMedium)
+                    if (liveLat != null && liveLng != null) {
+                        Text("Enlem: $liveLat", style = MaterialTheme.typography.bodyMedium)
+                        Text("Boylam: $liveLng", style = MaterialTheme.typography.bodyMedium)
+                        Text("Guncellendi: $liveUpdatedAt (10sn'de bir tazelenir)", style = MaterialTheme.typography.bodySmall)
+                    } else {
+                        Text("Konum henuz alinamadi (GPS/konum servisi acik mi kontrol et).", style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }

@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.derscalismatakibi.app.core.fmtHms
+import com.derscalismatakibi.app.ui.rememberResumeTrigger
 import com.derscalismatakibi.app.util.AppEventEntry
 import com.derscalismatakibi.app.util.AppUsageEntry
 import com.derscalismatakibi.app.util.UsageStatsHelper
@@ -52,9 +53,11 @@ fun UsageStatsScreen() {
     var events by remember { mutableStateOf<List<AppEventEntry>>(emptyList()) }
     var showEvents by remember { mutableStateOf(false) }
     val timeFmt = remember { SimpleDateFormat("HH:mm:ss", Locale.getDefault()) }
+    val resumeTrigger = rememberResumeTrigger()
 
-    // Kullanici Ayarlar'dan izin verip bu ekrana donebilir - her gorunumde tekrar kontrol et.
-    LaunchedEffect(Unit) {
+    // Kullanici Ayarlar'dan izin verip bu ekrana donebilir - resumeTrigger sayesinde
+    // ekrana her ON_RESUME'da (composable ayni kalsa bile) tekrar kontrol edilir.
+    LaunchedEffect(resumeTrigger) {
         hasAccess = UsageStatsHelper.hasUsageAccess(context)
         if (hasAccess) {
             entries = UsageStatsHelper.loadTodayUsage(context)
