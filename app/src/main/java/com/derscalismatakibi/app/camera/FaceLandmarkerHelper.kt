@@ -40,10 +40,31 @@ class FaceLandmarkerHelper(context: Context) {
             .build()
     )
 
-    /** ImageProxy'yi dogru yonde (rotationDegrees) bir Bitmap'e cevirir. */
+    /** ImageProxy'yi dogru yonde (rotationDegrees) bir Bitmap'e cevirir.
+     *
+     * NOT (satir doldurma / row padding): bazi cihazlarda RGBA_8888 duzlemi
+     * genislik*4'ten daha genis bir rowStride ile gelir (hizalama icin fazladan
+     * bayt eklenir) - bunu gormezden gelip dogrudan copyPixelsFromBuffer
+     * cagirmak, buffer boyutu uyusmazliginda cokme, uyusuyorsa piksellerin
+     * satir satir kaymasiyla (capraz bozulmus goruntu) sessizce yanlis analiz
+     * sonucuna yol aciyordu. Once dolgu genisligiyle bitmap olusturup gercek
+     * genislige kirpiyoruz (CameraX ornek uygulamalarindaki standart cozum). */
     private fun ImageProxy.toUprightBitmap(): Bitmap {
-        val bitmapBuffer = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        bitmapBuffer.copyPixelsFromBuffer(planes[0].buffer)
+        val plane = planes[0]
+        val pixelStride = plane.pixelStride
+        val rowStride = plane.rowStride
+        val rowPadding = rowStride - pixelStride * width
+        val bitmapBuffer = if (rowPadding == 0) {
+            Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply {
+                copyPixelsFromBuffer(plane.buffer)
+            }
+        } else {
+            val paddedWidth = rowStride / pixelStride
+            val padded = Bitmap.createBitmap(paddedWidth, height, Bitmap.Config.ARGB_8888).apply {
+                copyPixelsFromBuffer(plane.buffer)
+            }
+            Bitmap.createBitmap(padded, 0, 0, width, height)
+        }
         val rotation = imageInfo.rotationDegrees
         if (rotation == 0) return bitmapBuffer
         val matrix = Matrix().apply { postRotate(rotation.toFloat()) }

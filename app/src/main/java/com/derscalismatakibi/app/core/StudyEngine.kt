@@ -470,7 +470,13 @@ object StudyEngine {
 
     fun onFrameAnalyzed(points: List<Point2D>?, width: Int, height: Int) {
         val now = System.currentTimeMillis()
-        val dtElapsed = (now - lastFrameTimeMs) / 1000.0
+        // Normal kare araligi ~30-100ms - ama kamera/MediaPipe ilk baslatilirken
+        // (birkac saniye surebilir) veya arkaplandan donuste, lastFrameTimeMs ile
+        // aradaki fark TAMAMEN o anki duruma (calisiyor/uzakta/uykulu) ekleniyordu,
+        // ust sinir yoktu - her kamera baslangicinda birkac saniye sahte sure
+        // sayiliyordu. 1 saniyeyle sinirlandirildi (gercek kare araliginin cok
+        // uzerinde, normal kareleri kesmez, sadece boslugu kesip atar).
+        val dtElapsed = ((now - lastFrameTimeMs) / 1000.0).coerceIn(0.0, 1.0)
         lastFrameTimeMs = now
 
         val analysis: FrameAnalysis = analyzeFrame(points, width, height, cfg)

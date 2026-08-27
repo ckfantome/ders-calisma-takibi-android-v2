@@ -113,7 +113,9 @@ class PomodoroTimer(private var cfg: AppConfig) {
             cyclesCompleted += 1
             startTime = now
             pausedSeconds = 0.0
-            state = if (cyclesCompleted % cfg.pomodoroCyclesBeforeLong == 0) {
+            // Ayarlar ekrani 1-12 araligina sinirlar ama bozuk/elle degistirilmis
+            // bir DataStore degeri 0 tasirsa % ile ArithmeticException cokerdi.
+            state = if (cyclesCompleted % cfg.pomodoroCyclesBeforeLong.coerceAtLeast(1) == 0) {
                 PomodoroState.LONG_BREAK
             } else {
                 PomodoroState.BREAK
