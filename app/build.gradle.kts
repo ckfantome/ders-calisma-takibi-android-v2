@@ -21,10 +21,13 @@ android {
 
     defaultConfig {
         applicationId = "com.derscalismatakibi.app"
-        minSdk = 26
+        // MediaPipe tasks-vision/tasks-core'un kendi AAR'i minSdk=24 istiyor -
+        // bu, uygulamanin inebilecegi teknik taban (altindaki tum diger
+        // bagimliliklar - Compose/CameraX/OpenCV - zaten API 21'i destekliyor).
+        minSdk = 24
         targetSdk = 34
-        versionCode = 34
-        versionName = "0.34.0"
+        versionCode = 35
+        versionName = "0.35.0"
 
         // Buyuk assetler (yuz landmark modeli) sikistirilmadan paketlensin -
         // aksi halde MediaPipe calisirken asset'i acmakta sorun yasayabilir.

@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.Settings
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.derscalismatakibi.app.core.UpdateChecker
 import java.io.File
@@ -63,10 +64,11 @@ object UpdateInstaller {
             }
         }
         val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            appContext.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            appContext.registerReceiver(receiver, filter)
-        }
+        // ContextCompat.registerReceiver TUM API seviyelerinde (minSdk 24 dahil)
+        // RECEIVER_NOT_EXPORTED semantigini saglar - Android 13+'ta gercek OS
+        // bayragini kullanir, altinda no-op'tur. Elle Build.VERSION_CODES.TIRAMISU
+        // dallanmasindan daha guvenli (lint UnspecifiedRegisterReceiverFlag bunu
+        // dogru anlar).
+        ContextCompat.registerReceiver(appContext, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
     }
 }
