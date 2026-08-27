@@ -54,6 +54,15 @@ data class AppConfig(
     val safeZoneLat: Double = 0.0,
     val safeZoneLng: Double = 0.0,
     val safeZoneRadiusMeters: Double = 200.0,
-    /** Uygulama Kilidi: acikken listedeki TUM uygulamalar kosulsuz engellenir. */
+    /** Uygulama Kilidi: acikken varsayilan olarak TUM uygulamalar engellenir,
+     * SADECE examAllowedPackages'taki (+ zorunlu guvenlik listesi: kendi
+     * uygulamamiz, varsayilan ana ekran, telefon/arama) uygulamalar acilabilir. */
     val examModeEnabled: Boolean = false,
+    /** Virgulle ayrilmis paket adlari - Sinav/Odev Modu acikken acilmasina izin
+     * verilenler (orn. Hesap Makinesi). Bos ise sadece zorunlu guvenlik listesi acik kalir. */
+    val examAllowedPackages: String = "",
+    /** Klavye Takibi (Erisilebilirlik ile yazilan metni izler) - varsayilan KAPALI,
+     * cunku "ekran icerigini okumaz" garantisini degistirir; acildiginda KVKK
+     * onayi yeniden istenir (bkz. PrivacyConsent.VERSION). Sifre alanlari HARIC tutulur. */
+    val keyboardTrackingEnabled: Boolean = false,
 )

@@ -63,6 +63,8 @@ class SettingsRepository(private val context: Context) {
         val SAFE_ZONE_LAT = doublePreferencesKey("safe_zone_lat")
         val SAFE_ZONE_LNG = doublePreferencesKey("safe_zone_lng")
         val SAFE_ZONE_RADIUS = doublePreferencesKey("safe_zone_radius_meters")
+        val EXAM_ALLOWED_PACKAGES = stringPreferencesKey("exam_allowed_packages")
+        val KEYBOARD_TRACKING_ENABLED = booleanPreferencesKey("keyboard_tracking_enabled")
     }
 
     val configFlow: Flow<AppConfig> = context.dataStore.data.map { prefs ->
@@ -107,6 +109,8 @@ class SettingsRepository(private val context: Context) {
             privacyConsentTimestamp = prefs[Keys.PRIVACY_CONSENT_TIMESTAMP] ?: defaults.privacyConsentTimestamp,
             safeZoneEnabled = prefs[Keys.SAFE_ZONE_ENABLED] ?: defaults.safeZoneEnabled,
             examModeEnabled = prefs[Keys.EXAM_MODE_ENABLED] ?: defaults.examModeEnabled,
+            examAllowedPackages = prefs[Keys.EXAM_ALLOWED_PACKAGES] ?: defaults.examAllowedPackages,
+            keyboardTrackingEnabled = prefs[Keys.KEYBOARD_TRACKING_ENABLED] ?: defaults.keyboardTrackingEnabled,
             safeZoneLat = prefs[Keys.SAFE_ZONE_LAT] ?: defaults.safeZoneLat,
             safeZoneLng = prefs[Keys.SAFE_ZONE_LNG] ?: defaults.safeZoneLng,
             safeZoneRadiusMeters = prefs[Keys.SAFE_ZONE_RADIUS] ?: defaults.safeZoneRadiusMeters,
@@ -154,6 +158,8 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.PRIVACY_CONSENT_TIMESTAMP] = cfg.privacyConsentTimestamp
             prefs[Keys.SAFE_ZONE_ENABLED] = cfg.safeZoneEnabled
             prefs[Keys.EXAM_MODE_ENABLED] = cfg.examModeEnabled
+            prefs[Keys.EXAM_ALLOWED_PACKAGES] = cfg.examAllowedPackages
+            prefs[Keys.KEYBOARD_TRACKING_ENABLED] = cfg.keyboardTrackingEnabled
             prefs[Keys.SAFE_ZONE_LAT] = cfg.safeZoneLat
             prefs[Keys.SAFE_ZONE_LNG] = cfg.safeZoneLng
             prefs[Keys.SAFE_ZONE_RADIUS] = cfg.safeZoneRadiusMeters

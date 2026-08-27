@@ -36,10 +36,23 @@
          bos donuyor, bu yuzden Uygulama Kilidi'ndeki "Uygulama Ekle" listesi
          calismıyordu. Sadece baslatilabilir (launcher) uygulamalari gormek
          yeterli, QUERY_ALL_PACKAGES gibi daha genis bir izin gerekmiyor. -->
+    <!-- Sinav Modu "her seyi engelle" listesi asla ana ekrani veya telefon/aramayi
+         engellememeli (aksi halde cihaz kullanilamaz hale gelir - bkz.
+         StudyEngine.essentialSafePackages()). MAIN+LAUNCHER'dan FARKLI intent
+         filtreleri oldugu icin (MAIN+HOME, DIAL) HER BIRI AYRI AYRI deklare
+         edilmeli - aksi halde Android 11+ paket gorunurlugu bu sorguları da
+         bos donduruyor, ana ekran "guvenli" sayilmayip surekli engelleniyordu. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.HOME" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.DIAL" />
         </intent>
     </queries>
 

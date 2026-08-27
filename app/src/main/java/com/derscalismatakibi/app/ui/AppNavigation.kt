@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.BatteryStd
+import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -53,6 +54,7 @@ import com.derscalismatakibi.app.core.UpdateChecker
 import com.derscalismatakibi.app.legal.PrivacyConsent
 import com.derscalismatakibi.app.ui.screens.AppBlockScreen
 import com.derscalismatakibi.app.ui.screens.CallLogScreen
+import com.derscalismatakibi.app.ui.screens.KeyboardLogScreen
 import com.derscalismatakibi.app.ui.screens.LocationScreen
 import com.derscalismatakibi.app.ui.screens.LogsScreen
 import com.derscalismatakibi.app.ui.screens.DeviceReportScreen
@@ -80,6 +82,7 @@ private val destinations = listOf(
     Destination("location", "Konum", Icons.Filled.Place),
     Destination("device", "Cihaz", Icons.Filled.BatteryStd),
     Destination("appblock", "Uygulama Kilidi", Icons.Filled.Lock),
+    Destination("keyboardlog", "Klavye Takibi", Icons.Filled.Keyboard),
     Destination("settings", "Ayarlar", Icons.Filled.Settings),
 )
 
@@ -178,6 +181,7 @@ fun AppNavigation() {
                 composable("location") { LocationScreen(viewModel) }
                 composable("device") { DeviceReportScreen() }
                 composable("appblock") { AppBlockScreen(viewModel) }
+                composable("keyboardlog") { KeyboardLogScreen(viewModel) }
                 composable("settings") { SettingsScreen(viewModel) }
             }
         }

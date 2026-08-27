@@ -45,11 +45,30 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
     }
 }
 
-@Database(entities = [SessionEntity::class, ScheduleSlotEntity::class, BlockedAppEntity::class], version = 3, exportSchema = true)
+/** v3 -> v4: `keystroke_logs` tablosu eklendi (Klavye Takibi, varsayilan KAPALI). */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `keystroke_logs` (" +
+                "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`package_name` TEXT NOT NULL, " +
+                "`app_label` TEXT NOT NULL, " +
+                "`text` TEXT NOT NULL, " +
+                "`timestamp` INTEGER NOT NULL)"
+        )
+    }
+}
+
+@Database(
+    entities = [SessionEntity::class, ScheduleSlotEntity::class, BlockedAppEntity::class, KeystrokeLogEntity::class],
+    version = 4,
+    exportSchema = true,
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun sessionDao(): SessionDao
     abstract fun scheduleDao(): ScheduleDao
     abstract fun blockedAppDao(): BlockedAppDao
+    abstract fun keystrokeLogDao(): KeystrokeLogDao
 
     companion object {
         @Volatile
@@ -62,7 +81,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "study_tracker.db",
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build().also { INSTANCE = it }
             }
         }

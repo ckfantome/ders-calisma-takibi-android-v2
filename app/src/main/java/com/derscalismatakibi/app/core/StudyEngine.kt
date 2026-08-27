@@ -223,6 +223,36 @@ object StudyEngine {
         }
     }
 
+    private var cachedSafePackages: Set<String>? = null
+
+    /** Sinav Modu "her seyi engelle" moduna gecince BILE asla engellenmeyecek
+     * paketler - aksi halde varsayilan ana ekran veya telefon/arama da
+     * engellenip cihaz kullanilamaz hale gelebilir. */
+    private fun essentialSafePackages(): Set<String> {
+        cachedSafePackages?.let { return it }
+        val pm = appContext.packageManager
+        val result = mutableSetOf(appContext.packageName)
+        try {
+            pm.resolveActivity(android.content.Intent(android.content.Intent.ACTION_MAIN).addCategory(android.content.Intent.CATEGORY_HOME), android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)
+                ?.activityInfo?.packageName?.let { result.add(it) }
+        } catch (_: Exception) {}
+        try {
+            pm.resolveActivity(android.content.Intent(android.content.Intent.ACTION_DIAL), 0)
+                ?.activityInfo?.packageName?.let { result.add(it) }
+        } catch (_: Exception) {}
+        result.add("com.android.settings")
+        // Ekran klavyesinin KENDI paketi de on plana gelince TYPE_WINDOW_STATE_CHANGED
+        // tetikliyor - guvenli listede olmazsa, izinli bir uygulamada bile klavye
+        // acilir acilmaz BlockedActivity'ye yonlendirilip yazi yazmak IMKANSIZ hale
+        // geliyordu (gercek cihaz/emulator testinde dogrulandi).
+        try {
+            android.provider.Settings.Secure.getString(appContext.contentResolver, android.provider.Settings.Secure.DEFAULT_INPUT_METHOD)
+                ?.substringBefore('/')?.let { result.add(it) }
+        } catch (_: Exception) {}
+        cachedSafePackages = result
+        return result
+    }
+
     fun currentConfig(): AppConfig = cfg
 
     fun updateConfig(newCfg: AppConfig) {
@@ -536,14 +566,29 @@ object StudyEngine {
      * mantigi kullansin diye tek yerde. Sinav Modu > gunluk sure siniri > calisma
      * saati oncelik sirasiyla kontrol edilir. */
     suspend fun isPackageBlocked(pkg: String): BlockReason? {
+        // Sinav/Odev Modu: Kilitli Uygulamalar listesine BAKMAKSIZIN varsayilan
+        // olarak HER SEY engellenir, sadece examAllowedPackages'taki (+ asla
+        // engellenmeyecek zorunlu guvenlik listesi: kendi uygulamamiz, varsayilan
+        // ana ekran, telefon/arama - cihazi kullanilamaz hale getirmemek icin)
+        // paketler acilabilir.
+        if (cfg.examModeEnabled) {
+            if (pkg in essentialSafePackages()) return null
+            val allowed = cfg.examAllowedPackages.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+            if (pkg in allowed) return null
+            return BlockReason.ExamMode
+        }
         val entry = db.blockedAppDao().all().find { it.packageName == pkg } ?: return null
-        if (cfg.examModeEnabled) return BlockReason.ExamMode
         val limitMin = entry.dailyLimitMinutes
         if (limitMin != null) {
             val usedMin = UsageStatsHelper.loadTodayUsage(appContext).find { it.packageName == pkg }?.totalMillis?.div(60000) ?: 0L
             if (usedMin >= limitMin) return BlockReason.DailyLimit
         }
-        if (entry.studyHoursOnly && activeSlot?.kind == SLOT_KIND_WORK) return BlockReason.StudyHours
+        // "studyHoursOnly" onceden SADECE elle kurulmus haftalik Takvim'de aktif
+        // bir "calisma" dilimi varsa tetikleniyordu - Takvim kurmayan kullanicilar
+        // icin (coğunluk) tek bir uygulama eklense bile HICBIR ZAMAN engellenmiyordu.
+        // Artik kameranin gercek zamanli tespit ettigi "Calisiyor" durumu da yeterli.
+        val isStudyingNow = _uiState.value.currentState == StudyState.STUDYING
+        if (entry.studyHoursOnly && (activeSlot?.kind == SLOT_KIND_WORK || isStudyingNow)) return BlockReason.StudyHours
         return null
     }
 }
