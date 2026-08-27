@@ -25,6 +25,8 @@ import com.derscalismatakibi.app.core.StudyEngine
 import com.derscalismatakibi.app.core.StudyState
 import com.derscalismatakibi.app.core.fmtHms
 import com.derscalismatakibi.app.util.AppLogger
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
@@ -112,13 +114,12 @@ class StudyForegroundService : LifecycleService() {
                     return START_NOT_STICKY
                 }
                 acquireWakeLock()
-                // Kamera/MediaPipe analizi Calisan Sistemler'den kapatilmissa servis
-                // yine de arkaplanda kalir (konum/klavye/uygulama kilidi icin) ama
-                // kamerayi hic acmaz. NOT: manifestteki foregroundServiceType="camera"
-                // sabit oldugundan startForeground CAMERA izni istemeye devam eder.
-                if (StudyEngine.currentConfig().cameraAnalysisEnabled) {
-                    startCamera()
-                }
+                // Kamera/MediaPipe analizi baslangictaki VE sonradan Calisan Sistemler'den
+                // degistirilen degerini observeCameraAnalysisEnabled() yonetiyor - servis
+                // yine de arkaplanda kalir (konum/klavye/uygulama kilidi icin) kamera
+                // kapaliyken de. NOT: manifestteki foregroundServiceType="camera" sabit
+                // oldugundan startForeground CAMERA izni istemeye devam eder.
+                observeCameraAnalysisEnabled()
                 observeStateForNotification()
                 StudyEngine.setBackgroundTrackingActive(true)
             }
@@ -173,6 +174,42 @@ class StudyForegroundService : LifecycleService() {
         // tetiklenir, "hemen yeniden baslat" icin yeterli hassasiyet.
         alarmManager.set(android.app.AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 1000, pendingIntent)
         AppLogger.log("Servis", "Yeniden baslatma alarm'i kuruldu")
+    }
+
+    private var cameraAnalysisObserverStarted = false
+
+    /** Ayarlar > Calisan Sistemler'deki Kamera/MediaPipe Analizi anahtarini CANLI
+     * izler - servis zaten calisirken kapatilirsa kamerayi hemen soker, acilirsa
+     * baslatir. Tek seferlik onStartCommand kontrolu yeterli DEGILDI: servis
+     * calismaya devam ederken anahtar degisince kamera sokulmuyordu. */
+    private fun observeCameraAnalysisEnabled() {
+        if (cameraAnalysisObserverStarted) return
+        cameraAnalysisObserverStarted = true
+        lifecycleScope.launch {
+            StudyEngine.configState
+                .map { it.cameraAnalysisEnabled }
+                .distinctUntilChanged()
+                .collect { enabled ->
+                    if (enabled) {
+                        if (cameraProvider == null) startCamera()
+                    } else {
+                        stopCamera()
+                    }
+                }
+        }
+    }
+
+    private fun stopCamera() {
+        if (cameraProvider == null && faceLandmarkerHelper == null) return
+        cameraProvider?.unbindAll()
+        cameraProvider = null
+        faceLandmarkerHelper?.close()
+        faceLandmarkerHelper = null
+        dummySurface?.release()
+        dummySurfaceTexture?.release()
+        dummySurface = null
+        dummySurfaceTexture = null
+        AppLogger.log("Servis", "Kamera/MediaPipe analizi kapatildi (Calisan Sistemler)")
     }
 
     private fun startCamera() {

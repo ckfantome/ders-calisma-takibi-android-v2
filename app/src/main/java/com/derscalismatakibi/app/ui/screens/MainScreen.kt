@@ -1,10 +1,7 @@
 package com.derscalismatakibi.app.ui.screens
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
-import android.provider.Settings
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -29,7 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -54,9 +50,7 @@ import com.derscalismatakibi.app.core.PomodoroState
 import com.derscalismatakibi.app.core.Role
 import com.derscalismatakibi.app.core.StudyState
 import com.derscalismatakibi.app.core.fmtHms
-import com.derscalismatakibi.app.service.StudyForegroundService
 import com.derscalismatakibi.app.util.AppLogger
-import com.derscalismatakibi.app.util.BatteryOptimizationHelper
 import com.derscalismatakibi.app.viewmodel.StudyViewModel
 import java.util.concurrent.Executors
 
@@ -64,6 +58,7 @@ import java.util.concurrent.Executors
 fun MainScreen(viewModel: StudyViewModel) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
+    val cfg by viewModel.configState.collectAsState()
 
     var hasCameraPermission by remember {
         mutableStateOf(
@@ -94,11 +89,6 @@ fun MainScreen(viewModel: StudyViewModel) {
 
     val role by viewModel.role.collectAsState()
     val backgroundActive by viewModel.backgroundTrackingActive.collectAsState()
-    // Sonuc gozardi edilir (kullanici reddetse de servisi baslatiyoruz - sadece
-    // OEM tarafindan oldurulme ihtimali artmis olur, bloklayici degil).
-    val batteryOptimizationLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
-    ) { }
     var showNotesDialog by remember { mutableStateOf(false) }
     var showResetConfirm by remember { mutableStateOf(false) }
     var showResetNotesDialog by remember { mutableStateOf(false) }
@@ -125,6 +115,12 @@ fun MainScreen(viewModel: StudyViewModel) {
                         modifier = Modifier.padding(16.dp),
                     )
                 }
+                !cfg.cameraAnalysisEnabled -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        "Kamera / MediaPipe Analizi Ayarlar > Calisan Sistemler'den kapatilmis.",
+                        modifier = Modifier.padding(16.dp),
+                    )
+                }
                 hasCameraPermission -> CameraPreview(
                     useFrontCamera = viewModel.currentConfig().useFrontCamera,
                     onAnalyzed = { points, w, h -> viewModel.onFrameAnalyzed(points, w, h) },
@@ -143,78 +139,9 @@ fun MainScreen(viewModel: StudyViewModel) {
         Text(uiState.infoText, style = MaterialTheme.typography.bodySmall)
         uiState.cameraError?.let { Text("Kamera hatasi: $it", color = MaterialTheme.colorScheme.error) }
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Arkaplanda Takip", style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            if (backgroundActive) "Acik - baska uygulamalara gecince de takip devam eder."
-                            else "Kapali - uygulamadan cikinca takip durur.",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                    Switch(
-                        checked = backgroundActive,
-                        onCheckedChange = { checked ->
-                            AppLogger.log("MainScreen", "Arkaplanda Takip anahtari: $checked")
-                            if (checked) {
-                                // Android 14'te CAMERA izni yoksa foregroundServiceType="camera"
-                                // ile startForeground() SecurityException firlatir ve servis
-                                // bildirimi hic gostermeden coker - once izni garanti et.
-                                if (!hasCameraPermission) {
-                                    AppLogger.log("MainScreen", "Kamera izni yok - izin isteniyor")
-                                    viewModel.reportCameraError("Arkaplan takibi icin once kamera iznini vermen gerekiyor.")
-                                    permissionLauncher.launch(Manifest.permission.CAMERA)
-                                } else {
-                                    if (!BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)) {
-                                        try {
-                                            AppLogger.log("MainScreen", "Pil optimizasyonu izin ekrani aciliyor")
-                                            batteryOptimizationLauncher.launch(
-                                                BatteryOptimizationHelper.requestIgnoreBatteryOptimizationsIntent(context)
-                                            )
-                                        } catch (e: Exception) {
-                                            // Bazi ROM/kurumsal profillerde bu Intent'i acacak Activity
-                                            // olmayabilir - bu servisi baslatmayi ENGELLEMEMELI.
-                                            AppLogger.logError("MainScreen", "Pil optimizasyonu izin ekrani acilamadi", e)
-                                        }
-                                    }
-                                    try {
-                                        androidx.core.content.ContextCompat.startForegroundService(context, StudyForegroundService.startIntent(context))
-                                        AppLogger.log("MainScreen", "startForegroundService cagrildi")
-                                    } catch (e: Exception) {
-                                        AppLogger.logError("MainScreen", "startForegroundService cagrisi basarisiz", e)
-                                        viewModel.reportCameraError("Arkaplan servisi baslatilamadi: ${e.message}")
-                                    }
-                                }
-                            } else {
-                                AppLogger.log("MainScreen", "Durdur aksiyonu gonderiliyor")
-                                context.startService(StudyForegroundService.stopIntent(context))
-                            }
-                        },
-                    )
-                }
-                Text(
-                    "Bazı telefon markalarında (Xiaomi/MIUI, Oppo/ColorOS, Huawei/EMUI, Samsung) " +
-                        "arkaplan takibinin kesintisiz çalışması için Ayarlar > Uygulamalar > Ders " +
-                        "Çalışma Takibi > Pil/Otomatik başlatma bölümünden uygulamaya izin vermen gerekebilir.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (com.derscalismatakibi.app.util.OemAutostartHelper.isKnownRestrictiveOem()) {
-                    Button(onClick = {
-                        if (!com.derscalismatakibi.app.util.OemAutostartHelper.openAutostartSettings(context)) {
-                            context.startActivity(
-                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
-                            )
-                        }
-                    }) { Text("Otomatik Baslatma Ayarlarini Ac") }
-                }
-            }
-        }
+        // "Arkaplanda Takip" anahtari Ayarlar > Calisan Sistemler'e tasindi -
+        // buradaki kart sadece DURUMU (backgroundActive uzerinden yukarida)
+        // gosterir, kontrolu artik Ayarlar'da.
 
         Card(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -398,6 +325,12 @@ private fun CameraPreview(
     val previewView = remember { PreviewView(context) }
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
     var faceLandmarkerHelper by remember { mutableStateOf<FaceLandmarkerHelper?>(null) }
+    // cameraProvider.bindToLifecycle Activity'nin yasam dongusune baglanir, Compose'un
+    // bu composable'i kaldirmasiyla KENDILIGINDEN unbind OLMAZ - Calisan Sistemler'den
+    // Kamera/MediaPipe Analizi kapatilinca ekran degissin diye bu composable kaldirilsa
+    // bile kamera/analiz arkaplanda calismaya devam ediyordu. onDispose'ta unbindAll()
+    // ile bunu artik acikca durduruyoruz.
+    var boundCameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
 
     DisposableEffect(Unit) {
         faceLandmarkerHelper = try {
@@ -407,6 +340,7 @@ private fun CameraPreview(
             null
         }
         onDispose {
+            boundCameraProvider?.unbindAll()
             faceLandmarkerHelper?.close()
             cameraExecutor.shutdown()
         }
@@ -418,6 +352,7 @@ private fun CameraPreview(
         val helper = faceLandmarkerHelper ?: return@LaunchedEffect
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         val cameraProvider = cameraProviderFuture.get()
+        boundCameraProvider = cameraProvider
 
         val preview = Preview.Builder().build().also {
             it.setSurfaceProvider(previewView.surfaceProvider)

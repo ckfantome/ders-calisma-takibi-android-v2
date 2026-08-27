@@ -1,5 +1,7 @@
 package com.derscalismatakibi.app.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -33,11 +35,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.derscalismatakibi.app.backup.BackupScheduler
 import com.derscalismatakibi.app.core.Role
 import com.derscalismatakibi.app.core.UpdateChecker
+import com.derscalismatakibi.app.service.StudyForegroundService
 import com.derscalismatakibi.app.ui.UnknownSourcesDialog
 import com.derscalismatakibi.app.ui.UpdateAvailableDialog
+import com.derscalismatakibi.app.util.AppLogger
+import com.derscalismatakibi.app.util.BatteryOptimizationHelper
 import com.derscalismatakibi.app.util.UpdateInstaller
 import com.derscalismatakibi.app.viewmodel.StudyViewModel
 import kotlinx.coroutines.Dispatchers
@@ -66,6 +72,19 @@ fun SettingsScreen(viewModel: StudyViewModel) {
     var updateInfo by remember { mutableStateOf<UpdateChecker.UpdateInfo?>(null) }
     var showUnknownSourcesDialog by remember { mutableStateOf(false) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
+
+    // "Arkaplanda Takip" MainScreen'den buraya (Calisan Sistemler) tasindi -
+    // ayni baslatma/durdurma mantigi.
+    val backgroundActive by viewModel.backgroundTrackingActive.collectAsState()
+    var hasCameraPermission by remember {
+        mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
+    }
+    val cameraPermissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { granted -> hasCameraPermission = granted }
+    val batteryOptimizationLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { }
 
     Column(
         modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -205,6 +224,51 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                     "arkaplanda calismayi hem gunluk yedege veri eklenmesini durdurur.",
                 style = MaterialTheme.typography.bodySmall,
             )
+            SwitchRow("Arkaplanda Takip", backgroundActive, isAdmin) { checked ->
+                AppLogger.log("Ayarlar", "Arkaplanda Takip anahtari: $checked")
+                if (checked) {
+                    if (!hasCameraPermission) {
+                        AppLogger.log("Ayarlar", "Kamera izni yok - izin isteniyor")
+                        viewModel.reportCameraError("Arkaplan takibi icin once kamera iznini vermen gerekiyor.")
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    } else {
+                        if (!BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)) {
+                            try {
+                                batteryOptimizationLauncher.launch(BatteryOptimizationHelper.requestIgnoreBatteryOptimizationsIntent(context))
+                            } catch (e: Exception) {
+                                AppLogger.logError("Ayarlar", "Pil optimizasyonu izin ekrani acilamadi", e)
+                            }
+                        }
+                        try {
+                            ContextCompat.startForegroundService(context, StudyForegroundService.startIntent(context))
+                        } catch (e: Exception) {
+                            AppLogger.logError("Ayarlar", "startForegroundService cagrisi basarisiz", e)
+                            viewModel.reportCameraError("Arkaplan servisi baslatilamadi: ${e.message}")
+                        }
+                    }
+                } else {
+                    context.startService(StudyForegroundService.stopIntent(context))
+                }
+            }
+            Text(
+                "Bazi telefon markalarinda (Xiaomi/MIUI, Oppo/ColorOS, Huawei/EMUI, Samsung) arkaplan " +
+                    "takibinin kesintisiz calismasi icin Ayarlar > Uygulamalar > Ders Calisma Takibi > " +
+                    "Pil/Otomatik baslatma bolumunden uygulamaya izin vermen gerekebilir.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (com.derscalismatakibi.app.util.OemAutostartHelper.isKnownRestrictiveOem()) {
+                Button(onClick = {
+                    if (!com.derscalismatakibi.app.util.OemAutostartHelper.openAutostartSettings(context)) {
+                        context.startActivity(
+                            android.content.Intent(
+                                android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                android.net.Uri.fromParts("package", context.packageName, null),
+                            ),
+                        )
+                    }
+                }) { Text("Otomatik Baslatma Ayarlarini Ac") }
+            }
             SwitchRow("Kamera / MediaPipe Analizi (calisma tespiti)", cfg.cameraAnalysisEnabled, isAdmin) {
                 viewModel.updateConfig(cfg.copy(cameraAnalysisEnabled = it))
             }
