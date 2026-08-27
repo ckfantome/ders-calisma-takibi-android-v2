@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +43,17 @@ data class SmsEntry(val address: String, val preview: String, val date: Long)
 @Composable
 fun CallLogScreen() {
     val context = LocalContext.current
+    val cfg by com.derscalismatakibi.app.core.StudyEngine.configState.collectAsState()
+    if (!cfg.callSmsLogEnabled) {
+        Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Arama / SMS", style = MaterialTheme.typography.headlineSmall)
+            Text(
+                "Bu sistem Ayarlar > Calisan Sistemler'den kapatilmis - arama/SMS verisi okunmuyor.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        return
+    }
     var hasCallPerm by remember {
         mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED)
     }

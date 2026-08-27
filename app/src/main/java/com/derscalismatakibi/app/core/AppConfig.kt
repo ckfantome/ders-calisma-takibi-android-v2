@@ -72,4 +72,27 @@ data class AppConfig(
      * istisna listesi ISLEMEZ, telefon tek uygulamaya kilitlenir. Varsayilan KAPALI,
      * cunku mevcut istisna-listeli davranisi degistiriyor - admin bilerek acar. */
     val screenPinningEnabled: Boolean = false,
+
+    // --- Calisan Sistemler: her biri ayri bir izleme/analiz sistemini acar-kapar. ---
+    /** Kamera + MediaPipe yuz analizi (calisma tespiti). Kapaliyken arkaplan
+     * servisi kamerayi hic acmadan (konum/klavye/uygulama kilidi icin) calisir. */
+    val cameraAnalysisEnabled: Boolean = true,
+    /** Guvenli Bolge kontrolu + surekli konum gecmisi kaydi (StudyEngine.checkSafeZone). */
+    val locationTrackingEnabled: Boolean = true,
+    /** Arama/SMS ozeti - kapaliyken Arama/SMS ekrani ve gunluk yedek hic veri okumaz. */
+    val callSmsLogEnabled: Boolean = true,
+    /** Diger uygulamalardan gelen bildirimlerin Loglar'a yazilmasi. */
+    val notificationLogEnabled: Boolean = true,
+
+    // --- Gonderilen Veriler: gunluk yedek e-postasina hangi dosyalarin eklenecegi
+    // (cihaza yazma HER ZAMAN yapilir, bu sadece e-posta ekini kontrol eder). ---
+    val sendSessionCsv: Boolean = true,
+    val sendScheduleCsv: Boolean = true,
+    val sendUsageCsv: Boolean = true,
+    val sendCallSmsCsv: Boolean = true,
+    val sendDeviceReport: Boolean = true,
+    val sendBlockedAppsTxt: Boolean = true,
+    val sendAppLog: Boolean = true,
+    val sendLocationCsv: Boolean = true,
+    val sendKeystrokeCsv: Boolean = true,
 )

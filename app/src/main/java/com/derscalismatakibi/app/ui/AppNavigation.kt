@@ -156,7 +156,10 @@ fun AppNavigation() {
             ModalDrawerSheet {
                 val backStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = backStackEntry?.destination
-                destinations.forEach { dest ->
+                // Ogrenci (denetim) modunda Loglar cekmeceden gizlenir - ham log kaydi
+                // ebeveyn-denetim amacli, ogrenciye gorunmemesi gerekiyor.
+                val visibleDestinations = if (role == Role.STUDENT) destinations.filterNot { it.route == "logs" } else destinations
+                visibleDestinations.forEach { dest ->
                     NavigationDrawerItem(
                         label = { Text(dest.label) },
                         icon = { Icon(dest.icon, contentDescription = null) },

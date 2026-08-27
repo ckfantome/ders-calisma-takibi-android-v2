@@ -112,7 +112,13 @@ class StudyForegroundService : LifecycleService() {
                     return START_NOT_STICKY
                 }
                 acquireWakeLock()
-                startCamera()
+                // Kamera/MediaPipe analizi Calisan Sistemler'den kapatilmissa servis
+                // yine de arkaplanda kalir (konum/klavye/uygulama kilidi icin) ama
+                // kamerayi hic acmaz. NOT: manifestteki foregroundServiceType="camera"
+                // sabit oldugundan startForeground CAMERA izni istemeye devam eder.
+                if (StudyEngine.currentConfig().cameraAnalysisEnabled) {
+                    startCamera()
+                }
                 observeStateForNotification()
                 StudyEngine.setBackgroundTrackingActive(true)
             }
@@ -259,10 +265,14 @@ class StudyForegroundService : LifecycleService() {
     }
 
     private fun buildNotification(state: StudyState, studyingSeconds: Double, errorMessage: String? = null): Notification {
-        val stateLabel = when (state) {
-            StudyState.STUDYING -> "Calisiyor"
-            StudyState.AWAY -> "Uzakta"
-            StudyState.SLEEPING -> "Uykulu"
+        val stateLabel = if (!StudyEngine.currentConfig().cameraAnalysisEnabled) {
+            "Kamera analizi kapali"
+        } else {
+            when (state) {
+                StudyState.STUDYING -> "Calisiyor"
+                StudyState.AWAY -> "Uzakta"
+                StudyState.SLEEPING -> "Uykulu"
+            }
         }
         val contentIntent = PendingIntent.getActivity(
             this, 0,

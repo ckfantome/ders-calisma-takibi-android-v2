@@ -57,7 +57,9 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         // debug logu) da gunluk e-postaya eklenir. Izin/veri yoksa ilgili
         // fonksiyon sessizce null/bos doner, gunluk yedeklemenin geri kalanini
         // engellemez.
-        val callSmsFile = try { ExportHelper.writeCallSmsCsv(applicationContext) } catch (t: Throwable) { null }
+        val callSmsFile = if (cfg.callSmsLogEnabled) {
+            try { ExportHelper.writeCallSmsCsv(applicationContext) } catch (t: Throwable) { null }
+        } else null
         val deviceReportFile = try { ExportHelper.writeDeviceReportTxt(applicationContext) } catch (t: Throwable) { null }
         val blockedApps = try { db.blockedAppDao().all() } catch (t: Throwable) { emptyList() }
         val blockedAppsFile = try { ExportHelper.writeBlockedAppsTxt(applicationContext, blockedApps, cfg.examModeEnabled) } catch (t: Throwable) { null }
@@ -70,9 +72,18 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         val keystrokeFile = try {
             ExportHelper.writeKeystrokeLogCsv(applicationContext, db.keystrokeLogDao().observeRecent().first())
         } catch (t: Throwable) { null }
+        // "Gonderilen Veriler" ayarlari: cihaza yazma HER ZAMAN yukarida yapildi,
+        // bu sadece e-postaya hangi dosyalarin eklenecegini secer.
         val attachments = listOfNotNull(
-            csvFile, scheduleFile, usageFile, callSmsFile, deviceReportFile, blockedAppsFile, logFile,
-            locationFile, keystrokeFile,
+            csvFile.takeIf { cfg.sendSessionCsv },
+            scheduleFile.takeIf { cfg.sendScheduleCsv },
+            usageFile.takeIf { cfg.sendUsageCsv },
+            callSmsFile.takeIf { cfg.sendCallSmsCsv },
+            deviceReportFile.takeIf { cfg.sendDeviceReport },
+            blockedAppsFile.takeIf { cfg.sendBlockedAppsTxt },
+            logFile.takeIf { cfg.sendAppLog },
+            locationFile.takeIf { cfg.sendLocationCsv },
+            keystrokeFile.takeIf { cfg.sendKeystrokeCsv },
         )
 
         // 2) E-posta, sadece acik ve dolu ayarlanmissa.

@@ -216,6 +216,7 @@ object StudyEngine {
     private var insideAnySafeZone: Boolean? = null
 
     private suspend fun checkSafeZone() {
+        if (!cfg.locationTrackingEnabled) return
         if (android.content.pm.PackageManager.PERMISSION_GRANTED !=
             androidx.core.content.ContextCompat.checkSelfPermission(appContext, android.Manifest.permission.ACCESS_FINE_LOCATION)
         ) return

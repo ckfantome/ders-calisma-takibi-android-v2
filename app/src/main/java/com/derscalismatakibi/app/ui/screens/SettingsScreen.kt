@@ -74,12 +74,56 @@ fun SettingsScreen(viewModel: StudyViewModel) {
         Text("Ayarlar", style = MaterialTheme.typography.headlineSmall)
         if (!isAdmin) {
             Text(
-                "Ogrenci modundasin: ayarlar salt okunur. Degistirmek icin ust bardaki kilit ikonundan yonetici moduna gec.",
+                "Ogrenci modundasin: sistemi etkileyen ayarlarin cogu gizli. Sadece Tema/Dil/Ses/Bildirim " +
+                    "burada kaliyor - digerlerini gormek/degistirmek icin ust bardaki kilit ikonundan yonetici moduna gec.",
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
             )
         }
 
+        // Ogrenci modunda sistemi etkilemeyen bu ucu HER ZAMAN gorunur+degistirilebilir
+        // kalir (kullaniciyla netlesen karar) - geri kalan gruplarin tamami asagida
+        // isAdmin ile TAMAMEN gizlenir (salt-okunur degil, hic gorunmez).
+        SettingsGroup("Tema") {
+            val options = listOf("system" to "Sistem", "dark" to "Koyu", "light" to "Acik")
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                options.forEachIndexed { index, (value, label) ->
+                    SegmentedButton(
+                        selected = cfg.themeMode == value,
+                        onClick = { viewModel.updateConfig(cfg.copy(themeMode = value)) },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                    ) { Text(label) }
+                }
+            }
+        }
+
+        SettingsGroup("Dil / Language") {
+            val langOptions = listOf("tr" to "Turkce", "en" to "English")
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                langOptions.forEachIndexed { index, (value, label) ->
+                    SegmentedButton(
+                        selected = cfg.appLanguage == value,
+                        onClick = { viewModel.updateConfig(cfg.copy(appLanguage = value)) },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = langOptions.size),
+                    ) { Text(label) }
+                }
+            }
+            Text(
+                "Not: Sadece sistem dilini degistirir (Android 13+). Uygulama ekranlarindaki metinler henuz cevrilmedi.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+
+        SettingsGroup("Ses & Bildirim") {
+            SwitchRow("Sesli Uyari", cfg.soundEnabled, true) {
+                viewModel.updateConfig(cfg.copy(soundEnabled = it))
+            }
+            SwitchRow("Bildirimler", cfg.notificationsEnabled, true) {
+                viewModel.updateConfig(cfg.copy(notificationsEnabled = it))
+            }
+        }
+
+        if (isAdmin) {
         SettingsGroup("Tespit Esikleri") {
             LabeledSlider("Goz Kapali Esigi (EAR)", cfg.earClosedThreshold, 0.05f, 0.5f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(earClosedThreshold = it.toDouble()))
@@ -141,12 +185,6 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             SwitchRow("On Kamerayi Kullan", cfg.useFrontCamera, isAdmin) {
                 viewModel.updateConfig(cfg.copy(useFrontCamera = it))
             }
-            SwitchRow("Sesli Uyari", cfg.soundEnabled, isAdmin) {
-                viewModel.updateConfig(cfg.copy(soundEnabled = it))
-            }
-            SwitchRow("Bildirimler", cfg.notificationsEnabled, isAdmin) {
-                viewModel.updateConfig(cfg.copy(notificationsEnabled = it))
-            }
             SwitchRow("Oturum Sonunda Not Sor", cfg.sessionNotePrompt, isAdmin) {
                 viewModel.updateConfig(cfg.copy(sessionNotePrompt = it))
             }
@@ -161,36 +199,60 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             }
         }
 
-        SettingsGroup("Tema") {
-            val options = listOf("system" to "Sistem", "dark" to "Koyu", "light" to "Acik")
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                options.forEachIndexed { index, (value, label) ->
-                    SegmentedButton(
-                        selected = cfg.themeMode == value,
-                        onClick = { if (isAdmin) viewModel.updateConfig(cfg.copy(themeMode = value)) },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                        enabled = isAdmin,
-                    ) { Text(label) }
-                }
+        SettingsGroup("Calisan Sistemler") {
+            Text(
+                "Her biri ayri bir izleme/analiz sistemini acar-kapar - kapatilan sistem hem " +
+                    "arkaplanda calismayi hem gunluk yedege veri eklenmesini durdurur.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            SwitchRow("Kamera / MediaPipe Analizi (calisma tespiti)", cfg.cameraAnalysisEnabled, isAdmin) {
+                viewModel.updateConfig(cfg.copy(cameraAnalysisEnabled = it))
+            }
+            SwitchRow("Konum Takibi (Guvenli Bolge + konum gecmisi)", cfg.locationTrackingEnabled, isAdmin) {
+                viewModel.updateConfig(cfg.copy(locationTrackingEnabled = it))
+            }
+            SwitchRow("Arama/SMS Ozeti Kaydi", cfg.callSmsLogEnabled, isAdmin) {
+                viewModel.updateConfig(cfg.copy(callSmsLogEnabled = it))
+            }
+            SwitchRow("Bildirim Erisimi Kaydi", cfg.notificationLogEnabled, isAdmin) {
+                viewModel.updateConfig(cfg.copy(notificationLogEnabled = it))
             }
         }
 
-        SettingsGroup("Dil / Language") {
-            val langOptions = listOf("tr" to "Turkce", "en" to "English")
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                langOptions.forEachIndexed { index, (value, label) ->
-                    SegmentedButton(
-                        selected = cfg.appLanguage == value,
-                        onClick = { if (isAdmin) viewModel.updateConfig(cfg.copy(appLanguage = value)) },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = langOptions.size),
-                        enabled = isAdmin,
-                    ) { Text(label) }
-                }
-            }
+        SettingsGroup("Gonderilen Veriler") {
             Text(
-                "Not: Sadece sistem dilini degistirir (Android 13+). Uygulama ekranlarindaki metinler henuz cevrilmedi.",
+                "Gunluk yedek e-postasina hangi dosyalarin eklenecegini secer - cihaza yazma " +
+                    "bundan bagimsiz HER ZAMAN yapilir, bu sadece e-posta ekini kontrol eder.",
                 style = MaterialTheme.typography.bodySmall,
             )
+            SwitchRow("Calisma Oturumlari (CSV)", cfg.sendSessionCsv, isAdmin) {
+                viewModel.updateConfig(cfg.copy(sendSessionCsv = it))
+            }
+            SwitchRow("Takvim (JSON)", cfg.sendScheduleCsv, isAdmin) {
+                viewModel.updateConfig(cfg.copy(sendScheduleCsv = it))
+            }
+            SwitchRow("Uygulama Kullanimi (CSV)", cfg.sendUsageCsv, isAdmin) {
+                viewModel.updateConfig(cfg.copy(sendUsageCsv = it))
+            }
+            SwitchRow("Arama/SMS Ozeti (CSV)", cfg.sendCallSmsCsv, isAdmin) {
+                viewModel.updateConfig(cfg.copy(sendCallSmsCsv = it))
+            }
+            SwitchRow("Cihaz Raporu (TXT)", cfg.sendDeviceReport, isAdmin) {
+                viewModel.updateConfig(cfg.copy(sendDeviceReport = it))
+            }
+            SwitchRow("Uygulama Kilidi Listesi (TXT)", cfg.sendBlockedAppsTxt, isAdmin) {
+                viewModel.updateConfig(cfg.copy(sendBlockedAppsTxt = it))
+            }
+            SwitchRow("Uygulama Loglari", cfg.sendAppLog, isAdmin) {
+                viewModel.updateConfig(cfg.copy(sendAppLog = it))
+            }
+            SwitchRow("Konum Gecmisi (CSV)", cfg.sendLocationCsv, isAdmin) {
+                viewModel.updateConfig(cfg.copy(sendLocationCsv = it))
+            }
+            SwitchRow("Klavye Takibi (CSV)", cfg.sendKeystrokeCsv, isAdmin) {
+                viewModel.updateConfig(cfg.copy(sendKeystrokeCsv = it))
+            }
+        }
         }
 
         if (isAdmin) {
@@ -283,6 +345,7 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             }
         }
 
+        if (isAdmin) {
         SettingsGroup("Bildirim Erisimi") {
             val nlContext = LocalContext.current
             val enabled = androidx.core.app.NotificationManagerCompat.getEnabledListenerPackages(nlContext).contains(nlContext.packageName)
@@ -351,6 +414,7 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                 },
             ) { Text(if (checkingUpdate) "Kontrol ediliyor..." else "Guncellemeleri Kontrol Et") }
             updateCheckMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+        }
         }
 
         SettingsGroup("Gizlilik") {

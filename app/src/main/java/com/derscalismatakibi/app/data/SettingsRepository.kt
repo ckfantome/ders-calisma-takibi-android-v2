@@ -64,6 +64,19 @@ class SettingsRepository(private val context: Context) {
         val AUTO_START_ON_BOOT_ENABLED = booleanPreferencesKey("auto_start_on_boot_enabled")
         val KEEP_ALIVE_ENABLED = booleanPreferencesKey("keep_alive_enabled")
         val SCREEN_PINNING_ENABLED = booleanPreferencesKey("screen_pinning_enabled")
+        val CAMERA_ANALYSIS_ENABLED = booleanPreferencesKey("camera_analysis_enabled")
+        val LOCATION_TRACKING_ENABLED = booleanPreferencesKey("location_tracking_enabled")
+        val CALL_SMS_LOG_ENABLED = booleanPreferencesKey("call_sms_log_enabled")
+        val NOTIFICATION_LOG_ENABLED = booleanPreferencesKey("notification_log_enabled")
+        val SEND_SESSION_CSV = booleanPreferencesKey("send_session_csv")
+        val SEND_SCHEDULE_CSV = booleanPreferencesKey("send_schedule_csv")
+        val SEND_USAGE_CSV = booleanPreferencesKey("send_usage_csv")
+        val SEND_CALL_SMS_CSV = booleanPreferencesKey("send_call_sms_csv")
+        val SEND_DEVICE_REPORT = booleanPreferencesKey("send_device_report")
+        val SEND_BLOCKED_APPS_TXT = booleanPreferencesKey("send_blocked_apps_txt")
+        val SEND_APP_LOG = booleanPreferencesKey("send_app_log")
+        val SEND_LOCATION_CSV = booleanPreferencesKey("send_location_csv")
+        val SEND_KEYSTROKE_CSV = booleanPreferencesKey("send_keystroke_csv")
     }
 
     val configFlow: Flow<AppConfig> = context.dataStore.data.map { prefs ->
@@ -112,6 +125,19 @@ class SettingsRepository(private val context: Context) {
             autoStartOnBootEnabled = prefs[Keys.AUTO_START_ON_BOOT_ENABLED] ?: defaults.autoStartOnBootEnabled,
             keepAliveEnabled = prefs[Keys.KEEP_ALIVE_ENABLED] ?: defaults.keepAliveEnabled,
             screenPinningEnabled = prefs[Keys.SCREEN_PINNING_ENABLED] ?: defaults.screenPinningEnabled,
+            cameraAnalysisEnabled = prefs[Keys.CAMERA_ANALYSIS_ENABLED] ?: defaults.cameraAnalysisEnabled,
+            locationTrackingEnabled = prefs[Keys.LOCATION_TRACKING_ENABLED] ?: defaults.locationTrackingEnabled,
+            callSmsLogEnabled = prefs[Keys.CALL_SMS_LOG_ENABLED] ?: defaults.callSmsLogEnabled,
+            notificationLogEnabled = prefs[Keys.NOTIFICATION_LOG_ENABLED] ?: defaults.notificationLogEnabled,
+            sendSessionCsv = prefs[Keys.SEND_SESSION_CSV] ?: defaults.sendSessionCsv,
+            sendScheduleCsv = prefs[Keys.SEND_SCHEDULE_CSV] ?: defaults.sendScheduleCsv,
+            sendUsageCsv = prefs[Keys.SEND_USAGE_CSV] ?: defaults.sendUsageCsv,
+            sendCallSmsCsv = prefs[Keys.SEND_CALL_SMS_CSV] ?: defaults.sendCallSmsCsv,
+            sendDeviceReport = prefs[Keys.SEND_DEVICE_REPORT] ?: defaults.sendDeviceReport,
+            sendBlockedAppsTxt = prefs[Keys.SEND_BLOCKED_APPS_TXT] ?: defaults.sendBlockedAppsTxt,
+            sendAppLog = prefs[Keys.SEND_APP_LOG] ?: defaults.sendAppLog,
+            sendLocationCsv = prefs[Keys.SEND_LOCATION_CSV] ?: defaults.sendLocationCsv,
+            sendKeystrokeCsv = prefs[Keys.SEND_KEYSTROKE_CSV] ?: defaults.sendKeystrokeCsv,
         )
     }
 
@@ -160,6 +186,19 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.AUTO_START_ON_BOOT_ENABLED] = cfg.autoStartOnBootEnabled
             prefs[Keys.KEEP_ALIVE_ENABLED] = cfg.keepAliveEnabled
             prefs[Keys.SCREEN_PINNING_ENABLED] = cfg.screenPinningEnabled
+            prefs[Keys.CAMERA_ANALYSIS_ENABLED] = cfg.cameraAnalysisEnabled
+            prefs[Keys.LOCATION_TRACKING_ENABLED] = cfg.locationTrackingEnabled
+            prefs[Keys.CALL_SMS_LOG_ENABLED] = cfg.callSmsLogEnabled
+            prefs[Keys.NOTIFICATION_LOG_ENABLED] = cfg.notificationLogEnabled
+            prefs[Keys.SEND_SESSION_CSV] = cfg.sendSessionCsv
+            prefs[Keys.SEND_SCHEDULE_CSV] = cfg.sendScheduleCsv
+            prefs[Keys.SEND_USAGE_CSV] = cfg.sendUsageCsv
+            prefs[Keys.SEND_CALL_SMS_CSV] = cfg.sendCallSmsCsv
+            prefs[Keys.SEND_DEVICE_REPORT] = cfg.sendDeviceReport
+            prefs[Keys.SEND_BLOCKED_APPS_TXT] = cfg.sendBlockedAppsTxt
+            prefs[Keys.SEND_APP_LOG] = cfg.sendAppLog
+            prefs[Keys.SEND_LOCATION_CSV] = cfg.sendLocationCsv
+            prefs[Keys.SEND_KEYSTROKE_CSV] = cfg.sendKeystrokeCsv
         }
     }
 }

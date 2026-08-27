@@ -50,6 +50,7 @@ import java.util.Locale
 fun LocationScreen(viewModel: StudyViewModel) {
     val context = LocalContext.current
     val zones by viewModel.safeZones.collectAsState()
+    val cfg by viewModel.configState.collectAsState()
 
     var hasFine by remember {
         mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
@@ -87,6 +88,16 @@ fun LocationScreen(viewModel: StudyViewModel) {
     ) {
         item {
             Text("Konum", style = MaterialTheme.typography.headlineSmall)
+        }
+        if (!cfg.locationTrackingEnabled) {
+            item {
+                Text(
+                    "Konum Takibi Ayarlar > Calisan Sistemler'den kapatilmis - Guvenli Bolge " +
+                        "kontrolu ve konum gecmisi kaydi yapilmiyor (asagidaki anlik konum sadece bu ekran acikken calisir).",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
         }
 
         // ONEMLI: burada 'return@Column'/'return@item' KULLANILMAZ - Compose'un
