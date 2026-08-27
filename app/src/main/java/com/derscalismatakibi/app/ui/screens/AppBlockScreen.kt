@@ -1,6 +1,7 @@
 package com.derscalismatakibi.app.ui.screens
 
 import android.content.Intent
+import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -113,6 +114,21 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
                         )
                         Button(onClick = { context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }) {
                             Text("Ayarlara Git")
+                        }
+                        if (com.derscalismatakibi.app.util.OemAutostartHelper.isKnownRestrictiveOem()) {
+                            Text(
+                                "Bu telefon markasinda (Oppo/Xiaomi/Huawei/Vivo) izin acik olsa bile " +
+                                    "sistem servisi zamanla kapatabiliyor - asagidan Otomatik Baslatma " +
+                                    "listesine de eklemen gerekiyor.",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                            Button(onClick = {
+                                if (!com.derscalismatakibi.app.util.OemAutostartHelper.openAutostartSettings(context)) {
+                                    context.startActivity(
+                                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
+                                    )
+                                }
+                            }) { Text("Otomatik Baslatma Ayarlarini Ac") }
                         }
                     }
                 }
@@ -260,12 +276,5 @@ private fun BlockedAppRow(entry: BlockedAppEntity, isAdmin: Boolean, onRemove: (
     }
 }
 
-/** UsageStatsHelper.hasUsageAccess'in erisilebilirlik karsiligi - Settings.Secure
- * uzerinden servis ID'sinin etkin listede olup olmadigini kontrol eder. */
-private fun isAccessibilityServiceEnabled(context: android.content.Context): Boolean {
-    // ENABLED_ACCESSIBILITY_SERVICES tam ComponentName.flattenToString() tutar
-    // (paket/tam.sinif.Adi) - manifestteki "." kisayolu burda GECERSIZ, hep false donuyordu.
-    val expected = android.content.ComponentName(context, com.derscalismatakibi.app.service.AppBlockAccessibilityService::class.java).flattenToString()
-    val enabled = Settings.Secure.getString(context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES) ?: return false
-    return enabled.split(':').any { it.equals(expected, ignoreCase = true) }
-}
+private fun isAccessibilityServiceEnabled(context: android.content.Context): Boolean =
+    com.derscalismatakibi.app.util.AccessibilityHelper.isAppBlockServiceEnabled(context)

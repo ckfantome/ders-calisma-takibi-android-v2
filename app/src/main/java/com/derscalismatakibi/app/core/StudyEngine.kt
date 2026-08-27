@@ -183,7 +183,33 @@ object StudyEngine {
             while (true) {
                 delay(30_000)
                 checkSafeZone()
+                checkExamModeAccessibility()
             }
+        }
+    }
+
+    private var examModeAccessibilityBroken: Boolean? = null
+
+    /** Sinav/Odev Modu acikken Erisilebilirlik Servisi (Uygulama Kilidi'ni
+     * uygulayan servis) kapaliysa engelleme SESSIZCE calismiyor demektir - bu
+     * OPPO/ColorOS gibi OEM'lerin izni kendiliginden geri almasinin bilinen bir
+     * sonucu. Durum degisince (once calisirken kapanmis / tekrar acilmis) ebeveyne
+     * bildirim+e-posta ile haber verilir, aksi halde fark edilmeden gecebilir. */
+    private suspend fun checkExamModeAccessibility() {
+        if (!cfg.examModeEnabled) {
+            examModeAccessibilityBroken = null
+            return
+        }
+        val broken = !com.derscalismatakibi.app.util.AccessibilityHelper.isAppBlockServiceEnabled(appContext)
+        if (broken == examModeAccessibilityBroken) return
+        examModeAccessibilityBroken = broken
+        if (broken) {
+            val msg = "Sinav/Odev Modu acik ama Erisilebilirlik izni kapali - uygulama engelleme su an CALISMIYOR."
+            AppLogger.log("UygulamaKilidi", msg)
+            notificationHelper.notify("Uygulama Kilidi Devre Disi", msg, cfg.notificationsEnabled)
+            sendInstantAlertEmail("Uygulama Kilidi Devre Disi Kaldi", msg)
+        } else {
+            AppLogger.log("UygulamaKilidi", "Erisilebilirlik izni tekrar acik - engelleme calisiyor")
         }
     }
 

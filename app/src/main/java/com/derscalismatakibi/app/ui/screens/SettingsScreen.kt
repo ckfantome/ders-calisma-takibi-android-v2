@@ -153,6 +153,12 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             SwitchRow("Konusurken 'Uzakta' Sayilsin", cfg.speakingCountsAsAway, isAdmin) {
                 viewModel.updateConfig(cfg.copy(speakingCountsAsAway = it))
             }
+            SwitchRow("Cihaz Yeniden Baslayinca Otomatik Baslat", cfg.autoStartOnBootEnabled, isAdmin) {
+                viewModel.updateConfig(cfg.copy(autoStartOnBootEnabled = it))
+            }
+            SwitchRow("Kapatilinca Otomatik Yeniden Baslat (Surekli Acik Kal)", cfg.keepAliveEnabled, isAdmin) {
+                viewModel.updateConfig(cfg.copy(keepAliveEnabled = it))
+            }
         }
 
         SettingsGroup("Tema") {

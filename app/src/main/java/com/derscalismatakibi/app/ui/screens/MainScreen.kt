@@ -3,6 +3,8 @@ package com.derscalismatakibi.app.ui.screens
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -202,6 +204,15 @@ fun MainScreen(viewModel: StudyViewModel) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (com.derscalismatakibi.app.util.OemAutostartHelper.isKnownRestrictiveOem()) {
+                    Button(onClick = {
+                        if (!com.derscalismatakibi.app.util.OemAutostartHelper.openAutostartSettings(context)) {
+                            context.startActivity(
+                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
+                            )
+                        }
+                    }) { Text("Otomatik Baslatma Ayarlarini Ac") }
+                }
             }
         }
 

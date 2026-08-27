@@ -139,13 +139,34 @@ class StudyForegroundService : LifecycleService() {
     }
 
     /** Kullanici uygulamayi Son Kullanilanlar'dan kaydirinca cagrilir (OEM pil
-     * yoneticilerinin servisi tamamen oldurdugu en yaygin senaryo). Kendi
-     * kendini AlarmManager ile yeniden baslatmiyoruz (bkz. plan notu) - sadece
-     * UI'in en azindan temiz/dogru bir durum gozlemlemesini sagliyoruz. */
+     * yoneticilerinin servisi tamamen oldurdugu en yaygin senaryo). "Surekli
+     * Acik Kalma" (AppConfig.keepAliveEnabled) aciksa VE takip gercekten aktifken
+     * kaldirildiysa (kullanici "Durdur"a basmadan kapatmaya calistiysa), servisi
+     * kendi surecimiz olmeden once AlarmManager ile gecikmeli yeniden baslatiyoruz -
+     * dogrudan burada startForegroundService cagirmak surec ayni anda oldugu icin
+     * guvenilir degil, ayri bir Receiver'i tetiklemek OEM kill sonrasinda da calisir. */
     override fun onTaskRemoved(rootIntent: Intent?) {
         AppLogger.log("Servis", "onTaskRemoved (uygulama Son Kullanilanlar'dan kaldirildi)")
+        val wasActive = StudyEngine.backgroundTrackingActive.value
         StudyEngine.setBackgroundTrackingActive(false)
+        if (wasActive && StudyEngine.currentConfig().keepAliveEnabled) {
+            scheduleRestart()
+        }
         super.onTaskRemoved(rootIntent)
+    }
+
+    private fun scheduleRestart() {
+        val restartIntent = Intent(applicationContext, BootAndRestartReceiver::class.java)
+            .setAction(BootAndRestartReceiver.ACTION_RESTART_SERVICE)
+        val pendingIntent = PendingIntent.getBroadcast(
+            applicationContext, 0, restartIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as? android.app.AlarmManager ?: return
+        // ponytail: inexact set() - SCHEDULE_EXACT_ALARM izni istemeden ~1sn ici
+        // tetiklenir, "hemen yeniden baslat" icin yeterli hassasiyet.
+        alarmManager.set(android.app.AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 1000, pendingIntent)
+        AppLogger.log("Servis", "Yeniden baslatma alarm'i kuruldu")
     }
 
     private fun startCamera() {

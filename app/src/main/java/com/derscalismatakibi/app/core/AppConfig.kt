@@ -60,4 +60,11 @@ data class AppConfig(
      * cunku "ekran icerigini okumaz" garantisini degistirir; acildiginda KVKK
      * onayi yeniden istenir (bkz. PrivacyConsent.VERSION). Sifre alanlari HARIC tutulur. */
     val keyboardTrackingEnabled: Boolean = false,
+    /** Cihaz yeniden baslayinca (reboot) arkaplan takip servisini kamera izni
+     * varsa sessizce yeniden baslatir (bkz. service/BootAndRestartReceiver.kt). */
+    val autoStartOnBootEnabled: Boolean = true,
+    /** Uygulama Son Kullanilanlar'dan kaldirilinca (kaydirilarak kapatilinca)
+     * servisin kendini yeniden baslatmasi - ebeveyn-denetim takibinin cocuk
+     * tarafindan kolayca kapatilmasini zorlastirir. */
+    val keepAliveEnabled: Boolean = true,
 )

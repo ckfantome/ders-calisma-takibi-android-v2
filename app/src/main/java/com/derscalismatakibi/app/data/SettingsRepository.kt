@@ -61,6 +61,8 @@ class SettingsRepository(private val context: Context) {
         val EXAM_MODE_ENABLED = booleanPreferencesKey("exam_mode_enabled")
         val EXAM_ALLOWED_PACKAGES = stringPreferencesKey("exam_allowed_packages")
         val KEYBOARD_TRACKING_ENABLED = booleanPreferencesKey("keyboard_tracking_enabled")
+        val AUTO_START_ON_BOOT_ENABLED = booleanPreferencesKey("auto_start_on_boot_enabled")
+        val KEEP_ALIVE_ENABLED = booleanPreferencesKey("keep_alive_enabled")
     }
 
     val configFlow: Flow<AppConfig> = context.dataStore.data.map { prefs ->
@@ -106,6 +108,8 @@ class SettingsRepository(private val context: Context) {
             examModeEnabled = prefs[Keys.EXAM_MODE_ENABLED] ?: defaults.examModeEnabled,
             examAllowedPackages = prefs[Keys.EXAM_ALLOWED_PACKAGES] ?: defaults.examAllowedPackages,
             keyboardTrackingEnabled = prefs[Keys.KEYBOARD_TRACKING_ENABLED] ?: defaults.keyboardTrackingEnabled,
+            autoStartOnBootEnabled = prefs[Keys.AUTO_START_ON_BOOT_ENABLED] ?: defaults.autoStartOnBootEnabled,
+            keepAliveEnabled = prefs[Keys.KEEP_ALIVE_ENABLED] ?: defaults.keepAliveEnabled,
         )
     }
 
@@ -151,6 +155,8 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.EXAM_MODE_ENABLED] = cfg.examModeEnabled
             prefs[Keys.EXAM_ALLOWED_PACKAGES] = cfg.examAllowedPackages
             prefs[Keys.KEYBOARD_TRACKING_ENABLED] = cfg.keyboardTrackingEnabled
+            prefs[Keys.AUTO_START_ON_BOOT_ENABLED] = cfg.autoStartOnBootEnabled
+            prefs[Keys.KEEP_ALIVE_ENABLED] = cfg.keepAliveEnabled
         }
     }
 }
