@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Su an ozel bir politika (parola/wipe) kullanilmiyor - tek amac, aktifken
+     kullanicinin uygulamayi once Ayarlar > Cihaz Yoneticileri'nden kapatmadan
+     kaldiramamasi (Android'in tum Cihaz Yoneticisi uygulamalarinda otomatik
+     sagladigi kaldirma sürtünmesi). Ileride Device Owner'a yukseltilirse
+     ayni receiver kullanilir. -->
+<device-admin xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-policies />
+</device-admin>

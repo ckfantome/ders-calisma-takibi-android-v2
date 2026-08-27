@@ -298,6 +298,31 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             }
         }
 
+        SettingsGroup("Cihaz Yoneticisi") {
+            val dpmContext = LocalContext.current
+            val dpm = dpmContext.getSystemService(android.app.admin.DevicePolicyManager::class.java)
+            val adminComponent = android.content.ComponentName(dpmContext, com.derscalismatakibi.app.service.StudyDeviceAdminReceiver::class.java)
+            val isAdminActive = dpm?.isAdminActive(adminComponent) == true
+            Text(
+                if (isAdminActive) "Aktif - uygulama, once bu izin Ayarlar'dan kapatilmadan kaldirilamaz."
+                else "Kapali - aktif edilirse uygulamayi kaldirmadan once bu izni Ayarlar'dan kapatman gerekir (ekstra korumal).",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (!isAdminActive && isAdmin) {
+                Button(onClick = {
+                    dpmContext.startActivity(
+                        android.content.Intent(android.app.admin.DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
+                            putExtra(android.app.admin.DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponent)
+                            putExtra(
+                                android.app.admin.DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+                                "Ders Calisma Takibi'nin ebeveyn-denetim ayarlarindan kolayca kaldirilmamasi icin.",
+                            )
+                        },
+                    )
+                }) { Text("Etkinlestir") }
+            }
+        }
+
         SettingsGroup("Guncelleme") {
             Text(
                 "Uygulama GitHub uzerinden dagitiliyor (Play Store degil). Yeni bir surum " +

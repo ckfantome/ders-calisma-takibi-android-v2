@@ -93,6 +93,18 @@
             </intent-filter>
         </receiver>
 
+        <!-- Cihaz Yoneticisi: kullanici Ayarlar ekranindan acikca aktif eder
+             (ACTION_ADD_DEVICE_ADMIN), adb/fabrika sifirlama GEREKMEZ. -->
+        <receiver
+            android:name=".service.StudyDeviceAdminReceiver"
+            android:exported="true"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data android:name="android.app.device_admin" android:resource="@xml/device_admin" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
+
         <!-- Bildirim log - ozel izin, kullanici Ayarlar > Bildirim erisimi'nden
              acikca vermeli (Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS). -->
         <service
