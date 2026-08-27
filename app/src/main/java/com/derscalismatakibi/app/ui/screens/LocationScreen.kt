@@ -205,7 +205,7 @@ private fun SafeZoneCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(distanceText, style = MaterialTheme.typography.bodyMedium)
+                Text(distanceText, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                 Switch(checked = zone.enabled, onCheckedChange = { onSave(zone.copy(enabled = it)) })
             }
             OutlinedTextField(value = nameText, onValueChange = { nameText = it }, label = { Text("Bolge Adi") })

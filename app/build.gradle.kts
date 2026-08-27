@@ -26,8 +26,8 @@ android {
         // bagimliliklar - Compose/CameraX/OpenCV - zaten API 21'i destekliyor).
         minSdk = 24
         targetSdk = 34
-        versionCode = 38
-        versionName = "0.38.0"
+        versionCode = 39
+        versionName = "0.39.0"
 
         // Buyuk assetler (yuz landmark modeli) sikistirilmadan paketlensin -
         // aksi halde MediaPipe calisirken asset'i acmakta sorun yasayabilir.
