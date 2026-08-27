@@ -59,9 +59,36 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
     }
 }
 
+/** v4 -> v5: `safe_zones` (birden fazla Guvenli Bolge) ve `location_logs`
+ * (surekli konum gecmisi - gunluk yedek e-postasina "sadece anlik degil tum
+ * konum" eklenebilsin diye) tablolari eklendi. */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `safe_zones` (" +
+                "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`name` TEXT NOT NULL, " +
+                "`lat` REAL NOT NULL, " +
+                "`lng` REAL NOT NULL, " +
+                "`radius_meters` REAL NOT NULL, " +
+                "`enabled` INTEGER NOT NULL)"
+        )
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `location_logs` (" +
+                "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`lat` REAL NOT NULL, " +
+                "`lng` REAL NOT NULL, " +
+                "`timestamp` INTEGER NOT NULL)"
+        )
+    }
+}
+
 @Database(
-    entities = [SessionEntity::class, ScheduleSlotEntity::class, BlockedAppEntity::class, KeystrokeLogEntity::class],
-    version = 4,
+    entities = [
+        SessionEntity::class, ScheduleSlotEntity::class, BlockedAppEntity::class,
+        KeystrokeLogEntity::class, SafeZoneEntity::class, LocationLogEntity::class,
+    ],
+    version = 5,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -69,6 +96,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun scheduleDao(): ScheduleDao
     abstract fun blockedAppDao(): BlockedAppDao
     abstract fun keystrokeLogDao(): KeystrokeLogDao
+    abstract fun safeZoneDao(): SafeZoneDao
+    abstract fun locationLogDao(): LocationLogDao
 
     companion object {
         @Volatile
@@ -81,7 +110,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "study_tracker.db",
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .build().also { INSTANCE = it }
             }
         }

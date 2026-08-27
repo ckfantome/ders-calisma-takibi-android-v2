@@ -3,6 +3,7 @@ package com.derscalismatakibi.app.core
 import android.content.Context
 import com.derscalismatakibi.app.data.AppDatabase
 import com.derscalismatakibi.app.data.DailyTotal
+import com.derscalismatakibi.app.data.LocationLogEntity
 import com.derscalismatakibi.app.data.ScheduleSlotEntity
 import com.derscalismatakibi.app.data.SessionEntity
 import com.derscalismatakibi.app.data.SettingsRepository
@@ -99,6 +100,9 @@ object StudyEngine {
     lateinit var blockedApps: StateFlow<List<com.derscalismatakibi.app.data.BlockedAppEntity>>
         private set
 
+    lateinit var safeZones: StateFlow<List<com.derscalismatakibi.app.data.SafeZoneEntity>>
+        private set
+
     private val _scheduleTrackingEnabled = MutableStateFlow(false)
     val scheduleTrackingEnabled: StateFlow<Boolean> = _scheduleTrackingEnabled.asStateFlow()
 
@@ -135,6 +139,7 @@ object StudyEngine {
         configState = settingsRepository.configFlow.stateIn(engineScope, SharingStarted.Eagerly, AppConfig())
         scheduleSlots = db.scheduleDao().observeAll().stateIn(engineScope, SharingStarted.Eagerly, emptyList())
         blockedApps = db.blockedAppDao().observeAll().stateIn(engineScope, SharingStarted.Eagerly, emptyList())
+        safeZones = db.safeZoneDao().observeAll().stateIn(engineScope, SharingStarted.Eagerly, emptyList())
 
         engineScope.launch {
             settingsRepository.configFlow.collect { newCfg ->
@@ -182,10 +187,9 @@ object StudyEngine {
         }
     }
 
-    private var insideSafeZone: Boolean? = null
+    private var insideAnySafeZone: Boolean? = null
 
-    private fun checkSafeZone() {
-        if (!cfg.safeZoneEnabled) return
+    private suspend fun checkSafeZone() {
         if (android.content.pm.PackageManager.PERMISSION_GRANTED !=
             androidx.core.content.ContextCompat.checkSelfPermission(appContext, android.Manifest.permission.ACCESS_FINE_LOCATION)
         ) return
@@ -193,13 +197,29 @@ object StudyEngine {
         val loc = try {
             lm.getProviders(true).firstNotNullOfOrNull { lm.getLastKnownLocation(it) }
         } catch (_: SecurityException) { null } ?: return
-        val distance = com.derscalismatakibi.app.util.LocationHelper.distanceMeters(
-            loc.latitude, loc.longitude, cfg.safeZoneLat, cfg.safeZoneLng,
-        )
-        val inside = distance <= cfg.safeZoneRadiusMeters
-        if (inside == insideSafeZone) return
-        insideSafeZone = inside
-        val msg = if (inside) "Guvenli bolgeye girildi" else "Guvenli bolgeden cikildi - ${distance.toInt()}m uzakta"
+
+        // "Sadece anlik degil, surekli degisen TUM konum" gunluk yedek e-postasina
+        // eklenebilsin diye HER kontrolde (30sn'de bir) konum gecmisine yazilir -
+        // Guvenli Bolge tanimli olup olmadigina bakilmaksizin.
+        try {
+            db.locationLogDao().insert(LocationLogEntity(lat = loc.latitude, lng = loc.longitude, timestamp = System.currentTimeMillis()))
+            db.locationLogDao().trimToRecent()
+        } catch (t: Throwable) {
+            AppLogger.logError("Konum", "Konum gecmisi yazilamadi", t)
+        }
+
+        val zones = try { db.safeZoneDao().all().filter { it.enabled } } catch (t: Throwable) { emptyList() }
+        if (zones.isEmpty()) return
+        val nearest = zones.minByOrNull {
+            com.derscalismatakibi.app.util.LocationHelper.distanceMeters(loc.latitude, loc.longitude, it.lat, it.lng)
+        }
+        val inside = zones.any {
+            com.derscalismatakibi.app.util.LocationHelper.distanceMeters(loc.latitude, loc.longitude, it.lat, it.lng) <= it.radiusMeters
+        }
+        if (inside == insideAnySafeZone) return
+        insideAnySafeZone = inside
+        val distance = nearest?.let { com.derscalismatakibi.app.util.LocationHelper.distanceMeters(loc.latitude, loc.longitude, it.lat, it.lng) }
+        val msg = if (inside) "Guvenli bolgeye girildi" else "Guvenli bolgeden cikildi" + (distance?.let { " - ${it.toInt()}m uzakta (en yakin: ${nearest.name})" } ?: "")
         AppLogger.log("Konum", msg)
         notificationHelper.notify("Guvenli Bolge", msg, cfg.notificationsEnabled)
         if (!inside) sendInstantAlertEmail("Guvenli Bolge Disinda", msg)
@@ -307,6 +327,22 @@ object StudyEngine {
     fun deleteBlockedApp(entity: com.derscalismatakibi.app.data.BlockedAppEntity) {
         AppLogger.log("UygulamaKilidi", "Kaldirildi: ${entity.packageName}")
         engineScope.launch { db.blockedAppDao().delete(entity) }
+    }
+
+    fun addSafeZone(name: String, lat: Double, lng: Double, radiusMeters: Double) {
+        AppLogger.log("Konum", "Guvenli bolge eklendi: $name")
+        engineScope.launch {
+            db.safeZoneDao().insert(com.derscalismatakibi.app.data.SafeZoneEntity(name = name, lat = lat, lng = lng, radiusMeters = radiusMeters))
+        }
+    }
+
+    fun updateSafeZone(zone: com.derscalismatakibi.app.data.SafeZoneEntity) {
+        engineScope.launch { db.safeZoneDao().update(zone) }
+    }
+
+    fun deleteSafeZone(zone: com.derscalismatakibi.app.data.SafeZoneEntity) {
+        AppLogger.log("Konum", "Guvenli bolge silindi: ${zone.name}")
+        engineScope.launch { db.safeZoneDao().delete(zone) }
     }
 
     fun todaysScheduleSummary(): String {

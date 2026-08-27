@@ -58,11 +58,7 @@ class SettingsRepository(private val context: Context) {
         val PRIVACY_CONSENT_ACCEPTED = booleanPreferencesKey("privacy_consent_accepted")
         val PRIVACY_CONSENT_VERSION = intPreferencesKey("privacy_consent_version")
         val PRIVACY_CONSENT_TIMESTAMP = longPreferencesKey("privacy_consent_timestamp")
-        val SAFE_ZONE_ENABLED = booleanPreferencesKey("safe_zone_enabled")
         val EXAM_MODE_ENABLED = booleanPreferencesKey("exam_mode_enabled")
-        val SAFE_ZONE_LAT = doublePreferencesKey("safe_zone_lat")
-        val SAFE_ZONE_LNG = doublePreferencesKey("safe_zone_lng")
-        val SAFE_ZONE_RADIUS = doublePreferencesKey("safe_zone_radius_meters")
         val EXAM_ALLOWED_PACKAGES = stringPreferencesKey("exam_allowed_packages")
         val KEYBOARD_TRACKING_ENABLED = booleanPreferencesKey("keyboard_tracking_enabled")
     }
@@ -107,13 +103,9 @@ class SettingsRepository(private val context: Context) {
             privacyConsentAccepted = prefs[Keys.PRIVACY_CONSENT_ACCEPTED] ?: defaults.privacyConsentAccepted,
             privacyConsentVersion = prefs[Keys.PRIVACY_CONSENT_VERSION] ?: defaults.privacyConsentVersion,
             privacyConsentTimestamp = prefs[Keys.PRIVACY_CONSENT_TIMESTAMP] ?: defaults.privacyConsentTimestamp,
-            safeZoneEnabled = prefs[Keys.SAFE_ZONE_ENABLED] ?: defaults.safeZoneEnabled,
             examModeEnabled = prefs[Keys.EXAM_MODE_ENABLED] ?: defaults.examModeEnabled,
             examAllowedPackages = prefs[Keys.EXAM_ALLOWED_PACKAGES] ?: defaults.examAllowedPackages,
             keyboardTrackingEnabled = prefs[Keys.KEYBOARD_TRACKING_ENABLED] ?: defaults.keyboardTrackingEnabled,
-            safeZoneLat = prefs[Keys.SAFE_ZONE_LAT] ?: defaults.safeZoneLat,
-            safeZoneLng = prefs[Keys.SAFE_ZONE_LNG] ?: defaults.safeZoneLng,
-            safeZoneRadiusMeters = prefs[Keys.SAFE_ZONE_RADIUS] ?: defaults.safeZoneRadiusMeters,
         )
     }
 
@@ -156,13 +148,9 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.PRIVACY_CONSENT_ACCEPTED] = cfg.privacyConsentAccepted
             prefs[Keys.PRIVACY_CONSENT_VERSION] = cfg.privacyConsentVersion
             prefs[Keys.PRIVACY_CONSENT_TIMESTAMP] = cfg.privacyConsentTimestamp
-            prefs[Keys.SAFE_ZONE_ENABLED] = cfg.safeZoneEnabled
             prefs[Keys.EXAM_MODE_ENABLED] = cfg.examModeEnabled
             prefs[Keys.EXAM_ALLOWED_PACKAGES] = cfg.examAllowedPackages
             prefs[Keys.KEYBOARD_TRACKING_ENABLED] = cfg.keyboardTrackingEnabled
-            prefs[Keys.SAFE_ZONE_LAT] = cfg.safeZoneLat
-            prefs[Keys.SAFE_ZONE_LNG] = cfg.safeZoneLng
-            prefs[Keys.SAFE_ZONE_RADIUS] = cfg.safeZoneRadiusMeters
         }
     }
 }

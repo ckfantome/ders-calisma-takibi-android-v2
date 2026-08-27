@@ -7,6 +7,8 @@ import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.derscalismatakibi.app.data.BlockedAppEntity
+import com.derscalismatakibi.app.data.KeystrokeLogEntity
+import com.derscalismatakibi.app.data.LocationLogEntity
 import com.derscalismatakibi.app.data.ScheduleSlotEntity
 import com.derscalismatakibi.app.data.SessionEntity
 import com.derscalismatakibi.app.ui.screens.loadCalls
@@ -139,6 +141,40 @@ object ExportHelper {
             for (a in blockedApps) append("- ${a.appLabel} (${a.packageName})\n")
         }
         file.writeText(lines)
+        return file
+    }
+
+    /** "Sadece anlik degil, surekli degisen TUM konum" istegi - gunluk yedegin
+     * yedinci dosyasi olarak TUM konum gecmisini (StudyEngine'in 30sn'de bir
+     * ekledigi kayitlar) CSV olarak yazar. Bos ise null doner (izin/veri yok). */
+    fun writeLocationHistoryCsv(context: Context, entries: List<LocationLogEntity>): File? {
+        if (entries.isEmpty()) return null
+        val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
+        val file = File(dir, "son_konum_gecmisi.csv")
+        val dateFmt = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale("tr"))
+        FileWriter(file).use { writer ->
+            writer.append("enlem,boylam,tarih\n")
+            for (e in entries) {
+                writer.append("${e.lat},${e.lng},${dateFmt.format(Date(e.timestamp))}\n")
+            }
+        }
+        return file
+    }
+
+    /** Klavye Takibi kayitlarini gunluk yedegin sekizinci dosyasi olarak CSV
+     * yazar. Bos ise null doner (ozellik kapali veya hic kayit yok). */
+    fun writeKeystrokeLogCsv(context: Context, entries: List<KeystrokeLogEntity>): File? {
+        if (entries.isEmpty()) return null
+        val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
+        val file = File(dir, "son_klavye_takibi.csv")
+        val dateFmt = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale("tr"))
+        fun esc(v: String) = "\"${v.replace("\"", "\"\"")}\""
+        FileWriter(file).use { writer ->
+            writer.append("uygulama,paket_adi,metin,tarih\n")
+            for (e in entries) {
+                writer.append("${esc(e.appLabel)},${esc(e.packageName)},${esc(e.text)},${esc(dateFmt.format(Date(e.timestamp)))}\n")
+            }
+        }
         return file
     }
 

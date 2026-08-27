@@ -29,6 +29,7 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
     val role: StateFlow<Role> get() = StudyEngine.role
     val scheduleSlots: StateFlow<List<ScheduleSlotEntity>> get() = StudyEngine.scheduleSlots
     val blockedApps: StateFlow<List<com.derscalismatakibi.app.data.BlockedAppEntity>> get() = StudyEngine.blockedApps
+    val safeZones: StateFlow<List<com.derscalismatakibi.app.data.SafeZoneEntity>> get() = StudyEngine.safeZones
     val scheduleTrackingEnabled: StateFlow<Boolean> get() = StudyEngine.scheduleTrackingEnabled
     val backgroundTrackingActive: StateFlow<Boolean> get() = StudyEngine.backgroundTrackingActive
 
@@ -44,6 +45,9 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
     fun addBlockedApp(packageName: String, appLabel: String, dailyLimitMinutes: Int?, studyHoursOnly: Boolean) =
         StudyEngine.addBlockedApp(packageName, appLabel, dailyLimitMinutes, studyHoursOnly)
     fun deleteBlockedApp(entity: com.derscalismatakibi.app.data.BlockedAppEntity) = StudyEngine.deleteBlockedApp(entity)
+    fun addSafeZone(name: String, lat: Double, lng: Double, radiusMeters: Double) = StudyEngine.addSafeZone(name, lat, lng, radiusMeters)
+    fun updateSafeZone(zone: com.derscalismatakibi.app.data.SafeZoneEntity) = StudyEngine.updateSafeZone(zone)
+    fun deleteSafeZone(zone: com.derscalismatakibi.app.data.SafeZoneEntity) = StudyEngine.deleteSafeZone(zone)
     fun todaysScheduleSummary(): String = StudyEngine.todaysScheduleSummary()
     fun startScheduleTracking() = StudyEngine.startScheduleTracking()
     fun stopScheduleTracking() = StudyEngine.stopScheduleTracking()

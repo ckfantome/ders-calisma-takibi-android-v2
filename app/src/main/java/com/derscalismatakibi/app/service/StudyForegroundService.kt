@@ -62,13 +62,6 @@ class StudyForegroundService : LifecycleService() {
     private var dummySurface: Surface? = null
     private var wakeLock: PowerManager.WakeLock? = null
 
-    // TESHIS AMACLI (gecici): kamera donanimindan GERCEKTEN kare gelip gelmedigini
-    // dogrudan olcuyor - StudyEngine/MediaPipe mantigindan bagimsiz en alt seviye
-    // kontrol noktasi. Bildirimde "K:<sayi>" olarak gorunur; arka planda artmaya
-    // devam ediyorsa sorun kamerada degil ustteki mantiktadir, artmiyorsa sorun
-    // kameranin kendisinde/donanim-seviyesindedir.
-    private val frameCount = AtomicInteger(0)
-    private var lastFrameNotifyMs = 0L
     private val errorCount = AtomicInteger(0)
     private var lastErrorMessage: String? = null
     private var lastNotifiedState: StudyState? = null
@@ -108,7 +101,7 @@ class StudyForegroundService : LifecycleService() {
                     // henuz onaylamadan anahtari actiysa) foregroundServiceType="camera"
                     // ile bu cagri SecurityException/IllegalStateException firlatir ve
                     // servis bildirim hic gorunmeden coker - bunu artik gorunur kiliyoruz.
-                    startForeground(NOTIF_ID, buildNotification(StudyState.AWAY, 0.0, 0))
+                    startForeground(NOTIF_ID, buildNotification(StudyState.AWAY, 0.0))
                     AppLogger.log("Servis", "startForeground basarili")
                 } catch (t: Throwable) {
                     AppLogger.logError("Servis", "startForeground basarisiz", t)
@@ -178,8 +171,7 @@ class StudyForegroundService : LifecycleService() {
                 CameraAnalyzer(
                     helper,
                     onResult = { points, w, h -> StudyEngine.onFrameAnalyzed(points, w, h) },
-                    onError = ::onDiagnosticFrameError,
-                    onFrameReceived = ::onDiagnosticFrameReceived,
+                    onError = ::onCameraFrameError,
                 ),
             )
             val selector = if (StudyEngine.currentConfig().useFrontCamera) {
@@ -229,39 +221,23 @@ class StudyForegroundService : LifecycleService() {
                     null
                 }
                 val manager = getSystemService(NotificationManager::class.java)
-                manager?.notify(NOTIF_ID, buildNotification(state.currentState, state.studyingSeconds, frameCount.get(), lastErrorMessage))
+                manager?.notify(NOTIF_ID, buildNotification(state.currentState, state.studyingSeconds, lastErrorMessage))
             }
         }
     }
 
-    /** TESHIS AMACLI (gecici): CameraAnalyzer'in her cagrilisinda tetiklenir (StudyEngine'e
-     * hic ugramadan) - kamera donanimindan kare gelip gelmedigini dogrudan gosterir.
-     * Bildirimi saniyede birden fazla guncellemeyi onlemek icin kaba bir throttle var. */
-    private fun onDiagnosticFrameReceived() {
-        val n = frameCount.incrementAndGet()
-        val now = System.currentTimeMillis()
-        if (now - lastFrameNotifyMs < 1000) return
-        lastFrameNotifyMs = now
-        AppLogger.log("Kare", "K=$n")
-        val manager = getSystemService(NotificationManager::class.java)
-        val current = StudyEngine.uiState.value
-        manager?.notify(NOTIF_ID, buildNotification(current.currentState, current.studyingSeconds, n, lastErrorMessage))
-    }
-
-    /** TESHIS AMACLI (gecici): K sayaci artmaya devam edip studyingSeconds donuyorsa,
-     * hatanin MediaPipe/StudyEngine tarafinda (CameraAnalyzer'in analiz/onResult
-     * adiminda yakaladigi bir istisna) oldugunu gosterir - bunu artik BILDIRIME de
-     * yaziyoruz ki uygulamayi tekrar acmadan gorulebilsin. */
-    private fun onDiagnosticFrameError(t: Throwable) {
+    /** Kamera analiz hatasi (MediaPipe/StudyEngine tarafinda) olursa bildirimde
+     * ⚠ isaretiyle gosterir ki uygulamayi tekrar acmadan gorulebilsin. */
+    private fun onCameraFrameError(t: Throwable) {
         val e = errorCount.incrementAndGet()
         lastErrorMessage = "HATA($e): ${t::class.simpleName}: ${t.message}"
         StudyEngine.reportCameraError(lastErrorMessage)
         val manager = getSystemService(NotificationManager::class.java)
         val current = StudyEngine.uiState.value
-        manager?.notify(NOTIF_ID, buildNotification(current.currentState, current.studyingSeconds, frameCount.get(), lastErrorMessage))
+        manager?.notify(NOTIF_ID, buildNotification(current.currentState, current.studyingSeconds, lastErrorMessage))
     }
 
-    private fun buildNotification(state: StudyState, studyingSeconds: Double, frameCount: Int, errorMessage: String? = null): Notification {
+    private fun buildNotification(state: StudyState, studyingSeconds: Double, errorMessage: String? = null): Notification {
         val stateLabel = when (state) {
             StudyState.STUDYING -> "Calisiyor"
             StudyState.AWAY -> "Uzakta"
@@ -276,15 +252,12 @@ class StudyForegroundService : LifecycleService() {
             this, 0, stopIntent(this),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        // "K:<n>" TESHIS AMACLI gecici bir sayac - her kamera karesinde artar,
-        // studyingSeconds'tan bagimsizdir. Arka planda artmayi surdurup
-        // surdurmedigi, sorunun kamerada mi mantikta mi oldugunu gosterecek.
         // Chronometer aktifken (STUDYING) sure ayrica metne yazilmaz - Android'in
         // kendi canli sayaci basliktaki saat alaninda gosterir.
         val text = if (studyingBaseMs != null) {
-            "$stateLabel · K:$frameCount" + (errorMessage?.let { " ⚠" } ?: "")
+            stateLabel + (errorMessage?.let { " ⚠" } ?: "")
         } else {
-            "$stateLabel · ${fmtHms(studyingSeconds)} · K:$frameCount" + (errorMessage?.let { " ⚠" } ?: "")
+            "$stateLabel · ${fmtHms(studyingSeconds)}" + (errorMessage?.let { " ⚠" } ?: "")
         }
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
