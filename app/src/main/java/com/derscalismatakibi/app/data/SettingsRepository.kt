@@ -63,6 +63,7 @@ class SettingsRepository(private val context: Context) {
         val KEYBOARD_TRACKING_ENABLED = booleanPreferencesKey("keyboard_tracking_enabled")
         val AUTO_START_ON_BOOT_ENABLED = booleanPreferencesKey("auto_start_on_boot_enabled")
         val KEEP_ALIVE_ENABLED = booleanPreferencesKey("keep_alive_enabled")
+        val SCREEN_PINNING_ENABLED = booleanPreferencesKey("screen_pinning_enabled")
     }
 
     val configFlow: Flow<AppConfig> = context.dataStore.data.map { prefs ->
@@ -110,6 +111,7 @@ class SettingsRepository(private val context: Context) {
             keyboardTrackingEnabled = prefs[Keys.KEYBOARD_TRACKING_ENABLED] ?: defaults.keyboardTrackingEnabled,
             autoStartOnBootEnabled = prefs[Keys.AUTO_START_ON_BOOT_ENABLED] ?: defaults.autoStartOnBootEnabled,
             keepAliveEnabled = prefs[Keys.KEEP_ALIVE_ENABLED] ?: defaults.keepAliveEnabled,
+            screenPinningEnabled = prefs[Keys.SCREEN_PINNING_ENABLED] ?: defaults.screenPinningEnabled,
         )
     }
 
@@ -157,6 +159,7 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.KEYBOARD_TRACKING_ENABLED] = cfg.keyboardTrackingEnabled
             prefs[Keys.AUTO_START_ON_BOOT_ENABLED] = cfg.autoStartOnBootEnabled
             prefs[Keys.KEEP_ALIVE_ENABLED] = cfg.keepAliveEnabled
+            prefs[Keys.SCREEN_PINNING_ENABLED] = cfg.screenPinningEnabled
         }
     }
 }

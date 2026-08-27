@@ -67,4 +67,9 @@ data class AppConfig(
      * servisin kendini yeniden baslatmasi - ebeveyn-denetim takibinin cocuk
      * tarafindan kolayca kapatilmasini zorlastirir. */
     val keepAliveEnabled: Boolean = true,
+    /** Sinav/Odev Modu (examModeEnabled) acikken EK olarak Ekran Sabitleme
+     * (Activity.startLockTask) kullanip kullanmayacagi - acikken examAllowedPackages
+     * istisna listesi ISLEMEZ, telefon tek uygulamaya kilitlenir. Varsayilan KAPALI,
+     * cunku mevcut istisna-listeli davranisi degistiriyor - admin bilerek acar. */
+    val screenPinningEnabled: Boolean = false,
 )

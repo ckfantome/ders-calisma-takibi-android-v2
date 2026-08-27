@@ -112,6 +112,33 @@ fun AppNavigation() {
     var pendingUpdate by remember { mutableStateOf<UpdateChecker.UpdateInfo?>(null) }
     var showUnknownSourcesDialog by remember { mutableStateOf(false) }
 
+    // Sinav Modu + Ekran Sabitleme ikisi de aciksa telefonu bu uygulamaya kilitler
+    // (istisna listesi calismaz, bkz. AppBlockScreen aciklamasi) - ikisinden biri
+    // kapaninca kilit acilir. ponytail: kullanici sistemin kendi "uzun bas geri+genel
+    // gorunum" jestiyle elle acarsa burada otomatik tekrar kilitlenmiyor - sadece
+    // anahtar degisince veya bu ekran yeniden olusunca tekrar dener.
+    val shouldPinScreen = consentCfg.examModeEnabled && consentCfg.screenPinningEnabled
+    LaunchedEffect(shouldPinScreen) {
+        val activity = context as? android.app.Activity ?: return@LaunchedEffect
+        val am = activity.getSystemService(android.app.ActivityManager::class.java)
+        val isPinned = am?.lockTaskModeState != android.app.ActivityManager.LOCK_TASK_MODE_NONE
+        if (shouldPinScreen && !isPinned) {
+            try {
+                activity.startLockTask()
+                com.derscalismatakibi.app.util.AppLogger.log("EkranSabitleme", "Kilitlendi")
+            } catch (t: Throwable) {
+                com.derscalismatakibi.app.util.AppLogger.logError("EkranSabitleme", "Kilitlenemedi", t)
+            }
+        } else if (!shouldPinScreen && isPinned) {
+            try {
+                activity.stopLockTask()
+                com.derscalismatakibi.app.util.AppLogger.log("EkranSabitleme", "Kilit acildi")
+            } catch (t: Throwable) {
+                com.derscalismatakibi.app.util.AppLogger.logError("EkranSabitleme", "Kilit acilamadi", t)
+            }
+        }
+    }
+
     // Acilista bir kere, sessizce (kullaniciyi rahatsiz etmeden) guncelleme kontrolu.
     LaunchedEffect(Unit) {
         val currentVersion = try {

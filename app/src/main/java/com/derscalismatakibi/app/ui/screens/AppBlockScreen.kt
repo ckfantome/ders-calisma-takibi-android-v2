@@ -152,6 +152,23 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
                             }
                             Switch(checked = cfg.examModeEnabled, onCheckedChange = { if (isAdmin) viewModel.updateConfig(cfg.copy(examModeEnabled = it)) }, enabled = isAdmin)
                         }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.padding(end = 8.dp)) {
+                                Text("+ Ekrani Tamamen Sabitle", style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    "Sinav Modu acikken telefon SADECE bu uygulamaya kilitlenir - 'Izin Verilen " +
+                                        "Uygulamalar' listesi de dahil BASKA HICBIR SEY acilamaz (ana ekran/Son " +
+                                        "Kullanilanlar da devre disi). Erisilebilirlik izninin OEM tarafindan " +
+                                        "kapatilmasindan etkilenmez.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                            Switch(checked = cfg.screenPinningEnabled, onCheckedChange = { if (isAdmin) viewModel.updateConfig(cfg.copy(screenPinningEnabled = it)) }, enabled = isAdmin)
+                        }
                     }
                 }
             }

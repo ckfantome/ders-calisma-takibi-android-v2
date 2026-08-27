@@ -277,7 +277,13 @@ object StudyEngine {
     private fun essentialSafePackages(): Set<String> {
         cachedSafePackages?.let { return it }
         val pm = appContext.packageManager
-        val result = mutableSetOf(appContext.packageName)
+        // com.android.systemui (durum cubugu/bildirim paneli/genel gorunum/hizli
+        // ayarlar) TYPE_WINDOW_STATE_CHANGED tetikliyor - guvenli listede olmazsa
+        // Sinav Modu bunu da "engellenen uygulama" sayip ustune BlockedActivity
+        // aciyordu; kullaniciya uygulamanin/Sinav Modu'nun kendiliginden
+        // kapaniyormus/bozuluyormus gibi gorunmesinin gercek cihazda dogrulanan
+        // nedeni budur (canli test sirasinda yakalandi).
+        val result = mutableSetOf(appContext.packageName, "com.android.systemui")
         try {
             pm.resolveActivity(android.content.Intent(android.content.Intent.ACTION_MAIN).addCategory(android.content.Intent.CATEGORY_HOME), android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)
                 ?.activityInfo?.packageName?.let { result.add(it) }
