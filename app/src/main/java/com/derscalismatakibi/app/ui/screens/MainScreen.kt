@@ -124,7 +124,10 @@ fun MainScreen(viewModel: StudyViewModel) {
                 hasCameraPermission -> CameraPreview(
                     useFrontCamera = viewModel.currentConfig().useFrontCamera,
                     onAnalyzed = { points, w, h -> viewModel.onFrameAnalyzed(points, w, h) },
-                    onError = { viewModel.reportCameraError(it.message ?: "Kamera hatasi") },
+                    onError = {
+                        AppLogger.logError("Kamera", "MainScreen onizleme hatasi", it)
+                        viewModel.reportCameraError("${it::class.simpleName}: ${it.message ?: "Kamera hatasi"}")
+                    },
                 )
                 else -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Kamera izni gerekiyor")

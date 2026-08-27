@@ -12,3 +12,7 @@ app/build/
 app/release/
 *.apk
 *.aab
+*.jks
+*.keystore
+keystore.properties
+keystore/

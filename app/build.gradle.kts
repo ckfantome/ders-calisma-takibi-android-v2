@@ -1,7 +1,18 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
+}
+
+// keystore.properties repo'ya COMMIT EDILMEZ (.gitignore'da) - sadece bu
+// makinede var. Yoksa release derlemesi (assembleDebug degil) imzasiz kalir.
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.inputStream().use { load(it) }
+    }
 }
 
 android {
@@ -12,8 +23,8 @@ android {
         applicationId = "com.derscalismatakibi.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 33
-        versionName = "0.33.0"
+        versionCode = 34
+        versionName = "0.34.0"
 
         // Buyuk assetler (yuz landmark modeli) sikistirilmadan paketlensin -
         // aksi halde MediaPipe calisirken asset'i acmakta sorun yasayabilir.
@@ -22,10 +33,51 @@ android {
         }
     }
 
+    signingConfigs {
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
+    }
+
+    // GitHub Releases uzerinden sideload dagitim - Play Store App Bundle
+    // gerektirmiyor. Her ABI icin AYRI, kucuk bir APK uretir (universal APK
+    // uretilmez) - MediaPipe/OpenCV'nin diger 2-3 ABI'nin native kutuphanelerini
+    // tasimasi APK boyutunun buyuk kismiydi. x86_64 DAHIL EDILMEDI: MediaPipe'in
+    // resmi AAR'inda bu ABI icin native kutuphane hic yok (Google'in kendi
+    // kisitlamasi) - gercek telefonlarin neredeyse tamami zaten arm64-v8a/
+    // armeabi-v7a, x86_64 sadece bazi emulator/nadir Intel tabletlerde.
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a", "x86")
+            isUniversalApk = false
+        }
+    }
+
+    applicationVariants.all {
+        outputs.all {
+            val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            val abi = output.getFilter(com.android.build.OutputFile.ABI)
+            if (abi != null) {
+                output.outputFileName = "DersCalismaTakibi-${versionName}-${abi}-${buildType.name}.apk"
+            }
         }
     }
 
