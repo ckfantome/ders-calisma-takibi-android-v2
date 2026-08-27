@@ -142,7 +142,7 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Column(modifier = Modifier.padding(end = 8.dp)) {
+                            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                                 Text("Sınav/Ödev Modu", style = MaterialTheme.typography.titleMedium)
                                 Text(
                                     "Acikken Kilitli Uygulamalar listesine bakilmaksizin HER SEY engellenir - sadece asagidaki " +
@@ -157,7 +157,7 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Column(modifier = Modifier.padding(end = 8.dp)) {
+                            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                                 Text("+ Ekrani Tamamen Sabitle", style = MaterialTheme.typography.titleMedium)
                                 Text(
                                     "Sinav Modu acikken telefon SADECE bu uygulamaya kilitlenir - 'Izin Verilen " +
@@ -181,7 +181,7 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Column(modifier = Modifier.padding(end = 8.dp)) {
+                            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                                 Text("Klavye Takibi", style = MaterialTheme.typography.titleMedium)
                                 Text(
                                     "ACIKKEN: diger uygulamalarda yazilan metinler kaydedilir (sifre alanlari HARIC). " +

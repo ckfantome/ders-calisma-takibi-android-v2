@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
@@ -554,8 +555,19 @@ private fun LabeledSlider(label: String, value: Float, min: Float, max: Float, e
 
 @Composable
 private fun SwitchRow(label: String, checked: Boolean, enabled: Boolean, onChange: (Boolean) -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, style = MaterialTheme.typography.bodyMedium)
+    // weight(1f) olmadan uzun etiketler (orn. "Kapatilinca Otomatik Yeniden
+    // Baslat (Surekli Acik Kal)") Switch'i ekran disina itip kesiyordu -
+    // metin artik kalan alana sarip Switch her zaman gorunur/tikla nabilir kaliyor.
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f).padding(end = 12.dp),
+        )
         Switch(checked = checked, onCheckedChange = onChange, enabled = enabled)
     }
 }
