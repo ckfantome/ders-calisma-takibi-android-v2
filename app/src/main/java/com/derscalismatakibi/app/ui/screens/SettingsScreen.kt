@@ -282,6 +282,24 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             SwitchRow("Bildirim Erisimi Kaydi", cfg.notificationLogEnabled, isAdmin) {
                 viewModel.updateConfig(cfg.copy(notificationLogEnabled = it))
             }
+            Text("Kullanim Suresi Kontrol Sikligi", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                "Gunluk sure siniri konulmus bir uygulama icin ne kadar sik kontrol edilsin - " +
+                    "'Anlik' pil/performans acisindan en pahalisi, 'Pil Dostu'nda sinira ulasinca " +
+                    "engelleme birkac saniye gecikmeli tetiklenebilir.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            val usageIntervalOptions = listOf(0 to "Anlik", 10 to "Normal", 60 to "Pil Dostu")
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                usageIntervalOptions.forEachIndexed { index, (value, label) ->
+                    SegmentedButton(
+                        selected = cfg.usageCheckIntervalSeconds == value,
+                        onClick = { if (isAdmin) viewModel.updateConfig(cfg.copy(usageCheckIntervalSeconds = value)) },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = usageIntervalOptions.size),
+                        enabled = isAdmin,
+                    ) { Text(label) }
+                }
+            }
         }
 
         SettingsGroup("Gonderilen Veriler") {

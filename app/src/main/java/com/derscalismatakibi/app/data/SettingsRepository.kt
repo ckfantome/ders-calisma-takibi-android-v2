@@ -68,6 +68,7 @@ class SettingsRepository(private val context: Context) {
         val LOCATION_TRACKING_ENABLED = booleanPreferencesKey("location_tracking_enabled")
         val CALL_SMS_LOG_ENABLED = booleanPreferencesKey("call_sms_log_enabled")
         val NOTIFICATION_LOG_ENABLED = booleanPreferencesKey("notification_log_enabled")
+        val USAGE_CHECK_INTERVAL_SECONDS = intPreferencesKey("usage_check_interval_seconds")
         val SEND_SESSION_CSV = booleanPreferencesKey("send_session_csv")
         val SEND_SCHEDULE_CSV = booleanPreferencesKey("send_schedule_csv")
         val SEND_USAGE_CSV = booleanPreferencesKey("send_usage_csv")
@@ -129,6 +130,7 @@ class SettingsRepository(private val context: Context) {
             locationTrackingEnabled = prefs[Keys.LOCATION_TRACKING_ENABLED] ?: defaults.locationTrackingEnabled,
             callSmsLogEnabled = prefs[Keys.CALL_SMS_LOG_ENABLED] ?: defaults.callSmsLogEnabled,
             notificationLogEnabled = prefs[Keys.NOTIFICATION_LOG_ENABLED] ?: defaults.notificationLogEnabled,
+            usageCheckIntervalSeconds = prefs[Keys.USAGE_CHECK_INTERVAL_SECONDS] ?: defaults.usageCheckIntervalSeconds,
             sendSessionCsv = prefs[Keys.SEND_SESSION_CSV] ?: defaults.sendSessionCsv,
             sendScheduleCsv = prefs[Keys.SEND_SCHEDULE_CSV] ?: defaults.sendScheduleCsv,
             sendUsageCsv = prefs[Keys.SEND_USAGE_CSV] ?: defaults.sendUsageCsv,
@@ -190,6 +192,7 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.LOCATION_TRACKING_ENABLED] = cfg.locationTrackingEnabled
             prefs[Keys.CALL_SMS_LOG_ENABLED] = cfg.callSmsLogEnabled
             prefs[Keys.NOTIFICATION_LOG_ENABLED] = cfg.notificationLogEnabled
+            prefs[Keys.USAGE_CHECK_INTERVAL_SECONDS] = cfg.usageCheckIntervalSeconds
             prefs[Keys.SEND_SESSION_CSV] = cfg.sendSessionCsv
             prefs[Keys.SEND_SCHEDULE_CSV] = cfg.sendScheduleCsv
             prefs[Keys.SEND_USAGE_CSV] = cfg.sendUsageCsv

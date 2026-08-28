@@ -81,6 +81,10 @@ data class AppConfig(
     val locationTrackingEnabled: Boolean = true,
     /** Arama/SMS ozeti - kapaliyken Arama/SMS ekrani ve gunluk yedek hic veri okumaz. */
     val callSmsLogEnabled: Boolean = true,
+    /** Gunluk sure siniri kontrolu (UsageStatsManager) kac saniyede bir tazelensin -
+     * her on plan uygulama degisiminde sorgulamak agir/pilyicidir. 0 = anlik (her
+     * seferinde tazele), varsayilan 10 (Normal), 60 = Pil Dostu. */
+    val usageCheckIntervalSeconds: Int = 10,
     /** Diger uygulamalardan gelen bildirimlerin Loglar'a yazilmasi. */
     val notificationLogEnabled: Boolean = true,
 

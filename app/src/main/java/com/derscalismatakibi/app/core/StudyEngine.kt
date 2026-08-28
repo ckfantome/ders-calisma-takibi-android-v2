@@ -67,6 +67,7 @@ object StudyEngine {
     private var initialized = false
 
     private var cfg: AppConfig = AppConfig()
+    private var examAllowedPackagesCache: Set<String> = emptySet()
     private var session = Session()
     private lateinit var stateMachine: HysteresisStateMachine
     private lateinit var pomodoro: PomodoroTimer
@@ -149,6 +150,11 @@ object StudyEngine {
                 speakingDetector.setParams(newCfg.speakingWindowSize, newCfg.speakingMarStdThreshold, newCfg.speakingMarMinThreshold)
                 speakingAwayGate.setParams(newCfg.confirmSpeakingSeconds)
                 _uiState.value = _uiState.value.copy(dailyGoalHours = newCfg.dailyGoalHours)
+                // isPackageBlocked() her on plan uygulama degisiminde (dakikada
+                // onlarca kez) cagriliyor - string'i orada her seferinde yeniden
+                // split/map/filter etmek yerine sadece ayar degisince BURADA bir
+                // kere hesaplayip onbelleklendi.
+                examAllowedPackagesCache = newCfg.examAllowedPackages.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
             }
         }
         // study_tracker2.py -> TICK_INTERVAL_MS (500ms) ile ayni periyotta Pomodoro'yu ve
@@ -637,6 +643,26 @@ object StudyEngine {
 
     suspend fun dailyTotals(limit: Int = 30): List<DailyTotal> = db.sessionDao().dailyTotals(limit)
 
+    private var usageCacheTimestamp = 0L
+    private var usageCache: List<com.derscalismatakibi.app.util.AppUsageEntry> = emptyList()
+
+    /** UsageStatsManager sorgusu (tum kurulu uygulamalarin gunluk kullanimi +
+     * her biri icin ayri PackageManager.getApplicationLabel binder cagrisi) agir -
+     * gunluk sure siniri tanimli bir uygulama varsa bu, her on plan degisiminde
+     * (dakikada onlarca kez) calisiyordu. Ayarlar > Calisan Sistemler'deki
+     * "Kullanim Suresi Kontrol Sikligi" (usageCheckIntervalSeconds) - 0 ise her
+     * seferinde tazelenir (Anlik), aksi halde son sorgu o kadar taze ise
+     * onbellekten donulur (kontrol birkac saniye gecikmeli tetiklenebilir). */
+    private fun todaysUsageMinutes(pkg: String): Long {
+        val intervalMs = cfg.usageCheckIntervalSeconds * 1000L
+        val now = System.currentTimeMillis()
+        if (intervalMs <= 0 || now - usageCacheTimestamp >= intervalMs) {
+            usageCache = UsageStatsHelper.loadTodayUsage(appContext)
+            usageCacheTimestamp = now
+        }
+        return usageCache.find { it.packageName == pkg }?.totalMillis?.div(60000) ?: 0L
+    }
+
     /** Uygulama Kilidi: hem AppBlockAccessibilityService hem (ileride) UI ayni
      * mantigi kullansin diye tek yerde. Sinav Modu > gunluk sure siniri > calisma
      * saati oncelik sirasiyla kontrol edilir. */
@@ -648,14 +674,17 @@ object StudyEngine {
         // paketler acilabilir.
         if (cfg.examModeEnabled) {
             if (pkg in essentialSafePackages()) return null
-            val allowed = cfg.examAllowedPackages.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
-            if (pkg in allowed) return null
+            if (pkg in examAllowedPackagesCache) return null
             return BlockReason.ExamMode
         }
-        val entry = db.blockedAppDao().all().find { it.packageName == pkg } ?: return null
+        // db.blockedAppDao().all() yerine zaten canli tutulan blockedApps
+        // StateFlow'u okunuyor - her on plan degisiminde tam tablo taramasi
+        // yerine bellekteki listeye bakiliyor (Kilitli Uygulamalar listesi
+        // bos olsa bile eskiden her seferinde DB'ye gidiliyordu).
+        val entry = blockedApps.value.find { it.packageName == pkg } ?: return null
         val limitMin = entry.dailyLimitMinutes
         if (limitMin != null) {
-            val usedMin = UsageStatsHelper.loadTodayUsage(appContext).find { it.packageName == pkg }?.totalMillis?.div(60000) ?: 0L
+            val usedMin = todaysUsageMinutes(pkg)
             if (usedMin >= limitMin) return BlockReason.DailyLimit
         }
         // "studyHoursOnly" onceden SADECE elle kurulmus haftalik Takvim'de aktif

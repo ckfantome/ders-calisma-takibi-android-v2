@@ -146,44 +146,28 @@ fun MainScreen(viewModel: StudyViewModel) {
         // buradaki kart sadece DURUMU (backgroundActive uzerinden yukarida)
         // gosterir, kontrolu artik Ayarlar'da.
 
-        Card(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Bugunku ilerleme", style = MaterialTheme.typography.titleMedium)
-                Text(fmtHms(uiState.studyingSeconds), style = MaterialTheme.typography.headlineMedium)
-                val goalSeconds = uiState.dailyGoalHours * 3600
-                val progress = if (goalSeconds > 0) (uiState.studyingSeconds / goalSeconds).toFloat().coerceIn(0f, 1f) else 0f
-                LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
-                Text("Verimlilik: %${uiState.productivityScore} · Konusma: ${fmtHms(uiState.speakingSeconds)}", style = MaterialTheme.typography.bodySmall)
-            }
-        }
+        // Asagidaki 3 kart ayri composable'lara cikarildi: uiState kamera calisirken
+        // saniyede 15-30 kez YENI nesne kimligiyle guncelleniyor - hepsi tek bir
+        // Column icinde MainScreen'in govdesinde kalsaydi, sadece StateBadge/infoText
+        // degisse bile Pomodoro/haftalik/gunluk kartlarinin TAMAMI (ilerleme cubugu,
+        // butonlar - hicbiri degismese bile) her karede yeniden olculup ciziliyordu.
+        // Artik her kart SADECE kendi parametreleri degisince yeniden ciziliyor.
+        ProgressCard(
+            studyingSeconds = uiState.studyingSeconds,
+            dailyGoalHours = uiState.dailyGoalHours,
+            productivityScore = uiState.productivityScore,
+            speakingSeconds = uiState.speakingSeconds,
+        )
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Bu hafta", style = MaterialTheme.typography.titleMedium)
-                val weeklyGoalSeconds = viewModel.currentConfig().weeklyGoalHours * 3600
-                val weeklyProgress = if (weeklyGoalSeconds > 0) (weeklySeconds / weeklyGoalSeconds).toFloat().coerceIn(0f, 1f) else 0f
-                Text(fmtHms(weeklySeconds), style = MaterialTheme.typography.headlineSmall)
-                LinearProgressIndicator(progress = { weeklyProgress }, modifier = Modifier.fillMaxWidth())
-            }
-        }
+        WeeklyProgressCard(weeklySeconds = weeklySeconds, weeklyGoalHours = viewModel.currentConfig().weeklyGoalHours)
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Pomodoro", style = MaterialTheme.typography.titleMedium)
-                Text(pomodoroLabel(uiState.pomodoroState, uiState.pomodoroRemainingSeconds), style = MaterialTheme.typography.headlineMedium)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { viewModel.togglePomodoro() }) {
-                        Text(if (uiState.pomodoroState == PomodoroState.WORKING) "Pomodoro Durdur" else "Pomodoro Baslat")
-                    }
-                    OutlinedButton(onClick = { viewModel.manualBreak() }) {
-                        Text("Mola Ver")
-                    }
-                }
-                if (uiState.pauseNotice.isNotBlank()) {
-                    Text(uiState.pauseNotice, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-                }
-            }
-        }
+        PomodoroCard(
+            state = uiState.pomodoroState,
+            remainingSeconds = uiState.pomodoroRemainingSeconds,
+            pauseNotice = uiState.pauseNotice,
+            onToggle = { viewModel.togglePomodoro() },
+            onManualBreak = { viewModel.manualBreak() },
+        )
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick = { showNotesDialog = true }, modifier = Modifier.weight(1f)) {
@@ -284,6 +268,60 @@ private fun NotesDialog(
         confirmButton = { TextButton(onClick = { onSave(notes, tags) }) { Text(confirmLabel) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Iptal") } },
     )
+}
+
+@Composable
+private fun ProgressCard(studyingSeconds: Double, dailyGoalHours: Double, productivityScore: Double, speakingSeconds: Double) {
+    Card(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Bugunku ilerleme", style = MaterialTheme.typography.titleMedium)
+            Text(fmtHms(studyingSeconds), style = MaterialTheme.typography.headlineMedium)
+            val goalSeconds = dailyGoalHours * 3600
+            val progress = if (goalSeconds > 0) (studyingSeconds / goalSeconds).toFloat().coerceIn(0f, 1f) else 0f
+            LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
+            Text("Verimlilik: %${productivityScore} · Konusma: ${fmtHms(speakingSeconds)}", style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@Composable
+private fun WeeklyProgressCard(weeklySeconds: Double, weeklyGoalHours: Double) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Bu hafta", style = MaterialTheme.typography.titleMedium)
+            val weeklyGoalSeconds = weeklyGoalHours * 3600
+            val weeklyProgress = if (weeklyGoalSeconds > 0) (weeklySeconds / weeklyGoalSeconds).toFloat().coerceIn(0f, 1f) else 0f
+            Text(fmtHms(weeklySeconds), style = MaterialTheme.typography.headlineSmall)
+            LinearProgressIndicator(progress = { weeklyProgress }, modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+@Composable
+private fun PomodoroCard(
+    state: PomodoroState,
+    remainingSeconds: Double,
+    pauseNotice: String,
+    onToggle: () -> Unit,
+    onManualBreak: () -> Unit,
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Pomodoro", style = MaterialTheme.typography.titleMedium)
+            Text(pomodoroLabel(state, remainingSeconds), style = MaterialTheme.typography.headlineMedium)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onToggle) {
+                    Text(if (state == PomodoroState.WORKING) "Pomodoro Durdur" else "Pomodoro Baslat")
+                }
+                OutlinedButton(onClick = onManualBreak) {
+                    Text("Mola Ver")
+                }
+            }
+            if (pauseNotice.isNotBlank()) {
+                Text(pauseNotice, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
 }
 
 @Composable
