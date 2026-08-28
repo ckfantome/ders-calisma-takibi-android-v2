@@ -45,7 +45,10 @@ class SettingsRepository(private val context: Context) {
         val FRONT_CAMERA = booleanPreferencesKey("use_front_camera")
         val APP_PIN = stringPreferencesKey("app_pin")
         val SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
-        val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
+        val ROUTINE_NOTIFICATIONS_ENABLED = booleanPreferencesKey("routine_notifications_enabled")
+        val APP_LOCK_ALERT_NOTIFICATIONS_ENABLED = booleanPreferencesKey("app_lock_alert_notifications_enabled")
+        val SAFE_ZONE_ALERT_NOTIFICATIONS_ENABLED = booleanPreferencesKey("safe_zone_alert_notifications_enabled")
+        val BACKUP_FAILURE_NOTIFICATIONS_ENABLED = booleanPreferencesKey("backup_failure_notifications_enabled")
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val APP_LANGUAGE = stringPreferencesKey("app_language")
         val BACKUP_EMAIL = stringPreferencesKey("backup_email")
@@ -107,7 +110,10 @@ class SettingsRepository(private val context: Context) {
             useFrontCamera = prefs[Keys.FRONT_CAMERA] ?: defaults.useFrontCamera,
             appPin = prefs[Keys.APP_PIN] ?: defaults.appPin,
             soundEnabled = prefs[Keys.SOUND_ENABLED] ?: defaults.soundEnabled,
-            notificationsEnabled = prefs[Keys.NOTIFICATIONS_ENABLED] ?: defaults.notificationsEnabled,
+            routineNotificationsEnabled = prefs[Keys.ROUTINE_NOTIFICATIONS_ENABLED] ?: defaults.routineNotificationsEnabled,
+            appLockAlertNotificationsEnabled = prefs[Keys.APP_LOCK_ALERT_NOTIFICATIONS_ENABLED] ?: defaults.appLockAlertNotificationsEnabled,
+            safeZoneAlertNotificationsEnabled = prefs[Keys.SAFE_ZONE_ALERT_NOTIFICATIONS_ENABLED] ?: defaults.safeZoneAlertNotificationsEnabled,
+            backupFailureNotificationsEnabled = prefs[Keys.BACKUP_FAILURE_NOTIFICATIONS_ENABLED] ?: defaults.backupFailureNotificationsEnabled,
             themeMode = prefs[Keys.THEME_MODE] ?: defaults.themeMode,
             appLanguage = prefs[Keys.APP_LANGUAGE] ?: defaults.appLanguage,
             backupEmail = prefs[Keys.BACKUP_EMAIL] ?: defaults.backupEmail,
@@ -169,7 +175,10 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.FRONT_CAMERA] = cfg.useFrontCamera
             prefs[Keys.APP_PIN] = cfg.appPin
             prefs[Keys.SOUND_ENABLED] = cfg.soundEnabled
-            prefs[Keys.NOTIFICATIONS_ENABLED] = cfg.notificationsEnabled
+            prefs[Keys.ROUTINE_NOTIFICATIONS_ENABLED] = cfg.routineNotificationsEnabled
+            prefs[Keys.APP_LOCK_ALERT_NOTIFICATIONS_ENABLED] = cfg.appLockAlertNotificationsEnabled
+            prefs[Keys.SAFE_ZONE_ALERT_NOTIFICATIONS_ENABLED] = cfg.safeZoneAlertNotificationsEnabled
+            prefs[Keys.BACKUP_FAILURE_NOTIFICATIONS_ENABLED] = cfg.backupFailureNotificationsEnabled
             prefs[Keys.THEME_MODE] = cfg.themeMode
             prefs[Keys.APP_LANGUAGE] = cfg.appLanguage
             prefs[Keys.BACKUP_EMAIL] = cfg.backupEmail

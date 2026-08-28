@@ -30,7 +30,16 @@ data class AppConfig(
     val useFrontCamera: Boolean = true,
     val appPin: String = "1234",
     val soundEnabled: Boolean = true,
-    val notificationsEnabled: Boolean = true,
+    // --- Bildirimler: tek "Bildirimler" anahtari yerine tur bazinda ayri kontrol -
+    // eskiden "Yedekleme Basarisiz" hep zorla gosteriliyordu, artik o da secilebilir. ---
+    /** Pomodoro tamamlandi/Mola bitti + Calisma Araligi Tamamlandi/Mola Sirasinda Calisma. */
+    val routineNotificationsEnabled: Boolean = true,
+    /** Sinav Modu acikken Erisilebilirlik izni kapaninca gelen kritik uyari. */
+    val appLockAlertNotificationsEnabled: Boolean = true,
+    /** Guvenli bolgeye girme/cikma bildirimi. */
+    val safeZoneAlertNotificationsEnabled: Boolean = true,
+    /** Gunluk yedekleme e-postasi basarisiz olunca gelen uyari. */
+    val backupFailureNotificationsEnabled: Boolean = true,
     /** "dark" / "light" / "system" - study_tracker2.py -> THEME_MODE. */
     val themeMode: String = "system",
     /** "tr" / "en" - API 33+ cihazlarda LocaleManager ile uygulanir. */

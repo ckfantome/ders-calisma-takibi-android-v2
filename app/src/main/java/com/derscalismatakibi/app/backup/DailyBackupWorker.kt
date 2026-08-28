@@ -99,13 +99,13 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
                 is SmtpBackupSender.Result.TransientFailure -> {
                     AppLogger.logError("Yedekleme", "E-posta gecici hata - tekrar denenecek: ${sendResult.message}")
                     settingsRepo.update(cfg.copy(lastBackupStatus = "error: gonderim basarisiz, tekrar denenecek"))
-                    notifyFailure(notificationHelper, "Gunluk yedekleme e-postasi gonderilemedi, tekrar denenecek.")
+                    notifyFailure(notificationHelper, cfg.backupFailureNotificationsEnabled, "Gunluk yedekleme e-postasi gonderilemedi, tekrar denenecek.")
                     return Result.retry()
                 }
                 is SmtpBackupSender.Result.PermanentFailure -> {
                     AppLogger.logError("Yedekleme", "E-posta kalici hata: ${sendResult.message}")
                     settingsRepo.update(cfg.copy(lastBackupStatus = "error: ${sendResult.message}"))
-                    notifyFailure(notificationHelper, "Gunluk yedekleme e-postasi gonderilemedi: ${sendResult.message}")
+                    notifyFailure(notificationHelper, cfg.backupFailureNotificationsEnabled, "Gunluk yedekleme e-postasi gonderilemedi: ${sendResult.message}")
                     return Result.failure()
                 }
             }
@@ -119,10 +119,10 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         return Result.success()
     }
 
-    private fun notifyFailure(helper: NotificationHelper, message: String) {
-        // Kullaniciyla netlesen karar: basarisizlikta HEM durum metni HEM bildirim.
-        // notificationsEnabled=false olsa bile bir yedekleme basarisizligi onemli
-        // sayilip bildirilir (Pomodoro bildirimlerinin aksine, sessiz gecilmez).
-        helper.notify("Yedekleme Basarisiz", message, notificationsEnabled = true)
+    private fun notifyFailure(helper: NotificationHelper, notificationsEnabled: Boolean, message: String) {
+        // Onceden HER ZAMAN zorla gosteriliyordu (notificationsEnabled=false olsa
+        // bile) - kullanicinin acik istegiyle artik kendi ayri anahtariyla
+        // (backupFailureNotificationsEnabled) kapatilabilir hale getirildi.
+        helper.notify("Yedekleme Basarisiz", message, notificationsEnabled)
     }
 }

@@ -172,11 +172,11 @@ object StudyEngine {
                     } else {
                         "Mola zamani (${cfg.pomodoroBreakMin} dk)"
                     }
-                    notificationHelper.notify("Pomodoro tamamlandi!", msg, cfg.notificationsEnabled)
+                    notificationHelper.notify("Pomodoro tamamlandi!", msg, cfg.routineNotificationsEnabled)
                     AppLogger.log("Pomodoro", "Calisma tamamlandi -> ${tick.state} (dongu: ${pomodoro.cyclesCompleted})")
                 } else if (tick.justFinishedBreak) {
                     notificationHelper.beep(cfg.soundEnabled)
-                    notificationHelper.notify("Mola bitti", "Calismaya devam etmek icin Pomodoro'yu baslat.", cfg.notificationsEnabled)
+                    notificationHelper.notify("Mola bitti", "Calismaya devam etmek icin Pomodoro'yu baslat.", cfg.routineNotificationsEnabled)
                     AppLogger.log("Pomodoro", "Mola bitti")
                 }
                 publishPomodoro(tick)
@@ -212,7 +212,7 @@ object StudyEngine {
         if (broken) {
             val msg = "Sinav/Odev Modu acik ama Erisilebilirlik izni kapali - uygulama engelleme su an CALISMIYOR."
             AppLogger.log("UygulamaKilidi", msg)
-            notificationHelper.notify("Uygulama Kilidi Devre Disi", msg, cfg.notificationsEnabled)
+            notificationHelper.notify("Uygulama Kilidi Devre Disi", msg, cfg.appLockAlertNotificationsEnabled)
             sendInstantAlertEmail("Uygulama Kilidi Devre Disi Kaldi", msg)
         } else {
             AppLogger.log("UygulamaKilidi", "Erisilebilirlik izni tekrar acik - engelleme calisiyor")
@@ -254,7 +254,7 @@ object StudyEngine {
         val distance = nearest?.let { com.derscalismatakibi.app.util.LocationHelper.distanceMeters(loc.latitude, loc.longitude, it.lat, it.lng) }
         val msg = if (inside) "Guvenli bolgeye girildi" else "Guvenli bolgeden cikildi" + (distance?.let { " - ${it.toInt()}m uzakta (en yakin: ${nearest.name})" } ?: "")
         AppLogger.log("Konum", msg)
-        notificationHelper.notify("Guvenli Bolge", msg, cfg.notificationsEnabled)
+        notificationHelper.notify("Guvenli Bolge", msg, cfg.safeZoneAlertNotificationsEnabled)
         if (!inside) sendInstantAlertEmail("Guvenli Bolge Disinda", msg)
     }
 
@@ -449,11 +449,11 @@ object StudyEngine {
             var note = "[Takvim] ${slot.startTime}-${slot.endTime} Calisma: $studiedMin/$plannedMin dk calisildi"
             note += if (away >= 30) ", ${fmtHms(away)} uzakta kalindi." else "."
             appendSessionNote(note)
-            notificationHelper.notify("Calisma araligi tamamlandi", note, cfg.notificationsEnabled)
+            notificationHelper.notify("Calisma araligi tamamlandi", note, cfg.routineNotificationsEnabled)
         } else if (studied >= 30) {
             val note = "[Takvim] ${slot.startTime}-${slot.endTime} Mola: mola sirasinda ${fmtHms(studied)} calismaya devam edildi."
             appendSessionNote(note)
-            notificationHelper.notify("Mola sirasinda calisma", note, cfg.notificationsEnabled)
+            notificationHelper.notify("Mola sirasinda calisma", note, cfg.routineNotificationsEnabled)
         }
     }
 

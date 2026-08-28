@@ -316,10 +316,6 @@ class StudyForegroundService : LifecycleService() {
             Intent(this, MainActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP },
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        val stopIntent = PendingIntent.getService(
-            this, 0, stopIntent(this),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-        )
         // Chronometer aktifken (STUDYING) sure ayrica metne yazilmaz - Android'in
         // kendi canli sayaci basliktaki saat alaninda gosterir.
         val text = if (studyingBaseMs != null) {
@@ -334,7 +330,10 @@ class StudyForegroundService : LifecycleService() {
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setContentIntent(contentIntent)
-            .addAction(0, "Durdur", stopIntent)
+            // "Durdur" aksiyonu KASITLI OLARAK kaldirildi - ebeveyn-denetim
+            // uygulamasinda cocuk bildirimden tek dokunusla takibi kapatabiliyordu.
+            // Artik durdurmak icin Ayarlar > Calisan Sistemler'den (Yonetici PIN'i
+            // gerektiren) anahtari kullanmak gerekiyor.
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setUsesChronometer(studyingBaseMs != null)
         studyingBaseMs?.let { builder.setWhen(it).setShowWhen(true) }

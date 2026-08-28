@@ -138,8 +138,17 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             SwitchRow("Sesli Uyari", cfg.soundEnabled, true) {
                 viewModel.updateConfig(cfg.copy(soundEnabled = it))
             }
-            SwitchRow("Bildirimler", cfg.notificationsEnabled, true) {
-                viewModel.updateConfig(cfg.copy(notificationsEnabled = it))
+            SwitchRow("Rutin Hatirlatmalar (Pomodoro/Mola)", cfg.routineNotificationsEnabled, true) {
+                viewModel.updateConfig(cfg.copy(routineNotificationsEnabled = it))
+            }
+            SwitchRow("Uygulama Kilidi/Sinav Modu Uyarisi", cfg.appLockAlertNotificationsEnabled, true) {
+                viewModel.updateConfig(cfg.copy(appLockAlertNotificationsEnabled = it))
+            }
+            SwitchRow("Guvenli Bolge Uyarisi", cfg.safeZoneAlertNotificationsEnabled, true) {
+                viewModel.updateConfig(cfg.copy(safeZoneAlertNotificationsEnabled = it))
+            }
+            SwitchRow("Yedekleme Basarisiz Uyarisi", cfg.backupFailureNotificationsEnabled, true) {
+                viewModel.updateConfig(cfg.copy(backupFailureNotificationsEnabled = it))
             }
         }
 
