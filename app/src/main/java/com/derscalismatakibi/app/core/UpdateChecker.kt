@@ -13,7 +13,10 @@ import java.net.URL
  * icin kimlik dogrulama gerekmez.
  */
 object UpdateChecker {
-    private const val REPO = "ckfantome/ders-calisma-takibi-android"
+    // ders-calisma-takibi-android artik PRIVATE (v0.41.0 oncesi yapilan repo
+    // tasima) - API 404 donup guncelleme kontrolu sessizce hicbir sey
+    // bulamiyordu, indirme hic tetiklenmiyordu. Yeni depoya guncellendi.
+    private const val REPO = "ckfantome/ders-calisma-takibi-android-v2"
     private const val API_URL = "https://api.github.com/repos/$REPO/releases/latest"
 
     data class UpdateInfo(

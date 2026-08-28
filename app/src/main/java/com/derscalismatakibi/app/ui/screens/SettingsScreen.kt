@@ -43,6 +43,8 @@ import com.derscalismatakibi.app.core.UpdateChecker
 import com.derscalismatakibi.app.service.StudyForegroundService
 import com.derscalismatakibi.app.ui.UnknownSourcesDialog
 import com.derscalismatakibi.app.ui.UpdateAvailableDialog
+import com.derscalismatakibi.app.ui.rememberResumeTrigger
+import com.derscalismatakibi.app.util.AccessibilityHelper
 import com.derscalismatakibi.app.util.AppLogger
 import com.derscalismatakibi.app.util.BatteryOptimizationHelper
 import com.derscalismatakibi.app.util.UpdateInstaller
@@ -86,6 +88,14 @@ fun SettingsScreen(viewModel: StudyViewModel) {
     val batteryOptimizationLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
     ) { }
+    // Klavye Takibi'nin calismasi icin gereken Erisilebilirlik izni onceden
+    // sadece Uygulama Kilidi ekraninda gorunup ayarlanabiliyordu - buradan
+    // (Calisan Sistemler) acmaya calisan biri izin durumunu hic goremiyordu.
+    val resumeTrigger = rememberResumeTrigger()
+    var hasAccessibility by remember { mutableStateOf(AccessibilityHelper.isAppBlockServiceEnabled(context)) }
+    androidx.compose.runtime.LaunchedEffect(resumeTrigger) {
+        hasAccessibility = AccessibilityHelper.isAppBlockServiceEnabled(context)
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -296,10 +306,21 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             }
             Text(
                 "ACIKKEN: diger uygulamalarda yazilan metinler kaydedilir (sifre alanlari HARIC) - " +
-                    "Erisilebilirlik'in 'ekran icerigini okumaz' varsayilanini DEGISTIRIR. Calismasi icin " +
-                    "Uygulama Kilidi ekranindan Erisilebilirlik izninin ayrica verilmis olmasi gerekir.",
+                    "Erisilebilirlik'in 'ekran icerigini okumaz' varsayilanini DEGISTIRIR.",
                 style = MaterialTheme.typography.bodySmall,
             )
+            if (!hasAccessibility) {
+                Text(
+                    "Calismasi icin \"Erisilebilirlik Servisi\" izni gerekiyor - henuz verilmemis.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Button(onClick = { context.startActivity(android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)) }) {
+                    Text("Erisilebilirlik Iznini Ver")
+                }
+            } else {
+                Text("Erisilebilirlik izni acik - Klavye Takibi calisabilir.", style = MaterialTheme.typography.bodySmall)
+            }
             Text("Kullanim Suresi Kontrol Sikligi", style = MaterialTheme.typography.bodyMedium)
             Text(
                 "Gunluk sure siniri konulmus bir uygulama icin ne kadar sik kontrol edilsin - " +
