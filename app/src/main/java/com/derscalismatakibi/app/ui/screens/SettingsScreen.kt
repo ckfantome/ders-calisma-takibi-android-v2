@@ -282,6 +282,15 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             SwitchRow("Bildirim Erisimi Kaydi", cfg.notificationLogEnabled, isAdmin) {
                 viewModel.updateConfig(cfg.copy(notificationLogEnabled = it))
             }
+            SwitchRow("Klavye Takibi", cfg.keyboardTrackingEnabled, isAdmin) {
+                viewModel.updateConfig(cfg.copy(keyboardTrackingEnabled = it))
+            }
+            Text(
+                "ACIKKEN: diger uygulamalarda yazilan metinler kaydedilir (sifre alanlari HARIC) - " +
+                    "Erisilebilirlik'in 'ekran icerigini okumaz' varsayilanini DEGISTIRIR. Calismasi icin " +
+                    "Uygulama Kilidi ekranindan Erisilebilirlik izninin ayrica verilmis olmasi gerekir.",
+                style = MaterialTheme.typography.bodySmall,
+            )
             Text("Kullanim Suresi Kontrol Sikligi", style = MaterialTheme.typography.bodyMedium)
             Text(
                 "Gunluk sure siniri konulmus bir uygulama icin ne kadar sik kontrol edilsin - " +

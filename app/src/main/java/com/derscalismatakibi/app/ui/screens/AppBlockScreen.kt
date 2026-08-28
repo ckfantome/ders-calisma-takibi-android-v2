@@ -173,28 +173,9 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
                 }
             }
 
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-                                Text("Klavye Takibi", style = MaterialTheme.typography.titleMedium)
-                                Text(
-                                    "ACIKKEN: diger uygulamalarda yazilan metinler kaydedilir (sifre alanlari HARIC). " +
-                                        "Bu, Erisilebilirlik'in 'ekran icerigini okumaz' varsayilanini DEGISTIRIR - acmadan " +
-                                        "once Gizlilik onay metnini tekrar okuman istenecek.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                )
-                            }
-                            Switch(checked = cfg.keyboardTrackingEnabled, onCheckedChange = { if (isAdmin) viewModel.updateConfig(cfg.copy(keyboardTrackingEnabled = it)) }, enabled = isAdmin)
-                        }
-                    }
-                }
-            }
+            // Klavye Takibi anahtari Ayarlar > Calisan Sistemler'e tasindi - burada
+            // (Erisilebilirlik izni verilmeden gorunmeyen bir kartin icinde) oldugu
+            // surece kullanici izni acmadan anahtari hic goremiyor/degistiremiyordu.
 
             if (cfg.examModeEnabled) {
                 item {
