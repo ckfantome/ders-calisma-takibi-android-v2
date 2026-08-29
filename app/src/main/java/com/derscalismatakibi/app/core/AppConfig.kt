@@ -51,6 +51,12 @@ data class AppConfig(
     val dailyBackupEnabled: Boolean = false,
     val backupHour: Int = 23,
     val backupMinute: Int = 0,
+    /** Sabit saatin yanina ek olarak belirli araliklarla (WorkManager alt siniri
+     * 15dk) da yedekleme e-postasi gonderilsin mi. */
+    val intervalBackupEnabled: Boolean = false,
+    val intervalBackupMinutes: Int = 60,
+    /** Sik araliklarda mobil veri tuketmemek icin varsayilan olarak sadece Wi-Fi'de calisir. */
+    val intervalBackupWifiOnly: Boolean = true,
     val lastBackupTimestamp: Long = 0L,
     /** "" | "ok" | "ok (sadece cihaza)" | "error: ..." */
     val lastBackupStatus: String = "",

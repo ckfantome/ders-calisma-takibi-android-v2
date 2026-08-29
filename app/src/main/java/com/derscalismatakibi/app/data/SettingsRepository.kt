@@ -56,6 +56,9 @@ class SettingsRepository(private val context: Context) {
         val DAILY_BACKUP_ENABLED = booleanPreferencesKey("daily_backup_enabled")
         val BACKUP_HOUR = intPreferencesKey("backup_hour")
         val BACKUP_MINUTE = intPreferencesKey("backup_minute")
+        val INTERVAL_BACKUP_ENABLED = booleanPreferencesKey("interval_backup_enabled")
+        val INTERVAL_BACKUP_MINUTES = intPreferencesKey("interval_backup_minutes")
+        val INTERVAL_BACKUP_WIFI_ONLY = booleanPreferencesKey("interval_backup_wifi_only")
         val LAST_BACKUP_TIMESTAMP = longPreferencesKey("last_backup_timestamp")
         val LAST_BACKUP_STATUS = stringPreferencesKey("last_backup_status")
         val PRIVACY_CONSENT_ACCEPTED = booleanPreferencesKey("privacy_consent_accepted")
@@ -121,6 +124,9 @@ class SettingsRepository(private val context: Context) {
             dailyBackupEnabled = prefs[Keys.DAILY_BACKUP_ENABLED] ?: defaults.dailyBackupEnabled,
             backupHour = prefs[Keys.BACKUP_HOUR] ?: defaults.backupHour,
             backupMinute = prefs[Keys.BACKUP_MINUTE] ?: defaults.backupMinute,
+            intervalBackupEnabled = prefs[Keys.INTERVAL_BACKUP_ENABLED] ?: defaults.intervalBackupEnabled,
+            intervalBackupMinutes = prefs[Keys.INTERVAL_BACKUP_MINUTES] ?: defaults.intervalBackupMinutes,
+            intervalBackupWifiOnly = prefs[Keys.INTERVAL_BACKUP_WIFI_ONLY] ?: defaults.intervalBackupWifiOnly,
             lastBackupTimestamp = prefs[Keys.LAST_BACKUP_TIMESTAMP] ?: defaults.lastBackupTimestamp,
             lastBackupStatus = prefs[Keys.LAST_BACKUP_STATUS] ?: defaults.lastBackupStatus,
             privacyConsentAccepted = prefs[Keys.PRIVACY_CONSENT_ACCEPTED] ?: defaults.privacyConsentAccepted,
@@ -186,6 +192,9 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.DAILY_BACKUP_ENABLED] = cfg.dailyBackupEnabled
             prefs[Keys.BACKUP_HOUR] = cfg.backupHour
             prefs[Keys.BACKUP_MINUTE] = cfg.backupMinute
+            prefs[Keys.INTERVAL_BACKUP_ENABLED] = cfg.intervalBackupEnabled
+            prefs[Keys.INTERVAL_BACKUP_MINUTES] = cfg.intervalBackupMinutes
+            prefs[Keys.INTERVAL_BACKUP_WIFI_ONLY] = cfg.intervalBackupWifiOnly
             prefs[Keys.LAST_BACKUP_TIMESTAMP] = cfg.lastBackupTimestamp
             prefs[Keys.LAST_BACKUP_STATUS] = cfg.lastBackupStatus
             prefs[Keys.PRIVACY_CONSENT_ACCEPTED] = cfg.privacyConsentAccepted

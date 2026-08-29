@@ -453,6 +453,38 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                     viewModel.updateConfig(cfg.copy(dailyBackupEnabled = it))
                 }
 
+                SwitchRow("Araliklarla Otomatik Yedekleme", cfg.intervalBackupEnabled, isAdmin) { enabled ->
+                    viewModel.updateConfig(cfg.copy(intervalBackupEnabled = enabled))
+                    BackupScheduler.rescheduleInterval(context, enabled, cfg.intervalBackupMinutes, cfg.intervalBackupWifiOnly)
+                }
+                if (cfg.intervalBackupEnabled) {
+                    var intervalMinutesField by remember { mutableStateOf(cfg.intervalBackupMinutes.toString()) }
+                    OutlinedTextField(
+                        value = intervalMinutesField,
+                        onValueChange = { text ->
+                            intervalMinutesField = text
+                            text.toIntOrNull()?.let { m ->
+                                if (m >= 15) {
+                                    viewModel.updateConfig(cfg.copy(intervalBackupMinutes = m))
+                                    BackupScheduler.rescheduleInterval(context, true, m, cfg.intervalBackupWifiOnly)
+                                }
+                            }
+                        },
+                        label = { Text("Aralik (dakika, min 15)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.width(200.dp),
+                    )
+                    SwitchRow("Sadece Wi-Fi'de Gonder", cfg.intervalBackupWifiOnly, isAdmin) { wifiOnly ->
+                        viewModel.updateConfig(cfg.copy(intervalBackupWifiOnly = wifiOnly))
+                        BackupScheduler.rescheduleInterval(context, true, cfg.intervalBackupMinutes, wifiOnly)
+                    }
+                    Text(
+                        "Bu aralikta yeni veri yoksa e-posta atlanir, sadece cihaza yazma her zaman yapilir.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
                 val lastBackupText = if (cfg.lastBackupTimestamp > 0) {
                     val dateStr = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale("tr")).format(Date(cfg.lastBackupTimestamp))
                     "Son yedekleme: $dateStr - ${cfg.lastBackupStatus}"

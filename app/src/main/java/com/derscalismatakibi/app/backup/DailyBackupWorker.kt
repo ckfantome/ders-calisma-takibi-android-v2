@@ -12,14 +12,16 @@ import com.derscalismatakibi.app.util.UsageStatsHelper
 import kotlinx.coroutines.flow.first
 
 /**
- * Gunde bir kez (bkz. BackupScheduler) calisir: o gune kadarki TUM veriyi
- * cihaza yazar, ayarlar izin veriyorsa ayrica ayni Gmail hesabina e-posta
- * gonderir. Basarisizlikta hem Ayarlar'daki durum metnine hem de bir bildirime
- * yansitilir (kullaniciyla netlesen "ikisi de" karari).
+ * Gunde bir kez sabit saatte VEYA (ayarlandiysa) belirli araliklarla (bkz.
+ * BackupScheduler) calisir: o ana kadarki TUM veriyi cihaza yazar, ayarlar
+ * izin veriyorsa ayrica ayni Gmail hesabina e-posta gonderir. Basarisizlikta
+ * hem Ayarlar'daki durum metnine hem de bir bildirime yansitilir (kullaniciyla
+ * netlesen "ikisi de" karari).
  */
 class DailyBackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext, params) {
     override suspend fun doWork(): Result {
-        AppLogger.log("Yedekleme", "Gunluk yedekleme baslatildi")
+        val isIntervalTrigger = inputData.getBoolean(BackupScheduler.WORK_DATA_KEY_IS_INTERVAL_TRIGGER, false)
+        AppLogger.log("Yedekleme", if (isIntervalTrigger) "Araliklarla yedekleme baslatildi" else "Gunluk yedekleme baslatildi")
         val settingsRepo = SettingsRepository(applicationContext)
         val cfg = settingsRepo.configFlow.first()
         val db = AppDatabase.getInstance(applicationContext)
@@ -86,8 +88,21 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
             keystrokeFile.takeIf { cfg.sendKeystrokeCsv },
         )
 
+        // Araliklarla tetiklenen calismalarda son e-postadan bu yana yeni oturum
+        // yoksa e-postayi atla - kisa araliklarda (orn. 15dk) ayni veriyi tekrar
+        // tekrar postalayip kutuyu spam'lememek icin. Sabit-saat gunluk calisma ve
+        // "Simdi Yedekle" butonu bu kontrolden MUAF - her zaman gonderilir.
+        if (isIntervalTrigger) {
+            val hasNewData = (db.sessionDao().maxCreatedAt() ?: 0L) > cfg.lastBackupTimestamp
+            if (!hasNewData) {
+                AppLogger.log("Yedekleme", "Araliklarla yedekleme atlandi - son gonderimden bu yana yeni veri yok")
+                settingsRepo.update(cfg.copy(lastBackupStatus = "ok (yeni veri yok, e-posta atlandi)"))
+                return Result.success()
+            }
+        }
+
         // 2) E-posta, sadece acik ve dolu ayarlanmissa.
-        if (cfg.dailyBackupEnabled && cfg.backupEmail.isNotBlank() && cfg.backupEmailAppPassword.isNotBlank()) {
+        if ((cfg.dailyBackupEnabled || cfg.intervalBackupEnabled) && cfg.backupEmail.isNotBlank() && cfg.backupEmailAppPassword.isNotBlank()) {
             when (val sendResult = SmtpBackupSender.send(cfg.backupEmail, cfg.backupEmailAppPassword, attachments)) {
                 is SmtpBackupSender.Result.Success -> {
                     AppLogger.log("Yedekleme", "E-posta basariyla gonderildi (${attachments.size} ek)")

@@ -35,6 +35,10 @@ interface SessionDao {
     /** CSV disa aktarim icin: kaydedilmis tum oturumlar (en yeniden en eskiye). */
     @Query("SELECT * FROM sessions ORDER BY date DESC, id DESC")
     suspend fun allSessions(): List<SessionEntity>
+
+    /** Araliklarla yedeklemede "son gonderimden bu yana yeni veri var mi" kontrolu icin. */
+    @Query("SELECT MAX(created_at) FROM sessions")
+    suspend fun maxCreatedAt(): Long?
 }
 
 data class DailyTotal(
