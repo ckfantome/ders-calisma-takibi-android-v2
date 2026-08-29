@@ -22,7 +22,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.ui.rememberResumeTrigger
 import com.derscalismatakibi.app.util.UsageStatsHelper
 
@@ -55,13 +57,18 @@ fun DeviceReportScreen() {
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Cihaz Raporu", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.device_report_title), style = MaterialTheme.typography.headlineSmall)
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Pil", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.device_report_battery), style = MaterialTheme.typography.titleMedium)
                 Text(
-                    if (batteryPct >= 0) "%$batteryPct" + (if (charging) " (sarj oluyor)" else "") else "Bilinmiyor",
+                    if (batteryPct >= 0) {
+                        stringResource(R.string.device_report_battery_percent, batteryPct) +
+                            (if (charging) " " + stringResource(R.string.device_report_charging) else "")
+                    } else {
+                        stringResource(R.string.device_report_unknown)
+                    },
                     style = MaterialTheme.typography.headlineMedium,
                 )
             }
@@ -69,12 +76,12 @@ fun DeviceReportScreen() {
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Bugunku Veri Kullanimi", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.device_report_data_usage_title), style = MaterialTheme.typography.titleMedium)
                 if (!UsageStatsHelper.hasUsageAccess(context)) {
-                    Text("Kullanim Erisimi izni gerekiyor (bkz. Kullanim sekmesi).", style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.device_report_usage_access_needed), style = MaterialTheme.typography.bodySmall)
                 } else {
                     Text(
-                        "Wi-Fi: ${"%.1f".format(wifiMb)} MB   ·   Mobil: ${"%.1f".format(mobileMb)} MB",
+                        stringResource(R.string.device_report_data_usage_value, wifiMb, mobileMb),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }

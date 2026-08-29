@@ -1,6 +1,8 @@
 package com.derscalismatakibi.app
 
+import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,25 +16,37 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.core.BlockReason
+import com.derscalismatakibi.app.data.SettingsRepository
 import com.derscalismatakibi.app.ui.theme.DersCalismaTakibiTheme
+import java.util.Locale
 
 /** AppBlockAccessibilityService bir engelli uygulama tespit edince bunu on plana
  * getirir - kullaniciya (cocuga) NEDEN engellendigini acikca gosterir, sessizce
  * kapatmaz. study_tracker2.py'de karsiligi yok, Android'e ozgu. */
 class BlockedActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: Context) {
+        val language = SettingsRepository.LocalePrefs.read(newBase)
+        val locale = Locale(language)
+        val config = Configuration(newBase.resources.configuration)
+        config.setLocale(locale)
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val reasonName = intent.getStringExtra(EXTRA_REASON)
-        val label = when (reasonName) {
-            "ExamMode" -> "Sınav/Ödev Modu açık"
-            "DailyLimit" -> "Bugünkü kullanım süresi doldu"
-            else -> "Çalışma saatleri içinde"
-        }
         setContent {
             DersCalismaTakibiTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
+                    val label = when (reasonName) {
+                        "ExamMode" -> stringResource(R.string.blocked_reason_exam_mode)
+                        "DailyLimit" -> stringResource(R.string.blocked_reason_daily_limit)
+                        else -> stringResource(R.string.blocked_reason_study_hours)
+                    }
                     BlockedScreen(label) {
                         startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME))
                         finish()
@@ -59,8 +73,8 @@ private fun BlockedScreen(reasonLabel: String, onHome: () -> Unit) {
         modifier = Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.Center,
     ) {
-        Text("Bu uygulama şu an engelli", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.blocked_title), style = MaterialTheme.typography.headlineSmall)
         Text(reasonLabel, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 12.dp, bottom = 24.dp))
-        Button(onClick = onHome) { Text("Ana Ekrana Dön") }
+        Button(onClick = onHome) { Text(stringResource(R.string.blocked_go_home)) }
     }
 }

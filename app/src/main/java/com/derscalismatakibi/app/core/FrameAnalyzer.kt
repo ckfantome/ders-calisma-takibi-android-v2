@@ -17,6 +17,17 @@ import kotlin.math.sqrt
  * 3D model noktalarini kullanir ki masaustu ile sayisal olarak ayni davransin.
  */
 
+/** analyzeFrame() Context'siz (per-frame, saniyede 15-30 kez cagrilan) saf bir
+ * fonksiyon oldugu icin infoText etiketleri disaridan (StudyEngine.appContext
+ * uzerinden) hazirlanip parametre olarak geciriliyor - res/values(-en)/strings.xml. */
+data class FrameAnalysisLabels(
+    val faceNotFound: String,
+    val poseNotCalculated: String,
+    val eyesClosedFmt: String,
+    val studyingFmt: String,
+    val headTurnedFmt: String,
+)
+
 val LEFT_EYE_EAR_IDX = intArrayOf(33, 160, 158, 133, 153, 144)
 val RIGHT_EYE_EAR_IDX = intArrayOf(362, 385, 387, 263, 373, 380)
 val MOUTH_MAR_IDX = intArrayOf(61, 291, 13, 14, 78, 308) // [sol, sag, ust-ic, alt-ic, ust-dis, alt-dis]
@@ -127,9 +138,9 @@ fun estimateHeadPose(points: List<Point2D>, w: Int, h: Int): PoseEstimate? {
  * study_tracker2.py -> analyze_frame(). `landmarks` null ise (yuz bulunamadi)
  * dogrudan AWAY doner; degilse EAR -> uyku, yaw/pitch -> calisiyor/uzakta karari.
  */
-fun analyzeFrame(points: List<Point2D>?, w: Int, h: Int, cfg: AppConfig): FrameAnalysis {
+fun analyzeFrame(points: List<Point2D>?, w: Int, h: Int, cfg: AppConfig, labels: FrameAnalysisLabels): FrameAnalysis {
     if (points == null) {
-        return FrameAnalysis(StudyState.AWAY, "Yuz bulunamadi")
+        return FrameAnalysis(StudyState.AWAY, labels.faceNotFound)
     }
     val ear = (
         eyeAspectRatio(points, LEFT_EYE_EAR_IDX, w, h) +
@@ -137,12 +148,12 @@ fun analyzeFrame(points: List<Point2D>?, w: Int, h: Int, cfg: AppConfig): FrameA
         ) / 2.0
     val mar = mouthAspectRatio(points, MOUTH_MAR_IDX, w, h)
     val pose = estimateHeadPose(points, w, h)
-        ?: return FrameAnalysis(StudyState.AWAY, "Poz hesaplanamadi", ear = ear, mar = mar)
+        ?: return FrameAnalysis(StudyState.AWAY, labels.poseNotCalculated, ear = ear, mar = mar)
 
     if (ear < cfg.earClosedThreshold) {
         return FrameAnalysis(
             StudyState.SLEEPING,
-            "Gozler kapali (EAR=${"%.2f".format(ear)})",
+            String.format(labels.eyesClosedFmt, ear),
             ear = ear, pose = pose, mar = mar,
         )
     }
@@ -151,13 +162,13 @@ fun analyzeFrame(points: List<Point2D>?, w: Int, h: Int, cfg: AppConfig): FrameA
     return if (yawOk && pitchOk) {
         FrameAnalysis(
             StudyState.STUDYING,
-            "Calisiyor (yaw=${pose.yaw.toInt()} pitch=${pose.pitch.toInt()} EAR=${"%.2f".format(ear)})",
+            String.format(labels.studyingFmt, pose.yaw.toInt(), pose.pitch.toInt(), ear),
             ear = ear, pose = pose, mar = mar,
         )
     } else {
         FrameAnalysis(
             StudyState.AWAY,
-            "Kafa donuk (yaw=${pose.yaw.toInt()} pitch=${pose.pitch.toInt()})",
+            String.format(labels.headTurnedFmt, pose.yaw.toInt(), pose.pitch.toInt()),
             ear = ear, pose = pose, mar = mar,
         )
     }

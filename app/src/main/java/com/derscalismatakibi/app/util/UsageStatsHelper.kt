@@ -6,6 +6,7 @@ import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Process
+import com.derscalismatakibi.app.R
 import java.util.Calendar
 
 /**
@@ -36,8 +37,8 @@ object UsageStatsHelper {
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
             val type = when (event.eventType) {
-                UsageEvents.Event.MOVE_TO_FOREGROUND -> "Acildi"
-                UsageEvents.Event.MOVE_TO_BACKGROUND -> "Kapandi"
+                UsageEvents.Event.MOVE_TO_FOREGROUND -> context.getString(R.string.usage_event_opened)
+                UsageEvents.Event.MOVE_TO_BACKGROUND -> context.getString(R.string.usage_event_closed)
                 else -> continue
             }
             if (event.packageName == context.packageName) continue

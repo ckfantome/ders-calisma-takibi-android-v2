@@ -20,7 +20,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.legal.PrivacyConsent
 import com.derscalismatakibi.app.viewmodel.StudyViewModel
 
@@ -30,11 +33,12 @@ import com.derscalismatakibi.app.viewmodel.StudyViewModel
 fun PrivacyConsentScreen(viewModel: StudyViewModel) {
     val cfg by viewModel.configState.collectAsState()
     var checked by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Gizlilik Bilgilendirmesi", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.privacy_consent_title), style = MaterialTheme.typography.headlineSmall)
         Text(
-            PrivacyConsent.TEXT,
+            PrivacyConsent.text(context),
             modifier = Modifier.weight(1f).padding(top = 12.dp).verticalScroll(rememberScrollState()),
             style = MaterialTheme.typography.bodyMedium,
         )
@@ -43,7 +47,7 @@ fun PrivacyConsentScreen(viewModel: StudyViewModel) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Checkbox(checked = checked, onCheckedChange = { checked = it })
-            Text("Okudum, anladım, kabul ediyorum")
+            Text(stringResource(R.string.privacy_consent_checkbox))
         }
         Button(
             enabled = checked,
@@ -57,6 +61,6 @@ fun PrivacyConsentScreen(viewModel: StudyViewModel) {
                     )
                 )
             },
-        ) { Text("Devam Et") }
+        ) { Text(stringResource(R.string.privacy_consent_continue)) }
     }
 }

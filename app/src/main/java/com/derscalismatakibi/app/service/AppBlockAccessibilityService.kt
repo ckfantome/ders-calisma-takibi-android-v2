@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.content.Intent
 import android.view.accessibility.AccessibilityEvent
 import com.derscalismatakibi.app.BlockedActivity
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.core.BlockReason
 import com.derscalismatakibi.app.core.StudyEngine
 import com.derscalismatakibi.app.data.AppDatabase
@@ -37,8 +38,8 @@ class AppBlockAccessibilityService : AccessibilityService() {
             if (reason == BlockReason.ExamMode) {
                 val label = appLabel(pkg)
                 StudyEngine.sendInstantAlertEmail(
-                    "Sinav Modunda Engellenen Uygulama",
-                    "$label ($pkg) sinav/odev modu acikken acilmaya calisildi.",
+                    applicationContext.getString(R.string.app_block_email_subject),
+                    applicationContext.getString(R.string.app_block_email_body, label, pkg),
                 )
             }
             startActivity(

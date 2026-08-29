@@ -23,7 +23,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.core.fmtHms
 import com.derscalismatakibi.app.ui.rememberResumeTrigger
 import com.derscalismatakibi.app.util.AppEventEntry
@@ -66,33 +68,33 @@ fun UsageStatsScreen() {
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Uygulama Kullanimi", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.usage_stats_title), style = MaterialTheme.typography.headlineSmall)
 
         if (!hasAccess) {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Izin gerekiyor", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.usage_stats_permission_needed), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "Android bu tur hassas kullanim verisini normal izin kutusuyla vermiyor - " +
-                            "\"Kullanim erisimi\"ni Ayarlar'dan acikca vermen gerekiyor " +
-                            "(genelde: Ayarlar > Uygulamalar > Ozel erisim > Kullanim erisimi; cihaza gore menu adi degisebilir).",
+                        stringResource(R.string.usage_stats_permission_explanation),
                         style = MaterialTheme.typography.bodySmall,
                     )
                     Button(onClick = { context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }) {
-                        Text("Ayarlara Git")
+                        Text(stringResource(R.string.usage_stats_go_to_settings))
                     }
                 }
             }
         } else {
+            val durationTabLabel = stringResource(R.string.usage_stats_tab_duration)
+            val eventsTabLabel = stringResource(R.string.usage_stats_tab_events)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = { showEvents = false }) { Text(if (!showEvents) "• Sure" else "Sure") }
-                TextButton(onClick = { showEvents = true }) { Text(if (showEvents) "• Olaylar" else "Olaylar") }
+                TextButton(onClick = { showEvents = false }) { Text(if (!showEvents) "• $durationTabLabel" else durationTabLabel) }
+                TextButton(onClick = { showEvents = true }) { Text(if (showEvents) "• $eventsTabLabel" else eventsTabLabel) }
             }
 
             if (!showEvents) {
-                Text("Bugun (gece yarisindan simdiye) hangi uygulamada ne kadar vakit gecirdigin.", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.usage_stats_duration_explanation), style = MaterialTheme.typography.bodySmall)
                 if (entries.isEmpty()) {
-                    Text("Bugun icin henuz veri yok.", style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.usage_stats_no_data_today), style = MaterialTheme.typography.bodyMedium)
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         items(entries) { entry ->
@@ -109,9 +111,9 @@ fun UsageStatsScreen() {
                     }
                 }
             } else {
-                Text("Bugun hangi uygulama ne zaman acildi/kapandi.", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.usage_stats_events_explanation), style = MaterialTheme.typography.bodySmall)
                 if (events.isEmpty()) {
-                    Text("Bugun icin henuz olay yok.", style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.usage_stats_no_events_today), style = MaterialTheme.typography.bodyMedium)
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         items(events) { ev ->

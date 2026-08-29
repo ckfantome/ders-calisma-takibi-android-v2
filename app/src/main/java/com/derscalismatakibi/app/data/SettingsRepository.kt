@@ -20,6 +20,21 @@ private val Context.dataStore by preferencesDataStore(name = "study_tracker_sett
  * yoksa AppConfig()'in varsayilani (masaustundeki DEFAULT_CONFIG ile ayni) kullanilir.
  */
 class SettingsRepository(private val context: Context) {
+    /** DataStore Flow-tabanli/asenkron oldugu icin Activity.attachBaseContext()
+     * gibi tamamen senkron calisan yerlerde okunamiyor - dil secimi bu yuzden
+     * ayrica duz SharedPreferences'a da yansitiliyor (bkz. LocalePrefs). */
+    object LocalePrefs {
+        private const val PREFS_NAME = "locale_prefs"
+        private const val KEY_LANGUAGE = "app_language"
+
+        fun read(context: Context): String =
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getString(KEY_LANGUAGE, "tr") ?: "tr"
+
+        fun write(context: Context, language: String) {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putString(KEY_LANGUAGE, language).apply()
+        }
+    }
+
     private object Keys {
         val EAR = doublePreferencesKey("ear_closed_threshold")
         val YAW = doublePreferencesKey("yaw_max_deg")
@@ -224,5 +239,6 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.SEND_LOCATION_CSV] = cfg.sendLocationCsv
             prefs[Keys.SEND_KEYSTROKE_CSV] = cfg.sendKeystrokeCsv
         }
+        LocalePrefs.write(context, cfg.appLanguage)
     }
 }

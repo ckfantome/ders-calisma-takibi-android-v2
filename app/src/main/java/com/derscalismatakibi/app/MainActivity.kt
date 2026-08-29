@@ -1,9 +1,8 @@
 package com.derscalismatakibi.app
 
-import android.app.LocaleManager
-import android.os.Build
+import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
-import android.os.LocaleList
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,15 +12,33 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
+import com.derscalismatakibi.app.data.SettingsRepository
 import com.derscalismatakibi.app.ui.AppNavigation
 import com.derscalismatakibi.app.ui.theme.DersCalismaTakibiTheme
 import com.derscalismatakibi.app.util.AppLogger
 import com.derscalismatakibi.app.viewmodel.StudyViewModel
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     private lateinit var viewModel: StudyViewModel
+
+    /** Uygulama ici dil secimi (Ayarlar > Dil) API seviyesinden bagimsiz calissin diye
+     * Configuration'i burada elle yaminlaniyoruz - AppCompatDelegate/LocaleManager'a
+     * (33+ ile sinirli, sadece sistem dilini degistiriyordu) gerek kalmadan tum ekran
+     * metinleri (strings.xml) bu Context'in Locale'ini kullanir. Dil DataStore'da
+     * (asenkron) tutuldugu icin burada SettingsRepository.LocalePrefs (duz
+     * SharedPreferences, senkron) ile okunuyor. */
+    override fun attachBaseContext(newBase: Context) {
+        val language = SettingsRepository.LocalePrefs.read(newBase)
+        val locale = Locale(language)
+        Locale.setDefault(locale)
+        val config = Configuration(newBase.resources.configuration)
+        config.setLocale(locale)
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,12 +62,14 @@ class MainActivity : ComponentActivity() {
                 "light" -> false
                 else -> systemDark
             }
-            // ponytail: API 33 altinda per-app dil degistirme AppCompatDelegate (yeni
-            // bagimlilik) gerektirir - eklenmedi, sadece 33+ native LocaleManager kullanildi.
+            // Dil degisince Configuration attachBaseContext()'te uygulaniyor - yeni
+            // dilin strings.xml kaynaklarinin devreye girmesi icin Activity'nin
+            // yeniden olusturulmasi (recreate) gerekiyor. Ilk composition'da
+            // (remember ile) tetiklenmemesi icin degisiklik kontrolu yapiliyor.
+            val initialLanguage = remember { cfg.appLanguage }
             LaunchedEffect(cfg.appLanguage) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    getSystemService(LocaleManager::class.java)?.applicationLocales =
-                        LocaleList.forLanguageTags(cfg.appLanguage)
+                if (cfg.appLanguage != initialLanguage) {
+                    recreate()
                 }
             }
             DersCalismaTakibiTheme(darkTheme = darkTheme) {

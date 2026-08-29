@@ -22,8 +22,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.util.AppLogger
 
 /**
@@ -44,22 +46,21 @@ fun LogsScreen() {
     val reversedLogs = remember(logs) { logs.asReversed() }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Loglar", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.logs_title), style = MaterialTheme.typography.headlineSmall)
         Text(
-            "Uygulamadaki tum onemli olaylar (durum degisimleri, servis yasam dongusu, " +
-                "hatalar, yedekleme/guncelleme sonuclari) burada kaydedilir. Bir sorun " +
-                "yasarsan \"Paylas\"a basip dosyayi kendine gonderip bana iletebilirsin.",
+            stringResource(R.string.logs_explanation),
             style = MaterialTheme.typography.bodySmall,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            val shareChooserTitle = stringResource(R.string.logs_share_chooser_title)
             Button(onClick = {
                 val intent = AppLogger.buildShareIntent(context)
-                if (intent != null) context.startActivity(android.content.Intent.createChooser(intent, "Log dosyasini paylas"))
-            }) { Text("Paylaş") }
-            OutlinedButton(onClick = { showClearConfirm = true }) { Text("Temizle") }
+                if (intent != null) context.startActivity(android.content.Intent.createChooser(intent, shareChooserTitle))
+            }) { Text(stringResource(R.string.action_share)) }
+            OutlinedButton(onClick = { showClearConfirm = true }) { Text(stringResource(R.string.action_clear)) }
         }
         if (reversedLogs.isEmpty()) {
-            Text("Henuz log yok.", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.logs_empty), style = MaterialTheme.typography.bodyMedium)
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 items(reversedLogs) { line ->
@@ -77,15 +78,15 @@ fun LogsScreen() {
     if (showClearConfirm) {
         AlertDialog(
             onDismissRequest = { showClearConfirm = false },
-            title = { Text("Loglari Temizle") },
-            text = { Text("Tum log kayitlari (bellek ve dosya) silinecek. Devam edilsin mi?") },
+            title = { Text(stringResource(R.string.logs_clear_dialog_title)) },
+            text = { Text(stringResource(R.string.logs_clear_dialog_text)) },
             confirmButton = {
                 TextButton(onClick = {
                     AppLogger.clear()
                     showClearConfirm = false
-                }) { Text("Evet") }
+                }) { Text(stringResource(R.string.action_yes)) }
             },
-            dismissButton = { TextButton(onClick = { showClearConfirm = false }) { Text("Iptal") } },
+            dismissButton = { TextButton(onClick = { showClearConfirm = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }

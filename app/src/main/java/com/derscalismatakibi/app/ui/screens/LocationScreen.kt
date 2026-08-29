@@ -31,8 +31,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.data.SafeZoneEntity
 import com.derscalismatakibi.app.util.LocationHelper
 import com.derscalismatakibi.app.viewmodel.StudyViewModel
@@ -87,13 +89,12 @@ fun LocationScreen(viewModel: StudyViewModel) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            Text("Konum", style = MaterialTheme.typography.headlineSmall)
+            Text(stringResource(R.string.location_title), style = MaterialTheme.typography.headlineSmall)
         }
         if (!cfg.locationTrackingEnabled) {
             item {
                 Text(
-                    "Konum Takibi Ayarlar > Calisan Sistemler'den kapatilmis - Guvenli Bolge " +
-                        "kontrolu ve konum gecmisi kaydi yapilmiyor (asagidaki anlik konum sadece bu ekran acikken calisir).",
+                    stringResource(R.string.location_tracking_disabled),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -107,8 +108,8 @@ fun LocationScreen(viewModel: StudyViewModel) {
             item {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Konum izni gerekiyor", style = MaterialTheme.typography.titleMedium)
-                        Button(onClick = { fineLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION) }) { Text("Izin Ver") }
+                        Text(stringResource(R.string.location_permission_needed), style = MaterialTheme.typography.titleMedium)
+                        Button(onClick = { fineLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION) }) { Text(stringResource(R.string.call_log_grant_permission)) }
                     }
                 }
             }
@@ -117,9 +118,9 @@ fun LocationScreen(viewModel: StudyViewModel) {
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Arkaplanda konum icin ek izin", style = MaterialTheme.typography.titleMedium)
-                            Text("Uygulama kapaliyken de guvenli bolge kontrolu icin gerekiyor.", style = MaterialTheme.typography.bodySmall)
-                            Button(onClick = { backgroundLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION) }) { Text("Izin Ver") }
+                            Text(stringResource(R.string.location_background_permission_title), style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.location_background_permission_explanation), style = MaterialTheme.typography.bodySmall)
+                            Button(onClick = { backgroundLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION) }) { Text(stringResource(R.string.call_log_grant_permission)) }
                         }
                     }
                 }
@@ -128,17 +129,16 @@ fun LocationScreen(viewModel: StudyViewModel) {
             item {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Anlik Konum", style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.location_live_title), style = MaterialTheme.typography.titleMedium)
                         if (liveLat != null && liveLng != null) {
-                            Text("Enlem: $liveLat", style = MaterialTheme.typography.bodyMedium)
-                            Text("Boylam: $liveLng", style = MaterialTheme.typography.bodyMedium)
-                            Text("Guncellendi: $liveUpdatedAt (10sn'de bir tazelenir)", style = MaterialTheme.typography.bodySmall)
+                            Text(stringResource(R.string.location_latitude, liveLat.toString()), style = MaterialTheme.typography.bodyMedium)
+                            Text(stringResource(R.string.location_longitude, liveLng.toString()), style = MaterialTheme.typography.bodyMedium)
+                            Text(stringResource(R.string.location_updated_at, liveUpdatedAt), style = MaterialTheme.typography.bodySmall)
                         } else {
-                            Text("Konum henuz alinamadi (GPS/konum servisi acik mi kontrol et).", style = MaterialTheme.typography.bodySmall)
+                            Text(stringResource(R.string.location_gps_not_available), style = MaterialTheme.typography.bodySmall)
                         }
                         Text(
-                            "Not: konum gecmisi (sadece anlik degil, surekli degisen tum konum) StudyEngine tarafindan " +
-                                "30sn'de bir kaydedilir ve gunluk yedek e-postasina eklenir.",
+                            stringResource(R.string.location_history_note),
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
@@ -146,17 +146,17 @@ fun LocationScreen(viewModel: StudyViewModel) {
             }
 
             item {
-                Text("Guvenli Bolgeler", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.location_safe_zones_title), style = MaterialTheme.typography.titleMedium)
             }
             item {
                 Text(
-                    "Birden fazla bolge eklenebilir - cihaz herhangi bir ACIK bolgenin icindeyse guvenli sayilir.",
+                    stringResource(R.string.location_safe_zones_explanation),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
             if (zones.isEmpty()) {
                 item {
-                    Text("Henuz guvenli bolge eklenmedi.", style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.location_no_safe_zones), style = MaterialTheme.typography.bodySmall)
                 }
             } else {
                 items(zones, key = { it.id }) { zone ->
@@ -170,9 +170,10 @@ fun LocationScreen(viewModel: StudyViewModel) {
                 }
             }
             item {
+                val newZoneNamePrefix = stringResource(R.string.location_new_zone_name_prefix)
                 Button(onClick = {
-                    viewModel.addSafeZone("Bolge ${zones.size + 1}", liveLat ?: 0.0, liveLng ?: 0.0, 200.0)
-                }) { Text("Yeni Guvenli Bolge Ekle") }
+                    viewModel.addSafeZone("$newZoneNamePrefix ${zones.size + 1}", liveLat ?: 0.0, liveLng ?: 0.0, 200.0)
+                }) { Text(stringResource(R.string.location_add_safe_zone)) }
             }
         }
     }
@@ -193,9 +194,9 @@ private fun SafeZoneCard(
 
     val distanceText = if (liveLat != null && liveLng != null) {
         val d = LocationHelper.distanceMeters(liveLat, liveLng, zone.lat, zone.lng)
-        if (d <= zone.radiusMeters) "Su an bu bolgede" else "Su an ${d.toInt()}m uzakta"
+        if (d <= zone.radiusMeters) stringResource(R.string.location_currently_in_zone) else stringResource(R.string.location_currently_away, d.toInt())
     } else {
-        "Konum henuz alinamadi"
+        stringResource(R.string.location_not_available_yet)
     }
 
     Card(modifier = Modifier.fillMaxWidth()) {
@@ -208,18 +209,18 @@ private fun SafeZoneCard(
                 Text(distanceText, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                 Switch(checked = zone.enabled, onCheckedChange = { onSave(zone.copy(enabled = it)) })
             }
-            OutlinedTextField(value = nameText, onValueChange = { nameText = it }, label = { Text("Bolge Adi") })
-            OutlinedTextField(value = latText, onValueChange = { latText = it }, label = { Text("Enlem") })
-            OutlinedTextField(value = lngText, onValueChange = { lngText = it }, label = { Text("Boylam") })
-            OutlinedTextField(value = radiusText, onValueChange = { radiusText = it }, label = { Text("Yaricap (metre)") })
+            OutlinedTextField(value = nameText, onValueChange = { nameText = it }, label = { Text(stringResource(R.string.location_zone_name_label)) })
+            OutlinedTextField(value = latText, onValueChange = { latText = it }, label = { Text(stringResource(R.string.location_latitude_label)) })
+            OutlinedTextField(value = lngText, onValueChange = { lngText = it }, label = { Text(stringResource(R.string.location_longitude_label)) })
+            OutlinedTextField(value = radiusText, onValueChange = { radiusText = it }, label = { Text(stringResource(R.string.location_radius_label)) })
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = {
                     if (liveLat != null && liveLng != null) {
                         latText = liveLat.toString()
                         lngText = liveLng.toString()
                     }
-                }) { Text("Suradan Ayarla") }
-                Button(onClick = { onDelete(zone) }) { Text("Sil") }
+                }) { Text(stringResource(R.string.location_set_from_current)) }
+                Button(onClick = { onDelete(zone) }) { Text(stringResource(R.string.action_delete)) }
             }
             Button(onClick = {
                 onSave(
@@ -230,7 +231,7 @@ private fun SafeZoneCard(
                         radiusMeters = radiusText.toDoubleOrNull() ?: zone.radiusMeters,
                     ),
                 )
-            }) { Text("Kaydet") }
+            }) { Text(stringResource(R.string.action_save)) }
         }
     }
 }

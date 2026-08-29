@@ -41,9 +41,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.camera.CameraAnalyzer
 import com.derscalismatakibi.app.camera.FaceLandmarkerHelper
 import com.derscalismatakibi.app.core.PomodoroState
@@ -105,19 +107,20 @@ fun MainScreen(viewModel: StudyViewModel) {
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Ders Calisma Takibi", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall)
 
+        val cameraErrorFallback = stringResource(R.string.main_camera_error_fallback)
         Card(modifier = Modifier.fillMaxWidth().aspectRatio(3f / 4f)) {
             when {
                 backgroundActive -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        "Arkaplanda takip calisiyor - onizleme (pil tasarrufu icin) kapali.\nDurumu bildirimden takip edebilirsin.",
+                        stringResource(R.string.main_background_tracking_active),
                         modifier = Modifier.padding(16.dp),
                     )
                 }
                 !cfg.cameraAnalysisEnabled -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        "Kamera / MediaPipe Analizi Ayarlar > Calisan Sistemler'den kapatilmis.",
+                        stringResource(R.string.main_camera_analysis_disabled),
                         modifier = Modifier.padding(16.dp),
                     )
                 }
@@ -126,11 +129,11 @@ fun MainScreen(viewModel: StudyViewModel) {
                     onAnalyzed = { points, w, h -> viewModel.onFrameAnalyzed(points, w, h) },
                     onError = {
                         AppLogger.logError("Kamera", "MainScreen onizleme hatasi", it)
-                        viewModel.reportCameraError("${it::class.simpleName}: ${it.message ?: "Kamera hatasi"}")
+                        viewModel.reportCameraError("${it::class.simpleName}: ${it.message ?: cameraErrorFallback}")
                     },
                 )
                 else -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Kamera izni gerekiyor")
+                    Text(stringResource(R.string.main_camera_permission_needed))
                 }
             }
         }
@@ -140,7 +143,7 @@ fun MainScreen(viewModel: StudyViewModel) {
             SpeakingBadge(isSpeaking = uiState.isSpeaking, confirmed = uiState.speakingConfirmed)
         }
         Text(uiState.infoText, style = MaterialTheme.typography.bodySmall)
-        uiState.cameraError?.let { Text("Kamera hatasi: $it", color = MaterialTheme.colorScheme.error) }
+        uiState.cameraError?.let { Text(stringResource(R.string.main_camera_error, it), color = MaterialTheme.colorScheme.error) }
 
         // "Arkaplanda Takip" anahtari Ayarlar > Calisan Sistemler'e tasindi -
         // buradaki kart sadece DURUMU (backgroundActive uzerinden yukarida)
@@ -171,7 +174,7 @@ fun MainScreen(viewModel: StudyViewModel) {
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick = { showNotesDialog = true }, modifier = Modifier.weight(1f)) {
-                Text("Notlar")
+                Text(stringResource(R.string.main_notes))
             }
             OutlinedButton(
                 onClick = {
@@ -179,12 +182,12 @@ fun MainScreen(viewModel: StudyViewModel) {
                 },
                 modifier = Modifier.weight(1f),
             ) {
-                Text("Hedefi Sifirla")
+                Text(stringResource(R.string.main_reset_goal))
             }
         }
         if (showAdminRequiredNotice) {
             Text(
-                "Bu islem icin yonetici modu gerekiyor.",
+                stringResource(R.string.schedule_admin_required),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
             )
@@ -194,8 +197,8 @@ fun MainScreen(viewModel: StudyViewModel) {
     // study_tracker2.py -> MainWindow._open_notes(): oturumu sifirlamadan not/etiket gunceller.
     if (showNotesDialog) {
         NotesDialog(
-            title = "Oturum Notlari",
-            confirmLabel = "Kaydet",
+            title = stringResource(R.string.main_session_notes_title),
+            confirmLabel = stringResource(R.string.action_save),
             initialNotes = uiState.sessionNotes,
             initialTags = uiState.sessionTags,
             onDismiss = { showNotesDialog = false },
@@ -210,8 +213,8 @@ fun MainScreen(viewModel: StudyViewModel) {
     if (showResetConfirm) {
         AlertDialog(
             onDismissRequest = { showResetConfirm = false },
-            title = { Text("Hedefi Sifirla") },
-            text = { Text("Bugunku ilerleme kaydedilip sifirlanacak. Devam edilsin mi?") },
+            title = { Text(stringResource(R.string.main_reset_goal)) },
+            text = { Text(stringResource(R.string.main_reset_goal_confirm)) },
             confirmButton = {
                 TextButton(onClick = {
                     showResetConfirm = false
@@ -220,16 +223,16 @@ fun MainScreen(viewModel: StudyViewModel) {
                     } else {
                         viewModel.resetGoal()
                     }
-                }) { Text("Evet") }
+                }) { Text(stringResource(R.string.action_yes)) }
             },
-            dismissButton = { TextButton(onClick = { showResetConfirm = false }) { Text("Iptal") } },
+            dismissButton = { TextButton(onClick = { showResetConfirm = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 
     if (showResetNotesDialog) {
         NotesDialog(
-            title = "Oturum Notlari",
-            confirmLabel = "Kaydet ve Sifirla",
+            title = stringResource(R.string.main_session_notes_title),
+            confirmLabel = stringResource(R.string.main_save_and_reset),
             initialNotes = uiState.sessionNotes,
             initialTags = uiState.sessionTags,
             onDismiss = {
@@ -261,12 +264,12 @@ private fun NotesDialog(
         title = { Text(title) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Bugun ne calistin?") })
-                OutlinedTextField(value = tags, onValueChange = { tags = it }, label = { Text("Etiketler (virgulle ayir)") })
+                OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text(stringResource(R.string.main_notes_field_label)) })
+                OutlinedTextField(value = tags, onValueChange = { tags = it }, label = { Text(stringResource(R.string.main_tags_field_label)) })
             }
         },
         confirmButton = { TextButton(onClick = { onSave(notes, tags) }) { Text(confirmLabel) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Iptal") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
@@ -274,12 +277,12 @@ private fun NotesDialog(
 private fun ProgressCard(studyingSeconds: Double, dailyGoalHours: Double, productivityScore: Double, speakingSeconds: Double) {
     Card(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Bugunku ilerleme", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.main_today_progress), style = MaterialTheme.typography.titleMedium)
             Text(fmtHms(studyingSeconds), style = MaterialTheme.typography.headlineMedium)
             val goalSeconds = dailyGoalHours * 3600
             val progress = if (goalSeconds > 0) (studyingSeconds / goalSeconds).toFloat().coerceIn(0f, 1f) else 0f
             LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
-            Text("Verimlilik: %${productivityScore} · Konusma: ${fmtHms(speakingSeconds)}", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.main_productivity_speaking, productivityScore, fmtHms(speakingSeconds)), style = MaterialTheme.typography.bodySmall)
         }
     }
 }
@@ -288,7 +291,7 @@ private fun ProgressCard(studyingSeconds: Double, dailyGoalHours: Double, produc
 private fun WeeklyProgressCard(weeklySeconds: Double, weeklyGoalHours: Double) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Bu hafta", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.stats_this_week), style = MaterialTheme.typography.titleMedium)
             val weeklyGoalSeconds = weeklyGoalHours * 3600
             val weeklyProgress = if (weeklyGoalSeconds > 0) (weeklySeconds / weeklyGoalSeconds).toFloat().coerceIn(0f, 1f) else 0f
             Text(fmtHms(weeklySeconds), style = MaterialTheme.typography.headlineSmall)
@@ -307,14 +310,14 @@ private fun PomodoroCard(
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Pomodoro", style = MaterialTheme.typography.titleMedium)
-            Text(pomodoroLabel(state, remainingSeconds), style = MaterialTheme.typography.headlineMedium)
+            Text(stringResource(R.string.main_pomodoro), style = MaterialTheme.typography.titleMedium)
+            Text(pomodoroLabel(state, remainingSeconds, stringResource(R.string.main_pomodoro_paused)), style = MaterialTheme.typography.headlineMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = onToggle) {
-                    Text(if (state == PomodoroState.WORKING) "Pomodoro Durdur" else "Pomodoro Baslat")
+                    Text(if (state == PomodoroState.WORKING) stringResource(R.string.main_pomodoro_stop) else stringResource(R.string.main_pomodoro_start))
                 }
                 OutlinedButton(onClick = onManualBreak) {
-                    Text("Mola Ver")
+                    Text(stringResource(R.string.main_pomodoro_break))
                 }
             }
             if (pauseNotice.isNotBlank()) {
@@ -327,9 +330,9 @@ private fun PomodoroCard(
 @Composable
 private fun StateBadge(state: StudyState) {
     val (label, color) = when (state) {
-        StudyState.STUDYING -> "Calisiyor" to Color(0xFF3DDC84)
-        StudyState.AWAY -> "Uzakta / Dikkatsiz" to Color(0xFFFF5D6C)
-        StudyState.SLEEPING -> "Uykulu" to Color(0xFFF5A623)
+        StudyState.STUDYING -> stringResource(R.string.main_state_studying) to Color(0xFF3DDC84)
+        StudyState.AWAY -> stringResource(R.string.main_state_away) to Color(0xFFFF5D6C)
+        StudyState.SLEEPING -> stringResource(R.string.main_state_sleeping) to Color(0xFFF5A623)
     }
     Surface(color = color.copy(alpha = 0.18f), contentColor = color, shape = RoundedCornerShape(999.dp)) {
         Text(label, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), style = MaterialTheme.typography.labelLarge)
@@ -340,18 +343,18 @@ private fun StateBadge(state: StudyState) {
 @Composable
 private fun SpeakingBadge(isSpeaking: Boolean, confirmed: Boolean) {
     val (label, color) = when {
-        confirmed -> "🎤 Konusuyor (esik asildi)" to Color(0xFFF5A623)
-        isSpeaking -> "🎤 Konusuyor" to Color(0xFF5B8CFF)
-        else -> "🎤 Sessiz" to Color(0xFF8A8F9C)
+        confirmed -> stringResource(R.string.main_speaking_confirmed) to Color(0xFFF5A623)
+        isSpeaking -> stringResource(R.string.main_speaking) to Color(0xFF5B8CFF)
+        else -> stringResource(R.string.main_speaking_silent) to Color(0xFF8A8F9C)
     }
     Surface(color = color.copy(alpha = 0.18f), contentColor = color, shape = RoundedCornerShape(999.dp)) {
         Text(label, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), style = MaterialTheme.typography.labelLarge)
     }
 }
 
-private fun pomodoroLabel(state: PomodoroState, remaining: Double): String = when (state) {
+private fun pomodoroLabel(state: PomodoroState, remaining: Double, pausedLabel: String): String = when (state) {
     PomodoroState.IDLE -> "--:--:--"
-    PomodoroState.PAUSED -> "DURAKLATILDI"
+    PomodoroState.PAUSED -> pausedLabel
     else -> fmtHms(remaining)
 }
 

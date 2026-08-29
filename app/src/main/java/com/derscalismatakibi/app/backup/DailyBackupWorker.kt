@@ -3,6 +3,7 @@ package com.derscalismatakibi.app.backup
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.data.AppDatabase
 import com.derscalismatakibi.app.data.SettingsRepository
 import com.derscalismatakibi.app.util.AppLogger
@@ -38,7 +39,7 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
             ExportHelper.writeDailyBackupCsv(applicationContext, sessions, cfg.backupLabel)
         } catch (t: Throwable) {
             AppLogger.logError("Yedekleme", "CSV dosyasi yazilamadi", t)
-            settingsRepo.update(cfg.copy(lastBackupStatus = "error: dosya yazilamadi (${t.message})"))
+            settingsRepo.update(cfg.copy(lastBackupStatus = applicationContext.getString(R.string.backup_status_file_write_error, t.message)))
             return Result.retry()
         }
         val scheduleFile = try {
@@ -99,7 +100,7 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
             val hasNewData = (db.sessionDao().maxCreatedAt() ?: 0L) > cfg.lastBackupTimestamp
             if (!hasNewData) {
                 AppLogger.log("Yedekleme", "Araliklarla yedekleme atlandi - son gonderimden bu yana yeni veri yok")
-                settingsRepo.update(cfg.copy(lastBackupStatus = "ok (yeni veri yok, e-posta atlandi)"))
+                settingsRepo.update(cfg.copy(lastBackupStatus = applicationContext.getString(R.string.backup_status_ok_no_new_data)))
                 clearRawLogsAfterSuccess(db)
                 return Result.success()
             }
@@ -108,7 +109,12 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         // 2) E-posta, sadece acik ve dolu ayarlanmissa.
         if ((cfg.dailyBackupEnabled || cfg.intervalBackupEnabled) && cfg.backupEmail.isNotBlank() && cfg.backupEmailAppPassword.isNotBlank()) {
             val labelSuffix = if (cfg.backupLabel.isNotBlank()) " - ${cfg.backupLabel}" else ""
-            val subject = "Ders Calisma Takibi$labelSuffix - Yedek (${SimpleDateFormat("dd.MM.yyyy HH:mm", Locale("tr")).format(Date())})"
+            val subject = applicationContext.getString(
+                R.string.backup_email_subject,
+                applicationContext.getString(R.string.app_name),
+                labelSuffix,
+                SimpleDateFormat("dd.MM.yyyy HH:mm", Locale("tr")).format(Date()),
+            )
             when (val sendResult = SmtpBackupSender.send(cfg.backupEmail, cfg.backupEmailAppPassword, attachments, subject = subject)) {
                 is SmtpBackupSender.Result.Success -> {
                     AppLogger.log("Yedekleme", "E-posta basariyla gonderildi (${attachments.size} ek)")
@@ -120,14 +126,14 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
                 }
                 is SmtpBackupSender.Result.TransientFailure -> {
                     AppLogger.logError("Yedekleme", "E-posta gecici hata - tekrar denenecek: ${sendResult.message}")
-                    settingsRepo.update(cfg.copy(lastBackupStatus = "error: gonderim basarisiz, tekrar denenecek"))
-                    notifyFailure(notificationHelper, cfg.backupFailureNotificationsEnabled, "Gunluk yedekleme e-postasi gonderilemedi, tekrar denenecek.")
+                    settingsRepo.update(cfg.copy(lastBackupStatus = applicationContext.getString(R.string.backup_status_transient_error)))
+                    notifyFailure(notificationHelper, cfg.backupFailureNotificationsEnabled, applicationContext.getString(R.string.backup_notify_transient_failure))
                     return Result.retry()
                 }
                 is SmtpBackupSender.Result.PermanentFailure -> {
                     AppLogger.logError("Yedekleme", "E-posta kalici hata: ${sendResult.message}")
-                    settingsRepo.update(cfg.copy(lastBackupStatus = "error: ${sendResult.message}"))
-                    notifyFailure(notificationHelper, cfg.backupFailureNotificationsEnabled, "Gunluk yedekleme e-postasi gonderilemedi: ${sendResult.message}")
+                    settingsRepo.update(cfg.copy(lastBackupStatus = applicationContext.getString(R.string.backup_status_permanent_error, sendResult.message)))
+                    notifyFailure(notificationHelper, cfg.backupFailureNotificationsEnabled, applicationContext.getString(R.string.backup_notify_permanent_failure, sendResult.message))
                     return Result.failure()
                 }
             }
@@ -136,7 +142,7 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         // E-posta kapali/eksik - sadece cihaza yedekleme basarili sayilir.
         AppLogger.log("Yedekleme", "Sadece cihaza yazildi (e-posta kapali/eksik ayar)")
         settingsRepo.update(
-            cfg.copy(lastBackupTimestamp = System.currentTimeMillis(), lastBackupStatus = "ok (sadece cihaza)"),
+            cfg.copy(lastBackupTimestamp = System.currentTimeMillis(), lastBackupStatus = applicationContext.getString(R.string.backup_status_ok_device_only)),
         )
         clearRawLogsAfterSuccess(db)
         return Result.success()
@@ -146,7 +152,7 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         // Onceden HER ZAMAN zorla gosteriliyordu (notificationsEnabled=false olsa
         // bile) - kullanicinin acik istegiyle artik kendi ayri anahtariyla
         // (backupFailureNotificationsEnabled) kapatilabilir hale getirildi.
-        helper.notify("Yedekleme Basarisiz", message, notificationsEnabled)
+        helper.notify(applicationContext.getString(R.string.backup_notify_failed_title), message, notificationsEnabled)
     }
 
     /** Konum/klavye takibi verisi bu noktada zaten cihaza (ve varsa e-postaya)

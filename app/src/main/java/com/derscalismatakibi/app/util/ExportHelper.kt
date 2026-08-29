@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.data.BlockedAppEntity
 import com.derscalismatakibi.app.data.KeystrokeLogEntity
 import com.derscalismatakibi.app.data.LocationLogEntity
@@ -34,7 +35,7 @@ object ExportHelper {
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
         val file = File(dir, "calisma_verileri_${System.currentTimeMillis()}.csv")
         FileWriter(file).use { writer ->
-            writer.append("tarih,baslangic,bitis,calisma_sn,uzakta_sn,uyku_sn,toplam_sn,konusma_sn,pomodoro_sayisi,notlar,etiketler,verimlilik\n")
+            writer.append(context.getString(R.string.csv_header_sessions) + "\n")
             for (s in sessions) {
                 writer.append(csvRow(s))
             }
@@ -57,7 +58,7 @@ object ExportHelper {
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
         val file = File(dir, "${labelPrefix(label)}son_yedek.csv")
         FileWriter(file).use { writer ->
-            writer.append("tarih,baslangic,bitis,calisma_sn,uzakta_sn,uyku_sn,toplam_sn,konusma_sn,pomodoro_sayisi,notlar,etiketler,verimlilik\n")
+            writer.append(context.getString(R.string.csv_header_sessions) + "\n")
             for (s in sessions) {
                 writer.append(csvRow(s))
             }
@@ -91,7 +92,7 @@ object ExportHelper {
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
         val file = File(dir, "${labelPrefix(label)}son_kullanim.csv")
         FileWriter(file).use { writer ->
-            writer.append("uygulama,paket_adi,toplam_sn\n")
+            writer.append(context.getString(R.string.csv_header_usage) + "\n")
             for (e in entries) {
                 fun esc(v: String) = "\"${v.replace("\"", "\"\"")}\""
                 writer.append("${esc(e.label)},${esc(e.packageName)},${e.totalMillis / 1000.0}\n")
@@ -111,15 +112,18 @@ object ExportHelper {
         val dateFmt = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale("tr"))
         fun esc(v: String) = "\"${v.replace("\"", "\"\"")}\""
         FileWriter(file).use { writer ->
-            writer.append("tur,kisi_numara,detay,tarih\n")
+            writer.append(context.getString(R.string.csv_header_call_sms) + "\n")
+            val callRowType = context.getString(R.string.csv_row_type_call)
+            val smsRowType = context.getString(R.string.csv_row_type_sms)
+            val durationSecSuffix = context.getString(R.string.call_log_duration_seconds_suffix)
             if (hasCallLog) {
                 for (c in loadCalls(context)) {
-                    writer.append("arama,${esc(c.name)},${esc(c.type)} (${c.durationSec}sn),${esc(dateFmt.format(Date(c.date)))}\n")
+                    writer.append("$callRowType,${esc(c.name)},${esc(c.type)} (${c.durationSec}$durationSecSuffix),${esc(dateFmt.format(Date(c.date)))}\n")
                 }
             }
             if (hasSms) {
                 for (s in loadSms(context)) {
-                    writer.append("sms,${esc(s.address)},${esc(s.preview)},${esc(dateFmt.format(Date(s.date)))}\n")
+                    writer.append("$smsRowType,${esc(s.address)},${esc(s.preview)},${esc(dateFmt.format(Date(s.date)))}\n")
                 }
             }
         }
@@ -131,11 +135,7 @@ object ExportHelper {
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
         val file = File(dir, "${labelPrefix(label)}son_cihaz_raporu.txt")
         val (wifiMb, mobileMb) = todayNetworkUsageMb(context)
-        file.writeText(
-            "Bugunku veri kullanimi\n" +
-                "Wi-Fi: ${"%.1f".format(wifiMb)} MB\n" +
-                "Mobil: ${"%.1f".format(mobileMb)} MB\n",
-        )
+        file.writeText(context.getString(R.string.device_report_txt_content, wifiMb, mobileMb))
         return file
     }
 
@@ -143,9 +143,10 @@ object ExportHelper {
     fun writeBlockedAppsTxt(context: Context, blockedApps: List<BlockedAppEntity>, examModeEnabled: Boolean, label: String = ""): File {
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
         val file = File(dir, "${labelPrefix(label)}son_uygulama_kilidi.txt")
+        val onOffLabel = if (examModeEnabled) context.getString(R.string.blocked_apps_txt_on) else context.getString(R.string.blocked_apps_txt_off)
         val lines = buildString {
-            append("Sinav/Odev Modu: ${if (examModeEnabled) "ACIK" else "kapali"}\n")
-            append("Kilitli uygulamalar (${blockedApps.size}):\n")
+            append(context.getString(R.string.blocked_apps_txt_exam_mode, onOffLabel) + "\n")
+            append(context.getString(R.string.blocked_apps_txt_locked_apps, blockedApps.size) + "\n")
             for (a in blockedApps) append("- ${a.appLabel} (${a.packageName})\n")
         }
         file.writeText(lines)
@@ -161,7 +162,7 @@ object ExportHelper {
         val file = File(dir, "${labelPrefix(label)}son_konum_gecmisi.csv")
         val dateFmt = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale("tr"))
         FileWriter(file).use { writer ->
-            writer.append("enlem,boylam,tarih\n")
+            writer.append(context.getString(R.string.csv_header_location) + "\n")
             for (e in entries) {
                 writer.append("${e.lat},${e.lng},${dateFmt.format(Date(e.timestamp))}\n")
             }
@@ -178,7 +179,7 @@ object ExportHelper {
         val dateFmt = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale("tr"))
         fun esc(v: String) = "\"${v.replace("\"", "\"\"")}\""
         FileWriter(file).use { writer ->
-            writer.append("uygulama,paket_adi,metin,tarih\n")
+            writer.append(context.getString(R.string.csv_header_keystroke) + "\n")
             for (e in entries) {
                 writer.append("${esc(e.appLabel)},${esc(e.packageName)},${esc(e.text)},${esc(dateFmt.format(Date(e.timestamp)))}\n")
             }

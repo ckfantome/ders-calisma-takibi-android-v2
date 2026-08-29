@@ -1,4 +1,393 @@
 <resources>
     <string name="app_name">Ders Calisma Takibi</string>
     <string name="accessibility_service_description">Uygulama Kilidi listesindeki uygulamalar acildiginda tespit edip engellemek icin hangi uygulamanin on planda oldugunu izler. Klavye Takibi ayarindan acikca acilmadikca yazilan metinleri okumaz.</string>
+
+    <!-- BlockedActivity -->
+    <string name="blocked_reason_exam_mode">Sınav/Ödev Modu açık</string>
+    <string name="blocked_reason_daily_limit">Bugünkü kullanım süresi doldu</string>
+    <string name="blocked_reason_study_hours">Çalışma saatleri içinde</string>
+    <string name="blocked_title">Bu uygulama şu an engelli</string>
+    <string name="blocked_go_home">Ana Ekrana Dön</string>
+
+    <!-- Ortak eylem butonlari -->
+    <string name="action_clear">Temizle</string>
+    <string name="action_share">Paylaş</string>
+    <string name="action_yes">Evet</string>
+    <string name="action_cancel">Iptal</string>
+    <string name="action_delete">Sil</string>
+    <string name="action_add">Ekle</string>
+    <string name="action_save">Kaydet</string>
+    <string name="action_remove">Kaldir</string>
+    <string name="action_close">Kapat</string>
+
+    <!-- Haftanin gunleri -->
+    <string name="weekday_monday">Pazartesi</string>
+    <string name="weekday_tuesday">Sali</string>
+    <string name="weekday_wednesday">Carsamba</string>
+    <string name="weekday_thursday">Persembe</string>
+    <string name="weekday_friday">Cuma</string>
+    <string name="weekday_saturday">Cumartesi</string>
+    <string name="weekday_sunday">Pazar</string>
+
+    <!-- PrivacyConsentScreen -->
+    <string name="privacy_consent_title">Gizlilik Bilgilendirmesi</string>
+    <string name="privacy_consent_checkbox">Okudum, anladım, kabul ediyorum</string>
+    <string name="privacy_consent_continue">Devam Et</string>
+
+    <!-- KeyboardLogScreen -->
+    <string name="keyboard_log_title">Klavye Takibi</string>
+    <string name="keyboard_log_admin_only">Bu ekran sadece yonetici modunda goruntulenebilir.</string>
+    <string name="keyboard_log_explanation">Uygulama Kilidi ekranindan Klavye Takibi acikken diger uygulamalarda yazilan metinler burada listelenir. Sifre alanlari HARIC tutulur.</string>
+    <string name="keyboard_log_empty">Henuz kayit yok.</string>
+
+    <!-- LogsScreen -->
+    <string name="logs_title">Loglar</string>
+    <string name="logs_explanation">Uygulamadaki tum onemli olaylar (durum degisimleri, servis yasam dongusu, hatalar, yedekleme/guncelleme sonuclari) burada kaydedilir. Bir sorun yasarsan \"Paylas\"a basip dosyayi kendine gonderip bana iletebilirsin.</string>
+    <string name="logs_share_chooser_title">Log dosyasini paylas</string>
+    <string name="logs_empty">Henuz log yok.</string>
+    <string name="logs_clear_dialog_title">Loglari Temizle</string>
+    <string name="logs_clear_dialog_text">Tum log kayitlari (bellek ve dosya) silinecek. Devam edilsin mi?</string>
+
+    <!-- StatsScreen -->
+    <string name="stats_title">Istatistikler</string>
+    <string name="stats_this_week">Bu hafta</string>
+    <string name="stats_chart_title">Gunluk Calisma Suresi</string>
+    <string name="stats_chart_y_axis_note">Dikey eksen: saat. Son 14 gun gosterilir.</string>
+    <string name="stats_export_chooser_title">Verileri Paylas</string>
+    <string name="stats_export_csv">Disa Aktar (CSV)</string>
+    <string name="stats_empty_title">Henuz veri yok</string>
+    <string name="stats_empty_body">Bir calisma oturumu tamamladiginda istatistikler burada gorunecek.</string>
+
+    <!-- DeviceReportScreen -->
+    <string name="device_report_title">Cihaz Raporu</string>
+    <string name="device_report_battery">Pil</string>
+    <string name="device_report_battery_percent">%%%1$d</string>
+    <string name="device_report_charging">(sarj oluyor)</string>
+    <string name="device_report_unknown">Bilinmiyor</string>
+    <string name="device_report_data_usage_title">Bugunku Veri Kullanimi</string>
+    <string name="device_report_usage_access_needed">Kullanim Erisimi izni gerekiyor (bkz. Kullanim sekmesi).</string>
+    <string name="device_report_data_usage_value">Wi-Fi: %1$.1f MB   ·   Mobil: %2$.1f MB</string>
+
+    <!-- UsageStatsScreen -->
+    <string name="usage_stats_title">Uygulama Kullanimi</string>
+    <string name="usage_stats_permission_needed">Izin gerekiyor</string>
+    <string name="usage_stats_permission_explanation">Android bu tur hassas kullanim verisini normal izin kutusuyla vermiyor - \"Kullanim erisimi\"ni Ayarlar\'dan acikca vermen gerekiyor (genelde: Ayarlar &gt; Uygulamalar &gt; Ozel erisim &gt; Kullanim erisimi; cihaza gore menu adi degisebilir).</string>
+    <string name="usage_stats_go_to_settings">Ayarlara Git</string>
+    <string name="usage_stats_tab_duration">Sure</string>
+    <string name="usage_stats_tab_events">Olaylar</string>
+    <string name="usage_stats_duration_explanation">Bugun (gece yarisindan simdiye) hangi uygulamada ne kadar vakit gecirdigin.</string>
+    <string name="usage_stats_no_data_today">Bugun icin henuz veri yok.</string>
+    <string name="usage_stats_events_explanation">Bugun hangi uygulama ne zaman acildi/kapandi.</string>
+    <string name="usage_stats_no_events_today">Bugun icin henuz olay yok.</string>
+    <string name="usage_event_opened">Acildi</string>
+    <string name="usage_event_closed">Kapandi</string>
+
+    <!-- CallLogScreen -->
+    <string name="call_log_title">Arama / SMS</string>
+    <string name="call_log_disabled">Bu sistem Ayarlar &gt; Calisan Sistemler\'den kapatilmis - arama/SMS verisi okunmuyor.</string>
+    <string name="call_log_permission_needed">Izin gerekiyor</string>
+    <string name="call_log_permission_explanation">Arama gecmisi ve SMS ozetini gormek icin izin ver.</string>
+    <string name="call_log_grant_permission">Izin Ver</string>
+    <string name="call_log_tab_calls">Aramalar</string>
+    <string name="call_log_tab_sms">SMS</string>
+    <string name="call_log_duration_seconds_suffix">sn</string>
+    <string name="call_log_unknown">Bilinmeyen</string>
+    <string name="call_log_type_incoming">Gelen</string>
+    <string name="call_log_type_outgoing">Giden</string>
+    <string name="call_log_type_missed">Cevapsiz</string>
+    <string name="call_log_type_other">Diger</string>
+
+    <!-- ScheduleScreen -->
+    <string name="schedule_kind_work">Calisma</string>
+    <string name="schedule_kind_break">Mola</string>
+    <string name="schedule_title">Zaman Cizelgesi</string>
+    <string name="schedule_admin_required">Bu islem icin yonetici modu gerekiyor.</string>
+    <string name="schedule_tracking_on">Takvim takibi ACIK</string>
+    <string name="schedule_tracking_off">Takvim takibi kapali</string>
+    <string name="schedule_stop_tracking">Takvim Takibini Durdur</string>
+    <string name="schedule_start_tracking">Takvim Takibini Baslat</string>
+    <string name="schedule_add_work">+ Calisma</string>
+    <string name="schedule_add_break">+ Mola</string>
+    <string name="schedule_no_slots_today">Bu gun icin planlanmis aralik yok.</string>
+    <string name="schedule_no_definition_today">Bugun icin tanimli bir zaman cizelgesi yok. Once bir aralik ekle.</string>
+    <string name="schedule_today_program">Bugunku program:\n%1$s\n\nCalisma araligi baslayinca Pomodoro otomatik baslar; mola sirasinda calismaya devam edersen bu ayrica not edilir; planlanandan az calisilirsa aralik bitince bildirilir.</string>
+    <string name="schedule_add_work_dialog_title">Calisma Araligi Ekle</string>
+    <string name="schedule_add_break_dialog_title">Mola Araligi Ekle</string>
+    <string name="schedule_start_time_label">Baslangic (SS:DD)</string>
+    <string name="schedule_end_time_label">Bitis (SS:DD)</string>
+
+    <!-- LocationScreen -->
+    <string name="location_title">Konum</string>
+    <string name="location_tracking_disabled">Konum Takibi Ayarlar &gt; Calisan Sistemler\'den kapatilmis - Guvenli Bolge kontrolu ve konum gecmisi kaydi yapilmiyor (asagidaki anlik konum sadece bu ekran acikken calisir).</string>
+    <string name="location_permission_needed">Konum izni gerekiyor</string>
+    <string name="location_background_permission_title">Arkaplanda konum icin ek izin</string>
+    <string name="location_background_permission_explanation">Uygulama kapaliyken de guvenli bolge kontrolu icin gerekiyor.</string>
+    <string name="location_live_title">Anlik Konum</string>
+    <string name="location_latitude">Enlem: %1$s</string>
+    <string name="location_longitude">Boylam: %1$s</string>
+    <string name="location_updated_at">Guncellendi: %1$s (10sn\'de bir tazelenir)</string>
+    <string name="location_gps_not_available">Konum henuz alinamadi (GPS/konum servisi acik mi kontrol et).</string>
+    <string name="location_not_available_yet">Konum henuz alinamadi</string>
+    <string name="location_history_note">Not: konum gecmisi (sadece anlik degil, surekli degisen tum konum) StudyEngine tarafindan 30sn\'de bir kaydedilir ve gunluk yedek e-postasina eklenir.</string>
+    <string name="location_safe_zones_title">Guvenli Bolgeler</string>
+    <string name="location_safe_zones_explanation">Birden fazla bolge eklenebilir - cihaz herhangi bir ACIK bolgenin icindeyse guvenli sayilir.</string>
+    <string name="location_no_safe_zones">Henuz guvenli bolge eklenmedi.</string>
+    <string name="location_new_zone_name_prefix">Bolge</string>
+    <string name="location_add_safe_zone">Yeni Guvenli Bolge Ekle</string>
+    <string name="location_currently_in_zone">Su an bu bolgede</string>
+    <string name="location_currently_away">Su an %1$dm uzakta</string>
+    <string name="location_zone_name_label">Bolge Adi</string>
+    <string name="location_latitude_label">Enlem</string>
+    <string name="location_longitude_label">Boylam</string>
+    <string name="location_radius_label">Yaricap (metre)</string>
+    <string name="location_set_from_current">Suradan Ayarla</string>
+
+    <!-- AppBlockScreen -->
+    <string name="app_block_title">Uygulama Kilidi</string>
+    <string name="app_block_student_readonly">Ogrenci modundasin: bu ekran salt okunur. Degistirmek icin ust bardaki kilit ikonundan yonetici moduna gec.</string>
+    <string name="app_block_accessibility_needed">Erisilebilirlik izni gerekiyor</string>
+    <string name="app_block_accessibility_explanation">Engellenen bir uygulamanin on plana gelisini tespit edebilmek icin \"Erisilebilirlik Servisi\"ni Ayarlar\'dan acikca acman gerekiyor. Varsayilan olarak bu servis ekran icerigini OKUMAZ, sadece hangi uygulamanin on planda oldugunu gorur - Klavye Takibi\'ni asagidan ayrica acarsan yazilan metinleri de kaydetmeye baslar.</string>
+    <string name="app_block_oem_restrictive_note">Bu telefon markasinda (Oppo/Xiaomi/Huawei/Vivo) izin acik olsa bile sistem servisi zamanla kapatabiliyor - asagidan Otomatik Baslatma listesine de eklemen gerekiyor.</string>
+    <string name="app_block_open_autostart_settings">Otomatik Baslatma Ayarlarini Ac</string>
+    <string name="app_block_exam_mode_title">Sınav/Ödev Modu</string>
+    <string name="app_block_exam_mode_explanation">Acikken Kilitli Uygulamalar listesine bakilmaksizin HER SEY engellenir - sadece asagidaki \'Izin Verilen Uygulamalar\' listesindekiler ve zorunlu (ana ekran/telefon) uygulamalar acilabilir.</string>
+    <string name="app_block_screen_pinning_title">+ Ekrani Tamamen Sabitle</string>
+    <string name="app_block_screen_pinning_explanation">Sinav Modu acikken telefon SADECE bu uygulamaya kilitlenir - \'Izin Verilen Uygulamalar\' listesi de dahil BASKA HICBIR SEY acilamaz (ana ekran/Son Kullanilanlar da devre disi). Erisilebilirlik izninin OEM tarafindan kapatilmasindan etkilenmez.</string>
+    <string name="app_block_allowed_apps_title">Izin Verilen Uygulamalar (Sinav Modunda)</string>
+    <string name="app_block_allowed_apps_explanation">Sinav/Odev Modu acikken bunlar disinda hicbir uygulama acilamaz (orn. Hesap Makinesi).</string>
+    <string name="app_block_no_allowed_apps">Henuz izin verilen uygulama eklenmedi.</string>
+    <string name="app_block_locked_apps_title">Kilitli Uygulamalar</string>
+    <string name="app_block_locked_apps_explanation">Sinav/Odev Modu kapaliyken bu uygulamalar sadece kamera \'Calisiyor\' durumunu tespit ettiginde engellenir.</string>
+    <string name="app_block_no_apps_added">Henuz uygulama eklenmedi.</string>
+    <string name="app_block_add_app_title">Uygulama Ekle</string>
+
+    <!-- MainScreen -->
+    <string name="main_camera_error_fallback">Kamera hatasi</string>
+    <string name="main_background_tracking_active">Arkaplanda takip calisiyor - onizleme (pil tasarrufu icin) kapali.\nDurumu bildirimden takip edebilirsin.</string>
+    <string name="main_camera_analysis_disabled">Kamera / MediaPipe Analizi Ayarlar &gt; Calisan Sistemler\'den kapatilmis.</string>
+    <string name="main_camera_permission_needed">Kamera izni gerekiyor</string>
+    <string name="main_camera_error">Kamera hatasi: %1$s</string>
+    <string name="main_notes">Notlar</string>
+    <string name="main_reset_goal">Hedefi Sifirla</string>
+    <string name="main_session_notes_title">Oturum Notlari</string>
+    <string name="main_reset_goal_confirm">Bugunku ilerleme kaydedilip sifirlanacak. Devam edilsin mi?</string>
+    <string name="main_save_and_reset">Kaydet ve Sifirla</string>
+    <string name="main_notes_field_label">Bugun ne calistin?</string>
+    <string name="main_tags_field_label">Etiketler (virgulle ayir)</string>
+    <string name="main_today_progress">Bugunku ilerleme</string>
+    <string name="main_productivity_speaking">Verimlilik: %%%1$s · Konusma: %2$s</string>
+    <string name="main_pomodoro">Pomodoro</string>
+    <string name="main_pomodoro_stop">Pomodoro Durdur</string>
+    <string name="main_pomodoro_start">Pomodoro Baslat</string>
+    <string name="main_pomodoro_break">Mola Ver</string>
+    <string name="main_pomodoro_paused">DURAKLATILDI</string>
+    <string name="main_state_studying">Calisiyor</string>
+    <string name="main_state_away">Uzakta / Dikkatsiz</string>
+    <string name="main_state_sleeping">Uykulu</string>
+    <string name="main_speaking_confirmed">🎤 Konusuyor (esik asildi)</string>
+    <string name="main_speaking">🎤 Konusuyor</string>
+    <string name="main_speaking_silent">🎤 Sessiz</string>
+
+    <!-- SettingsScreen -->
+    <string name="settings_title">Ayarlar</string>
+    <string name="settings_student_mode_notice">Ogrenci modundasin: sistemi etkileyen ayarlarin cogu gizli. Sadece Tema/Dil/Ses/Bildirim burada kaliyor - digerlerini gormek/degistirmek icin ust bardaki kilit ikonundan yonetici moduna gec.</string>
+    <string name="settings_group_theme">Tema</string>
+    <string name="settings_theme_system">Sistem</string>
+    <string name="settings_theme_dark">Koyu</string>
+    <string name="settings_theme_light">Acik</string>
+    <string name="settings_group_language">Dil / Language</string>
+    <string name="settings_language_note">Degisiklik aninda uygulanir, tum uygulama ekranlarinda gecerlidir.</string>
+    <string name="settings_group_sound_notifications">Ses &amp; Bildirim</string>
+    <string name="settings_sound_alert">Sesli Uyari</string>
+    <string name="settings_routine_reminders">Rutin Hatirlatmalar (Pomodoro/Mola)</string>
+    <string name="settings_app_lock_exam_alert">Uygulama Kilidi/Sinav Modu Uyarisi</string>
+    <string name="settings_safe_zone_alert">Guvenli Bolge Uyarisi</string>
+    <string name="settings_backup_failure_alert">Yedekleme Basarisiz Uyarisi</string>
+    <string name="settings_group_detection_thresholds">Tespit Esikleri</string>
+    <string name="settings_ear_threshold">Goz Kapali Esigi (EAR)</string>
+    <string name="settings_max_yaw">Maks. Yatay Aci (derece)</string>
+    <string name="settings_max_pitch_down">Maks. Asagi Egim (derece)</string>
+    <string name="settings_max_pitch_up">Maks. Yukari Egim (derece)</string>
+    <string name="settings_group_confirm_durations">Onay Sureleri (sn)</string>
+    <string name="settings_confirm_away">Uzakta Onay</string>
+    <string name="settings_confirm_sleep">Uyku Onay</string>
+    <string name="settings_confirm_resume">Devam Onay</string>
+    <string name="settings_group_pomodoro">Pomodoro (dk)</string>
+    <string name="settings_pomodoro_work">Calisma</string>
+    <string name="settings_pomodoro_long_break">Uzun Mola</string>
+    <string name="settings_pomodoro_cycles">Uzun Molaya Kadar Dongu</string>
+    <string name="settings_group_goals">Hedefler (saat)</string>
+    <string name="settings_daily_goal">Gunluk Hedef</string>
+    <string name="settings_weekly_goal">Haftalik Hedef</string>
+    <string name="settings_group_general">Genel</string>
+    <string name="settings_auto_pause_away">Uzakta Otomatik Duraklat</string>
+    <string name="settings_auto_pause_sleep">Uyku Otomatik Duraklat</string>
+    <string name="settings_use_front_camera">On Kamerayi Kullan</string>
+    <string name="settings_note_prompt_on_end">Oturum Sonunda Not Sor</string>
+    <string name="settings_speaking_counts_as_away">Konusurken \'Uzakta\' Sayilsin</string>
+    <string name="settings_auto_start_on_boot">Cihaz Yeniden Baslayinca Otomatik Baslat</string>
+    <string name="settings_keep_alive">Kapatilinca Otomatik Yeniden Baslat (Surekli Acik Kal)</string>
+    <string name="settings_group_active_systems">Calisan Sistemler</string>
+    <string name="settings_active_systems_explanation">Her biri ayri bir izleme/analiz sistemini acar-kapar - kapatilan sistem hem arkaplanda calismayi hem gunluk yedege veri eklenmesini durdurur.</string>
+    <string name="settings_camera_permission_needed_for_background">Arkaplan takibi icin once kamera iznini vermen gerekiyor.</string>
+    <string name="settings_background_service_start_failed">Arkaplan servisi baslatilamadi</string>
+    <string name="settings_background_tracking">Arkaplanda Takip</string>
+    <string name="settings_oem_battery_note">Bazi telefon markalarinda (Xiaomi/MIUI, Oppo/ColorOS, Huawei/EMUI, Samsung) arkaplan takibinin kesintisiz calismasi icin Ayarlar &gt; Uygulamalar &gt; Ders Calisma Takibi &gt; Pil/Otomatik baslatma bolumunden uygulamaya izin vermen gerekebilir.</string>
+    <string name="settings_camera_analysis">Kamera / MediaPipe Analizi (calisma tespiti)</string>
+    <string name="settings_location_tracking">Konum Takibi (Guvenli Bolge + konum gecmisi)</string>
+    <string name="settings_call_sms_log">Arama/SMS Ozeti Kaydi</string>
+    <string name="settings_notification_log">Bildirim Erisimi Kaydi</string>
+    <string name="settings_keyboard_tracking">Klavye Takibi</string>
+    <string name="settings_keyboard_tracking_note">ACIKKEN: diger uygulamalarda yazilan metinler kaydedilir (sifre alanlari HARIC) - Erisilebilirlik\'in \'ekran icerigini okumaz\' varsayilanini DEGISTIRIR.</string>
+    <string name="settings_accessibility_not_granted">Calismasi icin \"Erisilebilirlik Servisi\" izni gerekiyor - henuz verilmemis.</string>
+    <string name="settings_grant_accessibility">Erisilebilirlik Iznini Ver</string>
+    <string name="settings_accessibility_granted">Erisilebilirlik izni acik - Klavye Takibi calisabilir.</string>
+    <string name="settings_usage_check_frequency_title">Kullanim Suresi Kontrol Sikligi</string>
+    <string name="settings_usage_check_frequency_explanation">Gunluk sure siniri konulmus bir uygulama icin ne kadar sik kontrol edilsin - \'Anlik\' pil/performans acisindan en pahalisi, \'Pil Dostu\'nda sinira ulasinca engelleme birkac saniye gecikmeli tetiklenebilir.</string>
+    <string name="settings_usage_interval_instant">Anlik</string>
+    <string name="settings_usage_interval_normal">Normal</string>
+    <string name="settings_usage_interval_battery_friendly">Pil Dostu</string>
+    <string name="settings_group_sent_data">Gonderilen Veriler</string>
+    <string name="settings_sent_data_explanation">Gunluk yedek e-postasina hangi dosyalarin eklenecegini secer - cihaza yazma bundan bagimsiz HER ZAMAN yapilir, bu sadece e-posta ekini kontrol eder.</string>
+    <string name="settings_send_session_csv">Calisma Oturumlari (CSV)</string>
+    <string name="settings_send_schedule_json">Takvim (JSON)</string>
+    <string name="settings_send_usage_csv">Uygulama Kullanimi (CSV)</string>
+    <string name="settings_send_call_sms_csv">Arama/SMS Ozeti (CSV)</string>
+    <string name="settings_send_device_report">Cihaz Raporu (TXT)</string>
+    <string name="settings_send_blocked_apps_txt">Uygulama Kilidi Listesi (TXT)</string>
+    <string name="settings_send_app_log">Uygulama Loglari</string>
+    <string name="settings_send_location_csv">Konum Gecmisi (CSV)</string>
+    <string name="settings_send_keystroke_csv">Klavye Takibi (CSV)</string>
+    <string name="settings_group_admin_pin">Yonetici PIN</string>
+    <string name="settings_admin_pin_label">Ogrenci -&gt; Yonetici gecisinde istenen PIN</string>
+    <string name="settings_group_backup_email">Yedekleme / E-posta</string>
+    <string name="settings_admin_email_label">Admin E-posta (gonderen ve alici)</string>
+    <string name="settings_app_password_label">Uygulama Sifresi (Gmail App Password)</string>
+    <string name="settings_gmail_app_password_note">Gmail icin 2 Adimli Dogrulama acik olmali, normal sifre degil \'Uygulama Sifresi\' kullan (myaccount.google.com/apppasswords).</string>
+    <string name="settings_backup_label_field">Etiket / Isim (orn. Ahmet)</string>
+    <string name="settings_backup_label_explanation">Ayni hesabi birden fazla kisi/cihaz kullaniyorsa yedekler karismasin diye mail konusuna ve dosya adlarina eklenir - bos birakilirsa hicbir sey degismez.</string>
+    <string name="settings_backup_hour_label">Saat (0-23)</string>
+    <string name="settings_backup_minute_label">Dakika (0-59)</string>
+    <string name="settings_daily_backup_enabled">Gunluk Otomatik Yedekleme</string>
+    <string name="settings_interval_backup_enabled">Araliklarla Otomatik Yedekleme</string>
+    <string name="settings_interval_minutes_label">Aralik (dakika, min 15)</string>
+    <string name="settings_wifi_only">Sadece Wi-Fi\'de Gonder</string>
+    <string name="settings_interval_wifi_note">Bu aralikta yeni veri yoksa e-posta atlanir, sadece cihaza yazma her zaman yapilir.</string>
+    <string name="settings_last_backup_at">Son yedekleme: %1$s - %2$s</string>
+    <string name="settings_last_backup_never">Son yedekleme: henuz yapilmadi</string>
+    <string name="settings_backup_now">Simdi Yedekle</string>
+    <string name="settings_group_notification_access">Bildirim Erisimi</string>
+    <string name="settings_notification_access_on">Bildirim erisimi acik - diger uygulamalardan gelen bildirimler Loglar\'a yaziliyor.</string>
+    <string name="settings_notification_access_off">Diger uygulamalardan gelen bildirimleri kaydetmek icin ozel bir izin gerekiyor (normal izin kutusuyla verilmez).</string>
+    <string name="settings_group_device_admin">Cihaz Yoneticisi</string>
+    <string name="settings_device_admin_active">Aktif - uygulama, once bu izin Ayarlar\'dan kapatilmadan kaldirilamaz.</string>
+    <string name="settings_device_admin_inactive">Kapali - aktif edilirse uygulamayi kaldirmadan once bu izni Ayarlar\'dan kapatman gerekir (ekstra korumali).</string>
+    <string name="settings_device_admin_explanation">Ders Calisma Takibi\'nin ebeveyn-denetim ayarlarindan kolayca kaldirilmamasi icin.</string>
+    <string name="settings_device_admin_enable">Etkinlestir</string>
+    <string name="settings_group_update">Guncelleme</string>
+    <string name="settings_update_explanation">Uygulama GitHub uzerinden dagitiliyor (Play Store degil). Yeni bir surum cikinca acilista otomatik haber verilir; istersen simdi de kontrol edebilirsin.</string>
+    <string name="settings_update_up_to_date">En son surumdesin.</string>
+    <string name="settings_update_checking">Kontrol ediliyor...</string>
+    <string name="settings_update_check">Guncellemeleri Kontrol Et</string>
+    <string name="settings_group_privacy">Gizlilik</string>
+    <string name="settings_view_privacy_policy">Gizlilik Politikasini Goruntule</string>
+    <string name="settings_group_privacy_policy_title">Gizlilik Politikasi</string>
+
+    <!-- AppNavigation -->
+    <string name="nav_main">Ana Ekran</string>
+    <string name="nav_usage">Kullanim</string>
+    <string name="nav_device">Cihaz</string>
+    <string name="nav_menu">Menu</string>
+    <string name="nav_admin_student_mode">Yonetici / Ogrenci modu</string>
+    <string name="nav_switch_to_student">Ogrenci Moduna Gec</string>
+    <string name="nav_switch_to_student_confirm">Ogrenci moduna gecilecek: ayarlar, takvim duzenleme ve hedef sifirlama kilitlenecek. Devam edilsin mi?</string>
+    <string name="nav_wrong_pin">Hatali PIN</string>
+    <string name="nav_admin_mode">Yonetici Modu</string>
+    <string name="nav_pin_label">PIN</string>
+    <string name="action_ok">Tamam</string>
+
+    <!-- UpdateDialogs -->
+    <string name="update_available_title">Yeni surum mevcut: v%1$s</string>
+    <string name="update_no_notes">Surum notu eklenmemis.</string>
+    <string name="update_download_install">Indir ve Kur</string>
+    <string name="update_later">Daha Sonra</string>
+    <string name="update_unknown_sources_explanation">Bu guncellemeyi kurabilmek icin \"Bilinmeyen kaynaklardan yukleme\" iznini Ayarlar\'dan acikca vermen gerekiyor (bu, Android\'in APK dosyalarini Play Store disindan kurarken istedigi standart bir guvenlik onayidir).</string>
+
+    <!-- StudyEngine: bildirimler, e-posta konulari, canli durum metni (infoText) -->
+    <string name="notif_long_break_time">Uzun mola zamani (%1$d dk)</string>
+    <string name="notif_break_time">Mola zamani (%1$d dk)</string>
+    <string name="notif_pomodoro_finished">Pomodoro tamamlandi!</string>
+    <string name="notif_break_over_title">Mola bitti</string>
+    <string name="notif_break_over_body">Calismaya devam etmek icin Pomodoro\'yu baslat.</string>
+    <string name="notif_app_lock_accessibility_broken">Sinav/Odev Modu acik ama Erisilebilirlik izni kapali - uygulama engelleme su an CALISMIYOR.</string>
+    <string name="notif_app_lock_disabled_title">Uygulama Kilidi Devre Disi</string>
+    <string name="notif_app_lock_disabled_email_subject">Uygulama Kilidi Devre Disi Kaldi</string>
+    <string name="notif_safe_zone_entered">Guvenli bolgeye girildi</string>
+    <string name="notif_safe_zone_left">Guvenli bolgeden cikildi</string>
+    <string name="notif_safe_zone_distance_suffix"> - %1$dm uzakta (en yakin: %2$s)</string>
+    <string name="notif_safe_zone_title">Guvenli Bolge</string>
+    <string name="notif_safe_zone_left_email_subject">Guvenli Bolge Disinda</string>
+    <string name="frame_face_not_found">Yuz bulunamadi</string>
+    <string name="frame_pose_not_calculated">Poz hesaplanamadi</string>
+    <string name="frame_eyes_closed">Gozler kapali (EAR=%1$.2f)</string>
+    <string name="frame_studying">Calisiyor (yaw=%1$d pitch=%2$d EAR=%3$.2f)</string>
+    <string name="frame_head_turned">Kafa donuk (yaw=%1$d pitch=%2$d)</string>
+    <string name="frame_speaking_distraction">Konusuyor (dikkat dagitici) - %1$s</string>
+    <string name="pomodoro_paused_away">Pomodoro otomatik duraklatildi (uzakta)</string>
+    <string name="pomodoro_paused_sleeping">Pomodoro otomatik duraklatildi (uyku)</string>
+    <string name="pomodoro_manual_break_only_while_working">Manuel mola sadece Pomodoro calisirken baslatilabilir.</string>
+    <string name="schedule_note_work_summary">[Takvim] %1$s-%2$s Calisma: %3$d/%4$d dk calisildi</string>
+    <string name="schedule_note_away_suffix">, %1$s uzakta kalindi.</string>
+    <string name="notif_work_slot_finished">Calisma araligi tamamlandi</string>
+    <string name="schedule_note_break_summary">[Takvim] %1$s-%2$s Mola: mola sirasinda %3$s calismaya devam edildi.</string>
+    <string name="notif_studying_during_break">Mola sirasinda calisma</string>
+
+    <!-- DailyBackupWorker -->
+    <string name="backup_status_file_write_error">error: dosya yazilamadi (%1$s)</string>
+    <string name="backup_status_ok_no_new_data">ok (yeni veri yok, e-posta atlandi)</string>
+    <string name="backup_email_subject">%1$s%2$s - Yedek (%3$s)</string>
+    <string name="backup_status_transient_error">error: gonderim basarisiz, tekrar denenecek</string>
+    <string name="backup_notify_transient_failure">Gunluk yedekleme e-postasi gonderilemedi, tekrar denenecek.</string>
+    <string name="backup_status_permanent_error">error: %1$s</string>
+    <string name="backup_notify_permanent_failure">Gunluk yedekleme e-postasi gonderilemedi: %1$s</string>
+    <string name="backup_status_ok_device_only">ok (sadece cihaza)</string>
+    <string name="backup_notify_failed_title">Yedekleme Basarisiz</string>
+
+    <!-- NotificationHelper -->
+    <string name="notif_channel_name">Ders Calisma Takibi</string>
+    <string name="notif_channel_description">Pomodoro ve takvim bildirimleri</string>
+
+    <!-- StudyForegroundService -->
+    <string name="service_error_prefix">HATA(%1$d): %2$s: %3$s</string>
+    <string name="service_camera_analysis_off">Kamera analizi kapali</string>
+    <string name="service_state_away_short">Uzakta</string>
+    <string name="service_notification_title">Ders Calisma Takibi arkaplanda calisiyor</string>
+    <string name="service_channel_name">Arkaplan Takibi</string>
+    <string name="service_channel_description">Ders calisma takibinin arkaplanda calistigini gosteren surekli bildirim</string>
+    <string name="service_foreground_start_failed">Arkaplan bildirimi baslatilamadi (kamera izni verilmemis olabilir): %1$s</string>
+    <string name="service_camera_error_background">Kamera hatasi (arkaplan)</string>
+    <string name="service_camera_bind_failed_background">Kamera baglanamadi (arkaplan)</string>
+    <string name="service_start_failed">Servis baslatilamadi (onCreate): %1$s</string>
+
+    <!-- AppBlockAccessibilityService -->
+    <string name="app_block_email_subject">Sinav Modunda Engellenen Uygulama</string>
+    <string name="app_block_email_body">%1$s (%2$s) sinav/odev modu acikken acilmaya calisildi.</string>
+
+    <!-- ExportHelper -->
+    <string name="csv_header_sessions">tarih,baslangic,bitis,calisma_sn,uzakta_sn,uyku_sn,toplam_sn,konusma_sn,pomodoro_sayisi,notlar,etiketler,verimlilik</string>
+    <string name="csv_header_usage">uygulama,paket_adi,toplam_sn</string>
+    <string name="csv_header_call_sms">tur,kisi_numara,detay,tarih</string>
+    <string name="csv_row_type_call">arama</string>
+    <string name="csv_row_type_sms">sms</string>
+    <string name="csv_header_location">enlem,boylam,tarih</string>
+    <string name="csv_header_keystroke">uygulama,paket_adi,metin,tarih</string>
+    <string name="device_report_txt_content">Bugunku veri kullanimi\nWi-Fi: %1$.1f MB\nMobil: %2$.1f MB\n</string>
+    <string name="blocked_apps_txt_on">ACIK</string>
+    <string name="blocked_apps_txt_off">kapali</string>
+    <string name="blocked_apps_txt_exam_mode">Sinav/Odev Modu: %1$s</string>
+    <string name="blocked_apps_txt_locked_apps">Kilitli uygulamalar (%1$d):</string>
+
+    <!-- UpdateInstaller -->
+    <string name="update_installer_title">Ders Calisma Takibi guncellemesi</string>
+    <string name="update_installer_description">v%1$s indiriliyor</string>
 </resources>

@@ -1,6 +1,7 @@
 package com.derscalismatakibi.app.core
 
 import android.content.Context
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.data.AppDatabase
 import com.derscalismatakibi.app.data.DailyTotal
 import com.derscalismatakibi.app.data.LocationLogEntity
@@ -31,7 +32,7 @@ import java.util.Locale
  * MainWindow'un ilgili QLabel/QProgressBar/QPushButton alanlarinin karsiligi. */
 data class StudyUiState(
     val currentState: StudyState = StudyState.AWAY,
-    val infoText: String = "Kamera baslatiliyor...",
+    val infoText: String = "",
     val studyingSeconds: Double = 0.0,
     val awaySeconds: Double = 0.0,
     val sleepingSeconds: Double = 0.0,
@@ -168,15 +169,15 @@ object StudyEngine {
                     session.pomodoroCycles = pomodoro.cyclesCompleted
                     notificationHelper.beep(cfg.soundEnabled)
                     val msg = if (tick.state == PomodoroState.LONG_BREAK) {
-                        "Uzun mola zamani (${cfg.pomodoroLongBreakMin} dk)"
+                        appContext.getString(R.string.notif_long_break_time, cfg.pomodoroLongBreakMin)
                     } else {
-                        "Mola zamani (${cfg.pomodoroBreakMin} dk)"
+                        appContext.getString(R.string.notif_break_time, cfg.pomodoroBreakMin)
                     }
-                    notificationHelper.notify("Pomodoro tamamlandi!", msg, cfg.routineNotificationsEnabled)
+                    notificationHelper.notify(appContext.getString(R.string.notif_pomodoro_finished), msg, cfg.routineNotificationsEnabled)
                     AppLogger.log("Pomodoro", "Calisma tamamlandi -> ${tick.state} (dongu: ${pomodoro.cyclesCompleted})")
                 } else if (tick.justFinishedBreak) {
                     notificationHelper.beep(cfg.soundEnabled)
-                    notificationHelper.notify("Mola bitti", "Calismaya devam etmek icin Pomodoro'yu baslat.", cfg.routineNotificationsEnabled)
+                    notificationHelper.notify(appContext.getString(R.string.notif_break_over_title), appContext.getString(R.string.notif_break_over_body), cfg.routineNotificationsEnabled)
                     AppLogger.log("Pomodoro", "Mola bitti")
                 }
                 publishPomodoro(tick)
@@ -210,10 +211,10 @@ object StudyEngine {
         if (broken == examModeAccessibilityBroken) return
         examModeAccessibilityBroken = broken
         if (broken) {
-            val msg = "Sinav/Odev Modu acik ama Erisilebilirlik izni kapali - uygulama engelleme su an CALISMIYOR."
+            val msg = appContext.getString(R.string.notif_app_lock_accessibility_broken)
             AppLogger.log("UygulamaKilidi", msg)
-            notificationHelper.notify("Uygulama Kilidi Devre Disi", msg, cfg.appLockAlertNotificationsEnabled)
-            sendInstantAlertEmail("Uygulama Kilidi Devre Disi Kaldi", msg)
+            notificationHelper.notify(appContext.getString(R.string.notif_app_lock_disabled_title), msg, cfg.appLockAlertNotificationsEnabled)
+            sendInstantAlertEmail(appContext.getString(R.string.notif_app_lock_disabled_email_subject), msg)
         } else {
             AppLogger.log("UygulamaKilidi", "Erisilebilirlik izni tekrar acik - engelleme calisiyor")
         }
@@ -252,10 +253,15 @@ object StudyEngine {
         if (inside == insideAnySafeZone) return
         insideAnySafeZone = inside
         val distance = nearest?.let { com.derscalismatakibi.app.util.LocationHelper.distanceMeters(loc.latitude, loc.longitude, it.lat, it.lng) }
-        val msg = if (inside) "Guvenli bolgeye girildi" else "Guvenli bolgeden cikildi" + (distance?.let { " - ${it.toInt()}m uzakta (en yakin: ${nearest.name})" } ?: "")
+        val msg = if (inside) {
+            appContext.getString(R.string.notif_safe_zone_entered)
+        } else {
+            appContext.getString(R.string.notif_safe_zone_left) +
+                (distance?.let { appContext.getString(R.string.notif_safe_zone_distance_suffix, it.toInt(), nearest?.name) } ?: "")
+        }
         AppLogger.log("Konum", msg)
-        notificationHelper.notify("Guvenli Bolge", msg, cfg.safeZoneAlertNotificationsEnabled)
-        if (!inside) sendInstantAlertEmail("Guvenli Bolge Disinda", msg)
+        notificationHelper.notify(appContext.getString(R.string.notif_safe_zone_title), msg, cfg.safeZoneAlertNotificationsEnabled)
+        if (!inside) sendInstantAlertEmail(appContext.getString(R.string.notif_safe_zone_left_email_subject), msg)
     }
 
     /** Gunluk ozetin aksine (bkz. DailyBackupWorker), bunlar "hemen" gonderilmesi
@@ -267,7 +273,7 @@ object StudyEngine {
         val email = cfg.backupEmail
         val password = cfg.backupEmailAppPassword
         engineScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-            when (com.derscalismatakibi.app.backup.SmtpBackupSender.send(email, password, subject = "Ders Calisma Takibi - $subject", body = body)) {
+            when (com.derscalismatakibi.app.backup.SmtpBackupSender.send(email, password, subject = "${appContext.getString(R.string.app_name)} - $subject", body = body)) {
                 is com.derscalismatakibi.app.backup.SmtpBackupSender.Result.Success ->
                     AppLogger.log("AnlikUyari", "E-posta gonderildi: $subject")
                 else ->
@@ -388,7 +394,8 @@ object StudyEngine {
         val day = mondayFirstWeekday()
         val todays = scheduleSlots.value.filter { it.day == day }.sortedBy { it.startTime }
         if (todays.isEmpty()) return ""
-        return todays.joinToString("\n") { "  ${it.startTime}–${it.endTime}  (${SLOT_KIND_LABELS[it.kind] ?: it.kind})" }
+        val labels = slotKindLabels(appContext)
+        return todays.joinToString("\n") { "  ${it.startTime}–${it.endTime}  (${labels[it.kind] ?: it.kind})" }
     }
 
     fun startScheduleTracking() {
@@ -446,14 +453,14 @@ object StudyEngine {
         if (slot.kind == SLOT_KIND_WORK) {
             val plannedMin = slotDurationMinutes(slot.startTime, slot.endTime)
             val studiedMin = Math.round(studied / 60.0)
-            var note = "[Takvim] ${slot.startTime}-${slot.endTime} Calisma: $studiedMin/$plannedMin dk calisildi"
-            note += if (away >= 30) ", ${fmtHms(away)} uzakta kalindi." else "."
+            var note = appContext.getString(R.string.schedule_note_work_summary, slot.startTime, slot.endTime, studiedMin, plannedMin)
+            note += if (away >= 30) appContext.getString(R.string.schedule_note_away_suffix, fmtHms(away)) else "."
             appendSessionNote(note)
-            notificationHelper.notify("Calisma araligi tamamlandi", note, cfg.routineNotificationsEnabled)
+            notificationHelper.notify(appContext.getString(R.string.notif_work_slot_finished), note, cfg.routineNotificationsEnabled)
         } else if (studied >= 30) {
-            val note = "[Takvim] ${slot.startTime}-${slot.endTime} Mola: mola sirasinda ${fmtHms(studied)} calismaya devam edildi."
+            val note = appContext.getString(R.string.schedule_note_break_summary, slot.startTime, slot.endTime, fmtHms(studied))
             appendSessionNote(note)
-            notificationHelper.notify("Mola sirasinda calisma", note, cfg.routineNotificationsEnabled)
+            notificationHelper.notify(appContext.getString(R.string.notif_studying_during_break), note, cfg.routineNotificationsEnabled)
         }
     }
 
@@ -485,7 +492,14 @@ object StudyEngine {
         val dtElapsed = ((now - lastFrameTimeMs) / 1000.0).coerceIn(0.0, 1.0)
         lastFrameTimeMs = now
 
-        val analysis: FrameAnalysis = analyzeFrame(points, width, height, cfg)
+        val frameLabels = FrameAnalysisLabels(
+            faceNotFound = appContext.getString(R.string.frame_face_not_found),
+            poseNotCalculated = appContext.getString(R.string.frame_pose_not_calculated),
+            eyesClosedFmt = appContext.getString(R.string.frame_eyes_closed),
+            studyingFmt = appContext.getString(R.string.frame_studying),
+            headTurnedFmt = appContext.getString(R.string.frame_head_turned),
+        )
+        val analysis: FrameAnalysis = analyzeFrame(points, width, height, cfg, frameLabels)
         analysis.isSpeaking = speakingDetector.update(analysis.mar)
         analysis.speakingConfirmed = speakingAwayGate.update(analysis.isSpeaking, now)
 
@@ -493,7 +507,7 @@ object StudyEngine {
         if (analysis.speakingConfirmed && cfg.speakingCountsAsAway && analysis.observedState == StudyState.STUDYING) {
             effective = analysis.copy(
                 observedState = StudyState.AWAY,
-                infoText = "Konusuyor (dikkat dagitici) - ${analysis.infoText}",
+                infoText = appContext.getString(R.string.frame_speaking_distraction, analysis.infoText),
                 forcedAwayBySpeaking = true,
             )
         }
@@ -519,10 +533,10 @@ object StudyEngine {
         var pauseNotice = _uiState.value.pauseNotice
         if (state == StudyState.AWAY && cfg.autoPauseOnAway && pomodoro.state == PomodoroState.WORKING) {
             pomodoro.pause()
-            pauseNotice = "Pomodoro otomatik duraklatildi (uzakta)"
+            pauseNotice = appContext.getString(R.string.pomodoro_paused_away)
         } else if (state == StudyState.SLEEPING && cfg.autoPauseOnSleep && pomodoro.state == PomodoroState.WORKING) {
             pomodoro.pause()
-            pauseNotice = "Pomodoro otomatik duraklatildi (uyku)"
+            pauseNotice = appContext.getString(R.string.pomodoro_paused_sleeping)
         } else if (state == StudyState.STUDYING && pomodoro.state == PomodoroState.PAUSED) {
             pomodoro.resume()
             pauseNotice = ""
@@ -568,7 +582,7 @@ object StudyEngine {
     fun manualBreak(): Boolean {
         if (pomodoro.state != PomodoroState.WORKING) {
             _uiState.value = _uiState.value.copy(
-                pauseNotice = "Manuel mola sadece Pomodoro calisirken baslatilabilir.",
+                pauseNotice = appContext.getString(R.string.pomodoro_manual_break_only_while_working),
             )
             return false
         }

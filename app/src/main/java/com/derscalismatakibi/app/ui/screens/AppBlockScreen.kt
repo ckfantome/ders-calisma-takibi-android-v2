@@ -26,7 +26,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.core.Role
 import com.derscalismatakibi.app.data.BlockedAppEntity
 import com.derscalismatakibi.app.ui.rememberResumeTrigger
@@ -88,12 +90,12 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            Text("Uygulama Kilidi", style = MaterialTheme.typography.headlineSmall)
+            Text(stringResource(R.string.app_block_title), style = MaterialTheme.typography.headlineSmall)
         }
         if (!isAdmin) {
             item {
                 Text(
-                    "Ogrenci modundasin: bu ekran salt okunur. Degistirmek icin ust bardaki kilit ikonundan yonetici moduna gec.",
+                    stringResource(R.string.app_block_student_readonly),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -104,22 +106,17 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
             item {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Erisilebilirlik izni gerekiyor", style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.app_block_accessibility_needed), style = MaterialTheme.typography.titleMedium)
                         Text(
-                            "Engellenen bir uygulamanin on plana gelisini tespit edebilmek icin \"Erisilebilirlik Servisi\"ni " +
-                                "Ayarlar'dan acikca acman gerekiyor. Varsayilan olarak bu servis ekran icerigini OKUMAZ, sadece " +
-                                "hangi uygulamanin on planda oldugunu gorur - Klavye Takibi'ni asagidan ayrica acarsan yazilan " +
-                                "metinleri de kaydetmeye baslar.",
+                            stringResource(R.string.app_block_accessibility_explanation),
                             style = MaterialTheme.typography.bodySmall,
                         )
                         Button(onClick = { context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }) {
-                            Text("Ayarlara Git")
+                            Text(stringResource(R.string.usage_stats_go_to_settings))
                         }
                         if (com.derscalismatakibi.app.util.OemAutostartHelper.isKnownRestrictiveOem()) {
                             Text(
-                                "Bu telefon markasinda (Oppo/Xiaomi/Huawei/Vivo) izin acik olsa bile " +
-                                    "sistem servisi zamanla kapatabiliyor - asagidan Otomatik Baslatma " +
-                                    "listesine de eklemen gerekiyor.",
+                                stringResource(R.string.app_block_oem_restrictive_note),
                                 style = MaterialTheme.typography.bodySmall,
                             )
                             Button(onClick = {
@@ -128,7 +125,7 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
                                         Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
                                     )
                                 }
-                            }) { Text("Otomatik Baslatma Ayarlarini Ac") }
+                            }) { Text(stringResource(R.string.app_block_open_autostart_settings)) }
                         }
                     }
                 }
@@ -143,10 +140,9 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-                                Text("Sınav/Ödev Modu", style = MaterialTheme.typography.titleMedium)
+                                Text(stringResource(R.string.app_block_exam_mode_title), style = MaterialTheme.typography.titleMedium)
                                 Text(
-                                    "Acikken Kilitli Uygulamalar listesine bakilmaksizin HER SEY engellenir - sadece asagidaki " +
-                                        "'Izin Verilen Uygulamalar' listesindekiler ve zorunlu (ana ekran/telefon) uygulamalar acilabilir.",
+                                    stringResource(R.string.app_block_exam_mode_explanation),
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                             }
@@ -158,12 +154,9 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-                                Text("+ Ekrani Tamamen Sabitle", style = MaterialTheme.typography.titleMedium)
+                                Text(stringResource(R.string.app_block_screen_pinning_title), style = MaterialTheme.typography.titleMedium)
                                 Text(
-                                    "Sinav Modu acikken telefon SADECE bu uygulamaya kilitlenir - 'Izin Verilen " +
-                                        "Uygulamalar' listesi de dahil BASKA HICBIR SEY acilamaz (ana ekran/Son " +
-                                        "Kullanilanlar da devre disi). Erisilebilirlik izninin OEM tarafindan " +
-                                        "kapatilmasindan etkilenmez.",
+                                    stringResource(R.string.app_block_screen_pinning_explanation),
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                             }
@@ -179,17 +172,17 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
 
             if (cfg.examModeEnabled) {
                 item {
-                    Text("Izin Verilen Uygulamalar (Sinav Modunda)", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.app_block_allowed_apps_title), style = MaterialTheme.typography.titleMedium)
                 }
                 item {
                     Text(
-                        "Sinav/Odev Modu acikken bunlar disinda hicbir uygulama acilamaz (orn. Hesap Makinesi).",
+                        stringResource(R.string.app_block_allowed_apps_explanation),
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
                 if (allowedPackages.isEmpty()) {
                     item {
-                        Text("Henuz izin verilen uygulama eklenmedi.", style = MaterialTheme.typography.bodySmall)
+                        Text(stringResource(R.string.app_block_no_allowed_apps), style = MaterialTheme.typography.bodySmall)
                     }
                 } else {
                     items(allowedPackages.toList()) { pkg ->
@@ -203,7 +196,7 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
                                 Text(label, style = MaterialTheme.typography.bodyMedium)
                                 Button(enabled = isAdmin, onClick = {
                                     viewModel.updateConfig(cfg.copy(examAllowedPackages = (allowedPackages - pkg).joinToString(",")))
-                                }) { Text("Kaldir") }
+                                }) { Text(stringResource(R.string.action_remove)) }
                             }
                         }
                     }
@@ -218,24 +211,24 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
                             Text(label, style = MaterialTheme.typography.bodyMedium)
                             Button(enabled = isAdmin, onClick = {
                                 viewModel.updateConfig(cfg.copy(examAllowedPackages = (allowedPackages + pkg).joinToString(",")))
-                            }) { Text("Izin Ver") }
+                            }) { Text(stringResource(R.string.call_log_grant_permission)) }
                         }
                     }
                 }
             }
 
             item {
-                Text("Kilitli Uygulamalar", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.app_block_locked_apps_title), style = MaterialTheme.typography.titleMedium)
             }
             item {
                 Text(
-                    "Sinav/Odev Modu kapaliyken bu uygulamalar sadece kamera 'Calisiyor' durumunu tespit ettiginde engellenir.",
+                    stringResource(R.string.app_block_locked_apps_explanation),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
             if (blocked.isEmpty()) {
                 item {
-                    Text("Henuz uygulama eklenmedi.", style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.app_block_no_apps_added), style = MaterialTheme.typography.bodySmall)
                 }
             } else {
                 items(blocked, key = { it.id }) { entry ->
@@ -244,7 +237,7 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
             }
 
             item {
-                Text("Uygulama Ekle", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.app_block_add_app_title), style = MaterialTheme.typography.titleMedium)
             }
             items(addable) { (pkg, label) ->
                 Card(modifier = Modifier.fillMaxWidth()) {
@@ -254,7 +247,7 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(label, style = MaterialTheme.typography.bodyMedium)
-                        Button(enabled = isAdmin, onClick = { viewModel.addBlockedApp(pkg, label, null, true) }) { Text("Ekle") }
+                        Button(enabled = isAdmin, onClick = { viewModel.addBlockedApp(pkg, label, null, true) }) { Text(stringResource(R.string.action_add)) }
                     }
                 }
             }
@@ -268,7 +261,7 @@ private fun BlockedAppRow(entry: BlockedAppEntity, isAdmin: Boolean, onRemove: (
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(entry.appLabel, style = MaterialTheme.typography.bodyMedium)
-                Button(enabled = isAdmin, onClick = onRemove) { Text("Kaldir") }
+                Button(enabled = isAdmin, onClick = onRemove) { Text(stringResource(R.string.action_remove)) }
             }
         }
     }

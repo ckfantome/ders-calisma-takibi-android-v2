@@ -1,13 +1,29 @@
 package com.derscalismatakibi.app.core
 
+import android.content.Context
+import com.derscalismatakibi.app.R
 import java.util.Calendar
 
-/** study_tracker2.py -> SLOT_KIND_WORK / SLOT_KIND_BREAK / SLOT_KIND_LABELS */
+/** study_tracker2.py -> SLOT_KIND_WORK / SLOT_KIND_BREAK / SLOT_KIND_LABELS.
+ * ONEMLI: SLOT_KIND_WORK/BREAK degerleri veritabaninda (ScheduleSlotEntity.kind)
+ * saklaniyor - DIL DEGISTIRSE BILE bunlar SABIT kalmali, sadece goruntulenen
+ * etiket (slotKindLabels) dile gore degisir. */
 const val SLOT_KIND_WORK = "calisma"
 const val SLOT_KIND_BREAK = "mola"
-val SLOT_KIND_LABELS = mapOf(SLOT_KIND_WORK to "Calisma", SLOT_KIND_BREAK to "Mola")
+fun slotKindLabels(context: Context): Map<String, String> = mapOf(
+    SLOT_KIND_WORK to context.getString(R.string.schedule_kind_work),
+    SLOT_KIND_BREAK to context.getString(R.string.schedule_kind_break),
+)
 
-val WEEKDAY_NAMES = listOf("Pazartesi", "Sali", "Carsamba", "Persembe", "Cuma", "Cumartesi", "Pazar")
+fun weekdayNames(context: Context): List<String> = listOf(
+    context.getString(R.string.weekday_monday),
+    context.getString(R.string.weekday_tuesday),
+    context.getString(R.string.weekday_wednesday),
+    context.getString(R.string.weekday_thursday),
+    context.getString(R.string.weekday_friday),
+    context.getString(R.string.weekday_saturday),
+    context.getString(R.string.weekday_sunday),
+)
 
 /** study_tracker2.py -> Session.start_time.weekday() (Pazartesi=0..Pazar=6) ile ayni endeksleme. */
 fun mondayFirstWeekday(cal: Calendar = Calendar.getInstance()): Int {

@@ -83,7 +83,7 @@ class StudyForegroundService : LifecycleService() {
             // Bu sandbox'ta gercek cihazda test edilemediginden, sessiz cokme yerine
             // hatayi StudyEngine uzerinden UI'da (kirmizi metin) gorunur kiliyoruz.
             AppLogger.logError("Servis", "onCreate basarisiz", t)
-            StudyEngine.reportCameraError("Servis baslatilamadi (onCreate): ${t.message}")
+            StudyEngine.reportCameraError(getString(R.string.service_start_failed, t.message))
             stopSelf()
         }
     }
@@ -108,7 +108,7 @@ class StudyForegroundService : LifecycleService() {
                 } catch (t: Throwable) {
                     AppLogger.logError("Servis", "startForeground basarisiz", t)
                     StudyEngine.reportCameraError(
-                        "Arkaplan bildirimi baslatilamadi (kamera izni verilmemis olabilir): ${t.message}",
+                        getString(R.string.service_foreground_start_failed, t.message),
                     )
                     stopSelf()
                     return START_NOT_STICKY
@@ -221,7 +221,7 @@ class StudyForegroundService : LifecycleService() {
                 FaceLandmarkerHelper(applicationContext)
             } catch (t: Throwable) {
                 AppLogger.logError("Servis", "FaceLandmarkerHelper olusturulamadi", t)
-                StudyEngine.reportCameraError(t.message ?: "Kamera hatasi (arkaplan)")
+                StudyEngine.reportCameraError(t.message ?: getString(R.string.service_camera_error_background))
                 return@addListener
             }
             faceLandmarkerHelper = helper
@@ -265,7 +265,7 @@ class StudyForegroundService : LifecycleService() {
                 AppLogger.log("Servis", "Kamera baglandi (${if (StudyEngine.currentConfig().useFrontCamera) "on" else "arka"} kamera)")
             } catch (t: Throwable) {
                 AppLogger.logError("Servis", "Kamera baglanamadi", t)
-                StudyEngine.reportCameraError(t.message ?: "Kamera baglanamadi (arkaplan)")
+                StudyEngine.reportCameraError(t.message ?: getString(R.string.service_camera_bind_failed_background))
             }
         }, androidx.core.content.ContextCompat.getMainExecutor(this))
     }
@@ -294,7 +294,7 @@ class StudyForegroundService : LifecycleService() {
      * ⚠ isaretiyle gosterir ki uygulamayi tekrar acmadan gorulebilsin. */
     private fun onCameraFrameError(t: Throwable) {
         val e = errorCount.incrementAndGet()
-        lastErrorMessage = "HATA($e): ${t::class.simpleName}: ${t.message}"
+        lastErrorMessage = getString(R.string.service_error_prefix, e, t::class.simpleName, t.message)
         StudyEngine.reportCameraError(lastErrorMessage)
         val manager = getSystemService(NotificationManager::class.java)
         val current = StudyEngine.uiState.value
@@ -303,12 +303,12 @@ class StudyForegroundService : LifecycleService() {
 
     private fun buildNotification(state: StudyState, studyingSeconds: Double, errorMessage: String? = null): Notification {
         val stateLabel = if (!StudyEngine.currentConfig().cameraAnalysisEnabled) {
-            "Kamera analizi kapali"
+            getString(R.string.service_camera_analysis_off)
         } else {
             when (state) {
-                StudyState.STUDYING -> "Calisiyor"
-                StudyState.AWAY -> "Uzakta"
-                StudyState.SLEEPING -> "Uykulu"
+                StudyState.STUDYING -> getString(R.string.main_state_studying)
+                StudyState.AWAY -> getString(R.string.service_state_away_short)
+                StudyState.SLEEPING -> getString(R.string.main_state_sleeping)
             }
         }
         val contentIntent = PendingIntent.getActivity(
@@ -325,7 +325,7 @@ class StudyForegroundService : LifecycleService() {
         }
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Ders Calisma Takibi arkaplanda calisiyor")
+            .setContentTitle(getString(R.string.service_notification_title))
             .setContentText(text)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
@@ -348,8 +348,8 @@ class StudyForegroundService : LifecycleService() {
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                CHANNEL_ID, "Arkaplan Takibi", NotificationManager.IMPORTANCE_LOW,
-            ).apply { description = "Ders calisma takibinin arkaplanda calistigini gosteren surekli bildirim" }
+                CHANNEL_ID, getString(R.string.service_channel_name), NotificationManager.IMPORTANCE_LOW,
+            ).apply { description = getString(R.string.service_channel_description) }
             getSystemService(NotificationManager::class.java)?.createNotificationChannel(channel)
         }
     }

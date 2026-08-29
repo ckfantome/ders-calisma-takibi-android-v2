@@ -35,12 +35,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.core.Role
 import com.derscalismatakibi.app.core.SLOT_KIND_BREAK
-import com.derscalismatakibi.app.core.SLOT_KIND_LABELS
 import com.derscalismatakibi.app.core.SLOT_KIND_WORK
-import com.derscalismatakibi.app.core.WEEKDAY_NAMES
+import com.derscalismatakibi.app.core.slotKindLabels
+import com.derscalismatakibi.app.core.weekdayNames
 import com.derscalismatakibi.app.data.ScheduleSlotEntity
 import com.derscalismatakibi.app.viewmodel.StudyViewModel
 import kotlinx.coroutines.launch
@@ -57,26 +60,29 @@ fun ScheduleScreen(viewModel: StudyViewModel) {
     val slots by viewModel.scheduleSlots.collectAsState()
     val trackingEnabled by viewModel.scheduleTrackingEnabled.collectAsState()
     var selectedDay by remember { mutableIntStateOf(0) }
-    var showAddDialog by remember { mutableStateOf<String?>(null) } // "calisma" / "mola" / null
+    var showAddDialog by remember { mutableStateOf<String?>(null) } // SLOT_KIND_WORK / SLOT_KIND_BREAK / null
     var showStartConfirm by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val isAdmin = role == Role.ADMIN
+    val context = LocalContext.current
+    val weekdayNamesList = remember { weekdayNames(context) }
+    val adminRequiredMessage = stringResource(R.string.schedule_admin_required)
 
     fun requireAdmin(): Boolean {
         if (!isAdmin) {
-            scope.launch { snackbarHostState.showSnackbar("Bu islem icin yonetici modu gerekiyor.") }
+            scope.launch { snackbarHostState.showSnackbar(adminRequiredMessage) }
         }
         return isAdmin
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Zaman Cizelgesi", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.schedule_title), style = MaterialTheme.typography.headlineSmall)
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    if (trackingEnabled) "Takvim takibi ACIK" else "Takvim takibi kapali",
+                    if (trackingEnabled) stringResource(R.string.schedule_tracking_on) else stringResource(R.string.schedule_tracking_off),
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Button(
@@ -89,25 +95,25 @@ fun ScheduleScreen(viewModel: StudyViewModel) {
                     },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text(if (trackingEnabled) "Takvim Takibini Durdur" else "Takvim Takibini Baslat")
+                    Text(if (trackingEnabled) stringResource(R.string.schedule_stop_tracking) else stringResource(R.string.schedule_start_tracking))
                 }
             }
         }
 
         ScrollableTabRow(selectedTabIndex = selectedDay) {
-            WEEKDAY_NAMES.forEachIndexed { index, name ->
+            weekdayNamesList.forEachIndexed { index, name ->
                 Tab(selected = selectedDay == index, onClick = { selectedDay = index }, text = { Text(name) })
             }
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { if (requireAdmin()) showAddDialog = SLOT_KIND_WORK }) { Text("+ Calisma") }
-            OutlinedButton(onClick = { if (requireAdmin()) showAddDialog = SLOT_KIND_BREAK }) { Text("+ Mola") }
+            Button(onClick = { if (requireAdmin()) showAddDialog = SLOT_KIND_WORK }) { Text(stringResource(R.string.schedule_add_work)) }
+            OutlinedButton(onClick = { if (requireAdmin()) showAddDialog = SLOT_KIND_BREAK }) { Text(stringResource(R.string.schedule_add_break)) }
         }
 
         val daySlots = slots.filter { it.day == selectedDay }.sortedBy { it.startTime }
         if (daySlots.isEmpty()) {
-            Text("Bu gun icin planlanmis aralik yok.", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.schedule_no_slots_today), style = MaterialTheme.typography.bodyMedium)
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 items(daySlots) { slot -> ScheduleRow(slot, isAdmin) { if (requireAdmin()) viewModel.deleteScheduleSlot(slot) } }
@@ -132,15 +138,13 @@ fun ScheduleScreen(viewModel: StudyViewModel) {
         val summary = viewModel.todaysScheduleSummary()
         AlertDialog(
             onDismissRequest = { showStartConfirm = false },
-            title = { Text("Takvim Takibini Baslat") },
+            title = { Text(stringResource(R.string.schedule_start_tracking)) },
             text = {
                 Text(
                     if (summary.isBlank()) {
-                        "Bugun icin tanimli bir zaman cizelgesi yok. Once bir aralik ekle."
+                        stringResource(R.string.schedule_no_definition_today)
                     } else {
-                        "Bugunku program:\n$summary\n\nCalisma araligi baslayinca Pomodoro otomatik baslar; " +
-                            "mola sirasinda calismaya devam edersen bu ayrica not edilir; planlanandan az " +
-                            "calisilirsa aralik bitince bildirilir."
+                        stringResource(R.string.schedule_today_program, summary)
                     },
                 )
             },
@@ -148,24 +152,26 @@ fun ScheduleScreen(viewModel: StudyViewModel) {
                 TextButton(
                     enabled = summary.isNotBlank(),
                     onClick = { viewModel.startScheduleTracking(); showStartConfirm = false },
-                ) { Text("Evet") }
+                ) { Text(stringResource(R.string.action_yes)) }
             },
-            dismissButton = { TextButton(onClick = { showStartConfirm = false }) { Text("Iptal") } },
+            dismissButton = { TextButton(onClick = { showStartConfirm = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }
 
 @Composable
 private fun ScheduleRow(slot: ScheduleSlotEntity, isAdmin: Boolean, onDelete: () -> Unit) {
+    val context = LocalContext.current
+    val labels = remember { slotKindLabels(context) }
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text("${slot.startTime}–${slot.endTime}  (${SLOT_KIND_LABELS[slot.kind] ?: slot.kind})")
+            Text("${slot.startTime}–${slot.endTime}  (${labels[slot.kind] ?: slot.kind})")
             if (isAdmin) {
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Sil")
+                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete))
                 }
             }
         }
@@ -178,14 +184,14 @@ private fun AddSlotDialog(kind: String, onDismiss: () -> Unit, onConfirm: (Strin
     var end by remember { mutableStateOf(if (kind == SLOT_KIND_WORK) "11:00" else "11:15") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (kind == SLOT_KIND_WORK) "Calisma Araligi Ekle" else "Mola Araligi Ekle") },
+        title = { Text(if (kind == SLOT_KIND_WORK) stringResource(R.string.schedule_add_work_dialog_title) else stringResource(R.string.schedule_add_break_dialog_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = start, onValueChange = { start = it }, label = { Text("Baslangic (SS:DD)") })
-                OutlinedTextField(value = end, onValueChange = { end = it }, label = { Text("Bitis (SS:DD)") })
+                OutlinedTextField(value = start, onValueChange = { start = it }, label = { Text(stringResource(R.string.schedule_start_time_label)) })
+                OutlinedTextField(value = end, onValueChange = { end = it }, label = { Text(stringResource(R.string.schedule_end_time_label)) })
             }
         },
-        confirmButton = { TextButton(onClick = { onConfirm(start, end) }) { Text("Ekle") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Iptal") } },
+        confirmButton = { TextButton(onClick = { onConfirm(start, end) }) { Text(stringResource(R.string.action_add)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

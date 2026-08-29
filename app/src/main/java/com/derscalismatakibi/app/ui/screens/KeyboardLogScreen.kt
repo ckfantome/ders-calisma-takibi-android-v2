@@ -19,7 +19,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.core.Role
 import com.derscalismatakibi.app.data.AppDatabase
 import com.derscalismatakibi.app.viewmodel.StudyViewModel
@@ -48,22 +50,21 @@ fun KeyboardLogScreen(viewModel: StudyViewModel) {
     // gercek cihaz/emulator testinde dogrulanan Compose composer-grup bozulmasi
     // (Stack.pop: Index -1) hatasina yol aciyordu. Tum govde tek if/else.
     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Klavye Takibi", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.keyboard_log_title), style = MaterialTheme.typography.headlineSmall)
         if (!isAdmin) {
             Text(
-                "Bu ekran sadece yonetici modunda goruntulenebilir.",
+                stringResource(R.string.keyboard_log_admin_only),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.error,
             )
         } else {
             Text(
-                "AppConfig.keyboardTrackingEnabled (Uygulama Kilidi ekranindan acilir/kapanir) acikken diger " +
-                    "uygulamalarda yazilan metinler burada listelenir. Sifre alanlari HARIC tutulur.",
+                stringResource(R.string.keyboard_log_explanation),
                 style = MaterialTheme.typography.bodySmall,
             )
-            Button(onClick = { scope.launch { dao.clear() } }) { Text("Temizle") }
+            Button(onClick = { scope.launch { dao.clear() } }) { Text(stringResource(R.string.action_clear)) }
             if (entries.isEmpty()) {
-                Text("Henuz kayit yok.", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.keyboard_log_empty), style = MaterialTheme.typography.bodySmall)
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     items(entries) { e ->

@@ -41,8 +41,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.derscalismatakibi.app.R
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -72,18 +74,19 @@ import kotlinx.coroutines.withContext
 
 private data class Destination(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
 
-private val destinations = listOf(
-    Destination("main", "Ana Ekran", Icons.Filled.Home),
-    Destination("schedule", "Takvim", Icons.Filled.CalendarMonth),
-    Destination("stats", "Istatistikler", Icons.Filled.BarChart),
-    Destination("usage", "Kullanim", Icons.Filled.Apps),
-    Destination("logs", "Loglar", Icons.Filled.Article),
-    Destination("calllog", "Arama/SMS", Icons.Filled.Phone),
-    Destination("location", "Konum", Icons.Filled.Place),
-    Destination("device", "Cihaz", Icons.Filled.BatteryStd),
-    Destination("appblock", "Uygulama Kilidi", Icons.Filled.Lock),
-    Destination("keyboardlog", "Klavye Takibi", Icons.Filled.Keyboard),
-    Destination("settings", "Ayarlar", Icons.Filled.Settings),
+@Composable
+private fun destinations(): List<Destination> = listOf(
+    Destination("main", stringResource(R.string.nav_main), Icons.Filled.Home),
+    Destination("schedule", stringResource(R.string.schedule_title), Icons.Filled.CalendarMonth),
+    Destination("stats", stringResource(R.string.stats_title), Icons.Filled.BarChart),
+    Destination("usage", stringResource(R.string.nav_usage), Icons.Filled.Apps),
+    Destination("logs", stringResource(R.string.logs_title), Icons.Filled.Article),
+    Destination("calllog", stringResource(R.string.call_log_title), Icons.Filled.Phone),
+    Destination("location", stringResource(R.string.location_title), Icons.Filled.Place),
+    Destination("device", stringResource(R.string.nav_device), Icons.Filled.BatteryStd),
+    Destination("appblock", stringResource(R.string.app_block_title), Icons.Filled.Lock),
+    Destination("keyboardlog", stringResource(R.string.keyboard_log_title), Icons.Filled.Keyboard),
+    Destination("settings", stringResource(R.string.settings_title), Icons.Filled.Settings),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -158,7 +161,8 @@ fun AppNavigation() {
                 val currentDestination = backStackEntry?.destination
                 // Ogrenci (denetim) modunda Loglar cekmeceden gizlenir - ham log kaydi
                 // ebeveyn-denetim amacli, ogrenciye gorunmemesi gerekiyor.
-                val visibleDestinations = if (role == Role.STUDENT) destinations.filterNot { it.route == "logs" } else destinations
+                val allDestinations = destinations()
+                val visibleDestinations = if (role == Role.STUDENT) allDestinations.filterNot { it.route == "logs" } else allDestinations
                 visibleDestinations.forEach { dest ->
                     NavigationDrawerItem(
                         label = { Text(dest.label) },
@@ -181,10 +185,10 @@ fun AppNavigation() {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Ders Calisma Takibi") },
+                    title = { Text(stringResource(R.string.app_name)) },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Filled.Menu, contentDescription = "Menu")
+                            Icon(Icons.Filled.Menu, contentDescription = stringResource(R.string.nav_menu))
                         }
                     },
                     actions = {
@@ -193,7 +197,7 @@ fun AppNavigation() {
                         }) {
                             Icon(
                                 if (role == Role.ADMIN) Icons.Filled.LockOpen else Icons.Filled.Lock,
-                                contentDescription = "Yonetici / Ogrenci modu",
+                                contentDescription = stringResource(R.string.nav_admin_student_mode),
                             )
                         }
                     },
@@ -220,27 +224,28 @@ fun AppNavigation() {
     if (showStudentConfirm) {
         AlertDialog(
             onDismissRequest = { showStudentConfirm = false },
-            title = { Text("Ogrenci Moduna Gec") },
-            text = { Text("Ogrenci moduna gecilecek: ayarlar, takvim duzenleme ve hedef sifirlama kilitlenecek. Devam edilsin mi?") },
+            title = { Text(stringResource(R.string.nav_switch_to_student)) },
+            text = { Text(stringResource(R.string.nav_switch_to_student_confirm)) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.switchToStudent()
                     showStudentConfirm = false
-                }) { Text("Evet") }
+                }) { Text(stringResource(R.string.action_yes)) }
             },
-            dismissButton = { TextButton(onClick = { showStudentConfirm = false }) { Text("Iptal") } },
+            dismissButton = { TextButton(onClick = { showStudentConfirm = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 
     if (showPinDialog) {
         var pin by remember { mutableStateOf("") }
+        val wrongPinMessage = stringResource(R.string.nav_wrong_pin)
         AlertDialog(
             onDismissRequest = { showPinDialog = false },
-            title = { Text("Yonetici Modu") },
+            title = { Text(stringResource(R.string.nav_admin_mode)) },
             text = {
                 OutlinedTextField(
                     value = pin, onValueChange = { pin = it },
-                    label = { Text("PIN") },
+                    label = { Text(stringResource(R.string.nav_pin_label)) },
                     visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
                 )
             },
@@ -249,11 +254,11 @@ fun AppNavigation() {
                     val ok = viewModel.tryUnlockAdmin(pin)
                     showPinDialog = false
                     if (!ok) {
-                        scope.launch { snackbarHostState.showSnackbar("Hatali PIN") }
+                        scope.launch { snackbarHostState.showSnackbar(wrongPinMessage) }
                     }
-                }) { Text("Tamam") }
+                }) { Text(stringResource(R.string.action_ok)) }
             },
-            dismissButton = { TextButton(onClick = { showPinDialog = false }) { Text("Iptal") } },
+            dismissButton = { TextButton(onClick = { showPinDialog = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 

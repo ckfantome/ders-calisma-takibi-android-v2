@@ -28,8 +28,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.derscalismatakibi.app.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -46,9 +48,9 @@ fun CallLogScreen() {
     val cfg by com.derscalismatakibi.app.core.StudyEngine.configState.collectAsState()
     if (!cfg.callSmsLogEnabled) {
         Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Arama / SMS", style = MaterialTheme.typography.headlineSmall)
+            Text(stringResource(R.string.call_log_title), style = MaterialTheme.typography.headlineSmall)
             Text(
-                "Bu sistem Ayarlar > Calisan Sistemler'den kapatilmis - arama/SMS verisi okunmuyor.",
+                stringResource(R.string.call_log_disabled),
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -76,22 +78,25 @@ fun CallLogScreen() {
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Arama / SMS", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.call_log_title), style = MaterialTheme.typography.headlineSmall)
 
         if (!hasCallPerm || !hasSmsPerm) {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Izin gerekiyor", style = MaterialTheme.typography.titleMedium)
-                    Text("Arama gecmisi ve SMS ozetini gormek icin izin ver.", style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.call_log_permission_needed), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.call_log_permission_explanation), style = MaterialTheme.typography.bodySmall)
                     Button(onClick = {
                         permLauncher.launch(arrayOf(Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_SMS))
-                    }) { Text("Izin Ver") }
+                    }) { Text(stringResource(R.string.call_log_grant_permission)) }
                 }
             }
         } else {
+            val callsTabLabel = stringResource(R.string.call_log_tab_calls)
+            val smsTabLabel = stringResource(R.string.call_log_tab_sms)
+            val durationSecSuffix = stringResource(R.string.call_log_duration_seconds_suffix)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = { showSms = false }) { Text(if (!showSms) "• Aramalar" else "Aramalar") }
-                TextButton(onClick = { showSms = true }) { Text(if (showSms) "• SMS" else "SMS") }
+                TextButton(onClick = { showSms = false }) { Text(if (!showSms) "• $callsTabLabel" else callsTabLabel) }
+                TextButton(onClick = { showSms = true }) { Text(if (showSms) "• $smsTabLabel" else smsTabLabel) }
             }
             if (!showSms) {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -99,7 +104,7 @@ fun CallLogScreen() {
                         Card(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                                 Text("${c.name} - ${c.type}", style = MaterialTheme.typography.bodyMedium)
-                                Text("${dateFmt.format(Date(c.date))} · ${c.durationSec}sn", style = MaterialTheme.typography.bodySmall)
+                                Text("${dateFmt.format(Date(c.date))} · ${c.durationSec}$durationSecSuffix", style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
@@ -128,12 +133,12 @@ fun loadCalls(context: android.content.Context): List<CallEntry> {
         null, null, "${CallLog.Calls.DATE} DESC",
     )?.use { cursor ->
         while (cursor.moveToNext() && result.size < 50) {
-            val name = cursor.getString(0) ?: cursor.getString(1) ?: "Bilinmeyen"
+            val name = cursor.getString(0) ?: cursor.getString(1) ?: context.getString(R.string.call_log_unknown)
             val type = when (cursor.getInt(2)) {
-                CallLog.Calls.INCOMING_TYPE -> "Gelen"
-                CallLog.Calls.OUTGOING_TYPE -> "Giden"
-                CallLog.Calls.MISSED_TYPE -> "Cevapsiz"
-                else -> "Diger"
+                CallLog.Calls.INCOMING_TYPE -> context.getString(R.string.call_log_type_incoming)
+                CallLog.Calls.OUTGOING_TYPE -> context.getString(R.string.call_log_type_outgoing)
+                CallLog.Calls.MISSED_TYPE -> context.getString(R.string.call_log_type_missed)
+                else -> context.getString(R.string.call_log_type_other)
             }
             result.add(CallEntry(name, type, cursor.getLong(3), cursor.getLong(4)))
         }
@@ -149,7 +154,7 @@ fun loadSms(context: android.content.Context): List<SmsEntry> {
         null, null, "${Telephony.Sms.DATE} DESC",
     )?.use { cursor ->
         while (cursor.moveToNext() && result.size < 50) {
-            val address = cursor.getString(0) ?: "Bilinmeyen"
+            val address = cursor.getString(0) ?: context.getString(R.string.call_log_unknown)
             val body = (cursor.getString(1) ?: "").take(50)
             result.add(SmsEntry(address, body, cursor.getLong(2)))
         }

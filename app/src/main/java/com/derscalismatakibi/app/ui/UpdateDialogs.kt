@@ -4,6 +4,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.core.UpdateChecker
 
 /** AppNavigation (sessiz acilis kontrolu) ve SettingsScreen (manuel kontrol) ortak kullanir. */
@@ -15,10 +17,10 @@ fun UpdateAvailableDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Yeni surum mevcut: v${info.version}") },
-        text = { Text(info.notes.ifBlank { "Surum notu eklenmemis." }) },
-        confirmButton = { TextButton(onClick = onInstall) { Text("Indir ve Kur") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Daha Sonra") } },
+        title = { Text(stringResource(R.string.update_available_title, info.version)) },
+        text = { Text(info.notes.ifBlank { stringResource(R.string.update_no_notes) }) },
+        confirmButton = { TextButton(onClick = onInstall) { Text(stringResource(R.string.update_download_install)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.update_later)) } },
     )
 }
 
@@ -27,15 +29,13 @@ fun UpdateAvailableDialog(
 fun UnknownSourcesDialog(onGoToSettings: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Izin gerekiyor") },
+        title = { Text(stringResource(R.string.usage_stats_permission_needed)) },
         text = {
             Text(
-                "Bu guncellemeyi kurabilmek icin \"Bilinmeyen kaynaklardan yukleme\" iznini " +
-                    "Ayarlar'dan acikca vermen gerekiyor (bu, Android'in APK dosyalarini Play Store " +
-                    "disindan kurarken istedigi standart bir guvenlik onayidir).",
+                stringResource(R.string.update_unknown_sources_explanation),
             )
         },
-        confirmButton = { TextButton(onClick = onGoToSettings) { Text("Ayarlara Git") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Iptal") } },
+        confirmButton = { TextButton(onClick = onGoToSettings) { Text(stringResource(R.string.usage_stats_go_to_settings)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

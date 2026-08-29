@@ -23,8 +23,8 @@ class NotificationHelper(private val context: Context) {
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                channelId, "Ders Calisma Takibi", NotificationManager.IMPORTANCE_DEFAULT,
-            ).apply { description = "Pomodoro ve takvim bildirimleri" }
+                channelId, context.getString(R.string.notif_channel_name), NotificationManager.IMPORTANCE_DEFAULT,
+            ).apply { description = context.getString(R.string.notif_channel_description) }
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
         }

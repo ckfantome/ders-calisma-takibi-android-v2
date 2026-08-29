@@ -1,0 +1,393 @@
+<resources>
+    <string name="app_name">Ders Calisma Takibi</string>
+    <string name="accessibility_service_description">Watches which app is in the foreground to detect and block apps on the App Lock list when they open. Does not read typed text unless Keystroke Logging is explicitly turned on.</string>
+
+    <!-- BlockedActivity -->
+    <string name="blocked_reason_exam_mode">Exam/Homework Mode is on</string>
+    <string name="blocked_reason_daily_limit">Today\'s usage limit reached</string>
+    <string name="blocked_reason_study_hours">Within study hours</string>
+    <string name="blocked_title">This app is currently blocked</string>
+    <string name="blocked_go_home">Go Home</string>
+
+    <!-- Common action buttons -->
+    <string name="action_clear">Clear</string>
+    <string name="action_share">Share</string>
+    <string name="action_yes">Yes</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_add">Add</string>
+    <string name="action_save">Save</string>
+    <string name="action_remove">Remove</string>
+    <string name="action_close">Close</string>
+
+    <!-- Weekdays -->
+    <string name="weekday_monday">Monday</string>
+    <string name="weekday_tuesday">Tuesday</string>
+    <string name="weekday_wednesday">Wednesday</string>
+    <string name="weekday_thursday">Thursday</string>
+    <string name="weekday_friday">Friday</string>
+    <string name="weekday_saturday">Saturday</string>
+    <string name="weekday_sunday">Sunday</string>
+
+    <!-- PrivacyConsentScreen -->
+    <string name="privacy_consent_title">Privacy Notice</string>
+    <string name="privacy_consent_checkbox">I have read, understood, and agree</string>
+    <string name="privacy_consent_continue">Continue</string>
+
+    <!-- KeyboardLogScreen -->
+    <string name="keyboard_log_title">Keystroke Log</string>
+    <string name="keyboard_log_admin_only">This screen can only be viewed in administrator mode.</string>
+    <string name="keyboard_log_explanation">When Keystroke Logging is turned on from the App Lock screen, text typed in other apps is listed here. Password fields are EXCLUDED.</string>
+    <string name="keyboard_log_empty">No records yet.</string>
+
+    <!-- LogsScreen -->
+    <string name="logs_title">Logs</string>
+    <string name="logs_explanation">All important events in the app (state changes, service lifecycle, errors, backup/update results) are recorded here. If you run into a problem, tap \"Share\" to send yourself the file and forward it to me.</string>
+    <string name="logs_share_chooser_title">Share log file</string>
+    <string name="logs_empty">No logs yet.</string>
+    <string name="logs_clear_dialog_title">Clear Logs</string>
+    <string name="logs_clear_dialog_text">All log records (memory and file) will be deleted. Continue?</string>
+
+    <!-- StatsScreen -->
+    <string name="stats_title">Statistics</string>
+    <string name="stats_this_week">This week</string>
+    <string name="stats_chart_title">Daily Study Time</string>
+    <string name="stats_chart_y_axis_note">Vertical axis: hours. Last 14 days shown.</string>
+    <string name="stats_export_chooser_title">Share Data</string>
+    <string name="stats_export_csv">Export (CSV)</string>
+    <string name="stats_empty_title">No data yet</string>
+    <string name="stats_empty_body">Statistics will appear here once you complete a study session.</string>
+
+    <!-- DeviceReportScreen -->
+    <string name="device_report_title">Device Report</string>
+    <string name="device_report_battery">Battery</string>
+    <string name="device_report_battery_percent">%1$d%%</string>
+    <string name="device_report_charging">(charging)</string>
+    <string name="device_report_unknown">Unknown</string>
+    <string name="device_report_data_usage_title">Today\'s Data Usage</string>
+    <string name="device_report_usage_access_needed">Usage Access permission needed (see Usage tab).</string>
+    <string name="device_report_data_usage_value">Wi-Fi: %1$.1f MB   ·   Mobile: %2$.1f MB</string>
+
+    <!-- UsageStatsScreen -->
+    <string name="usage_stats_title">App Usage</string>
+    <string name="usage_stats_permission_needed">Permission needed</string>
+    <string name="usage_stats_permission_explanation">Android doesn\'t grant this kind of sensitive usage data through the normal permission dialog - you need to explicitly grant \"Usage access\" from Settings (usually: Settings &gt; Apps &gt; Special access &gt; Usage access; menu name may vary by device).</string>
+    <string name="usage_stats_go_to_settings">Go to Settings</string>
+    <string name="usage_stats_tab_duration">Duration</string>
+    <string name="usage_stats_tab_events">Events</string>
+    <string name="usage_stats_duration_explanation">How much time you spent in each app today (since midnight).</string>
+    <string name="usage_stats_no_data_today">No data for today yet.</string>
+    <string name="usage_stats_events_explanation">Which app opened/closed and when today.</string>
+    <string name="usage_stats_no_events_today">No events for today yet.</string>
+    <string name="usage_event_opened">Opened</string>
+    <string name="usage_event_closed">Closed</string>
+
+    <!-- CallLogScreen -->
+    <string name="call_log_title">Calls / SMS</string>
+    <string name="call_log_disabled">This system is turned off in Settings &gt; Active Systems - call/SMS data is not read.</string>
+    <string name="call_log_permission_needed">Permission needed</string>
+    <string name="call_log_permission_explanation">Grant permission to see the call history and SMS summary.</string>
+    <string name="call_log_grant_permission">Grant Permission</string>
+    <string name="call_log_tab_calls">Calls</string>
+    <string name="call_log_tab_sms">SMS</string>
+    <string name="call_log_duration_seconds_suffix">s</string>
+    <string name="call_log_unknown">Unknown</string>
+    <string name="call_log_type_incoming">Incoming</string>
+    <string name="call_log_type_outgoing">Outgoing</string>
+    <string name="call_log_type_missed">Missed</string>
+    <string name="call_log_type_other">Other</string>
+
+    <!-- ScheduleScreen -->
+    <string name="schedule_kind_work">Study</string>
+    <string name="schedule_kind_break">Break</string>
+    <string name="schedule_title">Schedule</string>
+    <string name="schedule_admin_required">Administrator mode is required for this action.</string>
+    <string name="schedule_tracking_on">Schedule tracking ON</string>
+    <string name="schedule_tracking_off">Schedule tracking off</string>
+    <string name="schedule_stop_tracking">Stop Schedule Tracking</string>
+    <string name="schedule_start_tracking">Start Schedule Tracking</string>
+    <string name="schedule_add_work">+ Study</string>
+    <string name="schedule_add_break">+ Break</string>
+    <string name="schedule_no_slots_today">No slots scheduled for this day.</string>
+    <string name="schedule_no_definition_today">No schedule defined for today. Add a slot first.</string>
+    <string name="schedule_today_program">Today\'s schedule:\n%1$s\n\nPomodoro starts automatically when a study slot begins; if you keep studying during a break, it is noted separately; if you study less than planned, you are notified when the slot ends.</string>
+    <string name="schedule_add_work_dialog_title">Add Study Slot</string>
+    <string name="schedule_add_break_dialog_title">Add Break Slot</string>
+    <string name="schedule_start_time_label">Start (HH:MM)</string>
+    <string name="schedule_end_time_label">End (HH:MM)</string>
+
+    <!-- LocationScreen -->
+    <string name="location_title">Location</string>
+    <string name="location_tracking_disabled">Location Tracking is turned off in Settings &gt; Active Systems - Safe Zone checks and location history are not recorded (the live location below only works while this screen is open).</string>
+    <string name="location_permission_needed">Location permission needed</string>
+    <string name="location_background_permission_title">Additional permission for background location</string>
+    <string name="location_background_permission_explanation">Needed for safe zone checks even while the app is closed.</string>
+    <string name="location_live_title">Live Location</string>
+    <string name="location_latitude">Latitude: %1$s</string>
+    <string name="location_longitude">Longitude: %1$s</string>
+    <string name="location_updated_at">Updated: %1$s (refreshes every 10s)</string>
+    <string name="location_gps_not_available">Location not available yet (check if GPS/location service is on).</string>
+    <string name="location_not_available_yet">Location not available yet</string>
+    <string name="location_history_note">Note: location history (not just the live location, but the full changing location) is recorded by StudyEngine every 30s and included in the daily backup email.</string>
+    <string name="location_safe_zones_title">Safe Zones</string>
+    <string name="location_safe_zones_explanation">You can add multiple zones - the device is considered safe if it\'s inside any ON zone.</string>
+    <string name="location_no_safe_zones">No safe zone added yet.</string>
+    <string name="location_new_zone_name_prefix">Zone</string>
+    <string name="location_add_safe_zone">Add New Safe Zone</string>
+    <string name="location_currently_in_zone">Currently in this zone</string>
+    <string name="location_currently_away">Currently %1$dm away</string>
+    <string name="location_zone_name_label">Zone Name</string>
+    <string name="location_latitude_label">Latitude</string>
+    <string name="location_longitude_label">Longitude</string>
+    <string name="location_radius_label">Radius (meters)</string>
+    <string name="location_set_from_current">Set From Current</string>
+
+    <!-- AppBlockScreen -->
+    <string name="app_block_title">App Lock</string>
+    <string name="app_block_student_readonly">You\'re in student mode: this screen is read-only. Switch to administrator mode from the lock icon at the top to change it.</string>
+    <string name="app_block_accessibility_needed">Accessibility permission needed</string>
+    <string name="app_block_accessibility_explanation">To detect when a blocked app comes to the foreground, you need to explicitly turn on the \"Accessibility Service\" from Settings. By default this service does NOT read screen content, it only sees which app is in the foreground - if you separately turn on Keystroke Logging below, it also starts recording typed text.</string>
+    <string name="app_block_oem_restrictive_note">On this phone brand (Oppo/Xiaomi/Huawei/Vivo) the system service can turn itself off over time even if the permission is on - you also need to add the app to the Autostart list below.</string>
+    <string name="app_block_open_autostart_settings">Open Autostart Settings</string>
+    <string name="app_block_exam_mode_title">Exam/Homework Mode</string>
+    <string name="app_block_exam_mode_explanation">While on, EVERYTHING is blocked regardless of the Locked Apps list - only apps in the \'Allowed Apps\' list below and required apps (home screen/phone) can be opened.</string>
+    <string name="app_block_screen_pinning_title">+ Fully Pin the Screen</string>
+    <string name="app_block_screen_pinning_explanation">While Exam Mode is on, the phone is locked to ONLY this app - NOTHING ELSE can be opened, including the \'Allowed Apps\' list (home screen/Recents also disabled). Not affected by the OEM turning off the Accessibility permission.</string>
+    <string name="app_block_allowed_apps_title">Allowed Apps (During Exam Mode)</string>
+    <string name="app_block_allowed_apps_explanation">While Exam/Homework Mode is on, no app other than these can be opened (e.g. Calculator).</string>
+    <string name="app_block_no_allowed_apps">No allowed app added yet.</string>
+    <string name="app_block_locked_apps_title">Locked Apps</string>
+    <string name="app_block_locked_apps_explanation">While Exam/Homework Mode is off, these apps are only blocked when the camera detects the \'Studying\' state.</string>
+    <string name="app_block_no_apps_added">No app added yet.</string>
+    <string name="app_block_add_app_title">Add App</string>
+
+    <!-- MainScreen -->
+    <string name="main_camera_error_fallback">Camera error</string>
+    <string name="main_background_tracking_active">Background tracking is running - preview is off (to save battery).\nYou can follow the status from the notification.</string>
+    <string name="main_camera_analysis_disabled">Camera / MediaPipe Analysis is turned off in Settings &gt; Active Systems.</string>
+    <string name="main_camera_permission_needed">Camera permission needed</string>
+    <string name="main_camera_error">Camera error: %1$s</string>
+    <string name="main_notes">Notes</string>
+    <string name="main_reset_goal">Reset Goal</string>
+    <string name="main_session_notes_title">Session Notes</string>
+    <string name="main_reset_goal_confirm">Today\'s progress will be saved and reset. Continue?</string>
+    <string name="main_save_and_reset">Save and Reset</string>
+    <string name="main_notes_field_label">What did you study today?</string>
+    <string name="main_tags_field_label">Tags (comma-separated)</string>
+    <string name="main_today_progress">Today\'s progress</string>
+    <string name="main_productivity_speaking">Productivity: %1$s%% · Speaking: %2$s</string>
+    <string name="main_pomodoro">Pomodoro</string>
+    <string name="main_pomodoro_stop">Stop Pomodoro</string>
+    <string name="main_pomodoro_start">Start Pomodoro</string>
+    <string name="main_pomodoro_break">Take a Break</string>
+    <string name="main_pomodoro_paused">PAUSED</string>
+    <string name="main_state_studying">Studying</string>
+    <string name="main_state_away">Away / Distracted</string>
+    <string name="main_state_sleeping">Drowsy</string>
+    <string name="main_speaking_confirmed">🎤 Speaking (threshold exceeded)</string>
+    <string name="main_speaking">🎤 Speaking</string>
+    <string name="main_speaking_silent">🎤 Silent</string>
+
+    <!-- SettingsScreen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_student_mode_notice">You\'re in student mode: most system-affecting settings are hidden. Only Theme/Language/Sound/Notifications stay here - switch to administrator mode from the lock icon at the top to see/change the rest.</string>
+    <string name="settings_group_theme">Theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_group_language">Dil / Language</string>
+    <string name="settings_language_note">The change applies instantly, across all app screens.</string>
+    <string name="settings_group_sound_notifications">Sound &amp; Notifications</string>
+    <string name="settings_sound_alert">Sound Alert</string>
+    <string name="settings_routine_reminders">Routine Reminders (Pomodoro/Break)</string>
+    <string name="settings_app_lock_exam_alert">App Lock/Exam Mode Alert</string>
+    <string name="settings_safe_zone_alert">Safe Zone Alert</string>
+    <string name="settings_backup_failure_alert">Backup Failure Alert</string>
+    <string name="settings_group_detection_thresholds">Detection Thresholds</string>
+    <string name="settings_ear_threshold">Eye Closed Threshold (EAR)</string>
+    <string name="settings_max_yaw">Max. Horizontal Angle (degrees)</string>
+    <string name="settings_max_pitch_down">Max. Downward Tilt (degrees)</string>
+    <string name="settings_max_pitch_up">Max. Upward Tilt (degrees)</string>
+    <string name="settings_group_confirm_durations">Confirmation Durations (s)</string>
+    <string name="settings_confirm_away">Away Confirmation</string>
+    <string name="settings_confirm_sleep">Sleep Confirmation</string>
+    <string name="settings_confirm_resume">Resume Confirmation</string>
+    <string name="settings_group_pomodoro">Pomodoro (min)</string>
+    <string name="settings_pomodoro_work">Study</string>
+    <string name="settings_pomodoro_long_break">Long Break</string>
+    <string name="settings_pomodoro_cycles">Cycles Until Long Break</string>
+    <string name="settings_group_goals">Goals (hours)</string>
+    <string name="settings_daily_goal">Daily Goal</string>
+    <string name="settings_weekly_goal">Weekly Goal</string>
+    <string name="settings_group_general">General</string>
+    <string name="settings_auto_pause_away">Auto-Pause on Away</string>
+    <string name="settings_auto_pause_sleep">Auto-Pause on Sleep</string>
+    <string name="settings_use_front_camera">Use Front Camera</string>
+    <string name="settings_note_prompt_on_end">Ask for Notes at Session End</string>
+    <string name="settings_speaking_counts_as_away">Count Speaking as \'Away\'</string>
+    <string name="settings_auto_start_on_boot">Auto-Start on Device Reboot</string>
+    <string name="settings_keep_alive">Auto-Restart if Killed (Stay Always On)</string>
+    <string name="settings_group_active_systems">Active Systems</string>
+    <string name="settings_active_systems_explanation">Each toggle turns a separate monitoring/analysis system on or off - a disabled system stops both running in the background and adding data to the daily backup.</string>
+    <string name="settings_camera_permission_needed_for_background">You need to grant camera permission first for background tracking.</string>
+    <string name="settings_background_service_start_failed">Background service could not be started</string>
+    <string name="settings_background_tracking">Background Tracking</string>
+    <string name="settings_oem_battery_note">On some phone brands (Xiaomi/MIUI, Oppo/ColorOS, Huawei/EMUI, Samsung) you may need to allow the app from Settings &gt; Apps &gt; Ders Calisma Takibi &gt; Battery/Autostart for background tracking to run uninterrupted.</string>
+    <string name="settings_camera_analysis">Camera / MediaPipe Analysis (study detection)</string>
+    <string name="settings_location_tracking">Location Tracking (Safe Zone + location history)</string>
+    <string name="settings_call_sms_log">Call/SMS Summary Log</string>
+    <string name="settings_notification_log">Notification Access Log</string>
+    <string name="settings_keyboard_tracking">Keystroke Logging</string>
+    <string name="settings_keyboard_tracking_note">WHILE ON: text typed in other apps is recorded (password fields EXCLUDED) - this CHANGES Accessibility\'s default \'does not read screen content\' behavior.</string>
+    <string name="settings_accessibility_not_granted">The \"Accessibility Service\" permission is required for this to work - not granted yet.</string>
+    <string name="settings_grant_accessibility">Grant Accessibility Permission</string>
+    <string name="settings_accessibility_granted">Accessibility permission is on - Keystroke Logging can work.</string>
+    <string name="settings_usage_check_frequency_title">Usage Time Check Frequency</string>
+    <string name="settings_usage_check_frequency_explanation">How often an app with a daily time limit is checked - \'Instant\' is the most expensive for battery/performance, on \'Battery Friendly\' the block may trigger a few seconds after the limit is reached.</string>
+    <string name="settings_usage_interval_instant">Instant</string>
+    <string name="settings_usage_interval_normal">Normal</string>
+    <string name="settings_usage_interval_battery_friendly">Battery Friendly</string>
+    <string name="settings_group_sent_data">Data Sent</string>
+    <string name="settings_sent_data_explanation">Chooses which files are attached to the daily backup email - writing to the device happens ALWAYS regardless of this, this only controls the email attachments.</string>
+    <string name="settings_send_session_csv">Study Sessions (CSV)</string>
+    <string name="settings_send_schedule_json">Schedule (JSON)</string>
+    <string name="settings_send_usage_csv">App Usage (CSV)</string>
+    <string name="settings_send_call_sms_csv">Call/SMS Summary (CSV)</string>
+    <string name="settings_send_device_report">Device Report (TXT)</string>
+    <string name="settings_send_blocked_apps_txt">App Lock List (TXT)</string>
+    <string name="settings_send_app_log">App Logs</string>
+    <string name="settings_send_location_csv">Location History (CSV)</string>
+    <string name="settings_send_keystroke_csv">Keystroke Log (CSV)</string>
+    <string name="settings_group_admin_pin">Administrator PIN</string>
+    <string name="settings_admin_pin_label">PIN required for Student -&gt; Administrator switch</string>
+    <string name="settings_group_backup_email">Backup / Email</string>
+    <string name="settings_admin_email_label">Admin Email (sender and recipient)</string>
+    <string name="settings_app_password_label">App Password (Gmail App Password)</string>
+    <string name="settings_gmail_app_password_note">2-Step Verification must be on for Gmail, use an \'App Password\' instead of your normal password (myaccount.google.com/apppasswords).</string>
+    <string name="settings_backup_label_field">Label / Name (e.g. Ahmet)</string>
+    <string name="settings_backup_label_explanation">Added to the email subject and file names so backups don\'t get mixed up if the same account is used by multiple people/devices - leaving it blank changes nothing.</string>
+    <string name="settings_backup_hour_label">Hour (0-23)</string>
+    <string name="settings_backup_minute_label">Minute (0-59)</string>
+    <string name="settings_daily_backup_enabled">Daily Automatic Backup</string>
+    <string name="settings_interval_backup_enabled">Interval Automatic Backup</string>
+    <string name="settings_interval_minutes_label">Interval (minutes, min 15)</string>
+    <string name="settings_wifi_only">Send Only on Wi-Fi</string>
+    <string name="settings_interval_wifi_note">If there is no new data in this interval the email is skipped, only writing to the device always happens.</string>
+    <string name="settings_last_backup_at">Last backup: %1$s - %2$s</string>
+    <string name="settings_last_backup_never">Last backup: not done yet</string>
+    <string name="settings_backup_now">Back Up Now</string>
+    <string name="settings_group_notification_access">Notification Access</string>
+    <string name="settings_notification_access_on">Notification access is on - notifications from other apps are written to Logs.</string>
+    <string name="settings_notification_access_off">A special permission is needed to record notifications from other apps (not granted through the normal permission dialog).</string>
+    <string name="settings_group_device_admin">Device Administrator</string>
+    <string name="settings_device_admin_active">Active - the app can\'t be uninstalled until this permission is turned off from Settings first.</string>
+    <string name="settings_device_admin_inactive">Off - if enabled, you\'ll need to turn this permission off from Settings before uninstalling the app (extra protection).</string>
+    <string name="settings_device_admin_explanation">So that Ders Calisma Takibi cannot be easily removed from the parental-control settings.</string>
+    <string name="settings_device_admin_enable">Enable</string>
+    <string name="settings_group_update">Update</string>
+    <string name="settings_update_explanation">The app is distributed via GitHub (not the Play Store). When a new version is released you\'re notified automatically on launch; you can also check now if you want.</string>
+    <string name="settings_update_up_to_date">You\'re on the latest version.</string>
+    <string name="settings_update_checking">Checking...</string>
+    <string name="settings_update_check">Check for Updates</string>
+    <string name="settings_group_privacy">Privacy</string>
+    <string name="settings_view_privacy_policy">View Privacy Policy</string>
+    <string name="settings_group_privacy_policy_title">Privacy Policy</string>
+
+    <!-- AppNavigation -->
+    <string name="nav_main">Home</string>
+    <string name="nav_usage">Usage</string>
+    <string name="nav_device">Device</string>
+    <string name="nav_menu">Menu</string>
+    <string name="nav_admin_student_mode">Administrator / Student mode</string>
+    <string name="nav_switch_to_student">Switch to Student Mode</string>
+    <string name="nav_switch_to_student_confirm">You\'ll switch to student mode: settings, schedule editing, and goal reset will be locked. Continue?</string>
+    <string name="nav_wrong_pin">Wrong PIN</string>
+    <string name="nav_admin_mode">Administrator Mode</string>
+    <string name="nav_pin_label">PIN</string>
+    <string name="action_ok">OK</string>
+
+    <!-- UpdateDialogs -->
+    <string name="update_available_title">New version available: v%1$s</string>
+    <string name="update_no_notes">No release notes added.</string>
+    <string name="update_download_install">Download and Install</string>
+    <string name="update_later">Later</string>
+    <string name="update_unknown_sources_explanation">To install this update you need to explicitly grant \"Install from unknown sources\" permission from Settings (this is the standard Android security prompt for installing APK files outside the Play Store).</string>
+
+    <!-- StudyEngine: notifications, email subjects, live status text (infoText) -->
+    <string name="notif_long_break_time">Long break time (%1$d min)</string>
+    <string name="notif_break_time">Break time (%1$d min)</string>
+    <string name="notif_pomodoro_finished">Pomodoro finished!</string>
+    <string name="notif_break_over_title">Break over</string>
+    <string name="notif_break_over_body">Start Pomodoro to keep studying.</string>
+    <string name="notif_app_lock_accessibility_broken">Exam/Homework Mode is on but Accessibility permission is off - app blocking is NOT working right now.</string>
+    <string name="notif_app_lock_disabled_title">App Lock Disabled</string>
+    <string name="notif_app_lock_disabled_email_subject">App Lock Became Disabled</string>
+    <string name="notif_safe_zone_entered">Entered safe zone</string>
+    <string name="notif_safe_zone_left">Left safe zone</string>
+    <string name="notif_safe_zone_distance_suffix"> - %1$dm away (nearest: %2$s)</string>
+    <string name="notif_safe_zone_title">Safe Zone</string>
+    <string name="notif_safe_zone_left_email_subject">Outside Safe Zone</string>
+    <string name="frame_face_not_found">Face not found</string>
+    <string name="frame_pose_not_calculated">Pose could not be calculated</string>
+    <string name="frame_eyes_closed">Eyes closed (EAR=%1$.2f)</string>
+    <string name="frame_studying">Studying (yaw=%1$d pitch=%2$d EAR=%3$.2f)</string>
+    <string name="frame_head_turned">Head turned (yaw=%1$d pitch=%2$d)</string>
+    <string name="frame_speaking_distraction">Speaking (distracting) - %1$s</string>
+    <string name="pomodoro_paused_away">Pomodoro auto-paused (away)</string>
+    <string name="pomodoro_paused_sleeping">Pomodoro auto-paused (drowsy)</string>
+    <string name="pomodoro_manual_break_only_while_working">A manual break can only be started while Pomodoro is running.</string>
+    <string name="schedule_note_work_summary">[Schedule] %1$s-%2$s Study: %3$d/%4$d min studied</string>
+    <string name="schedule_note_away_suffix">, away for %1$s.</string>
+    <string name="notif_work_slot_finished">Study slot finished</string>
+    <string name="schedule_note_break_summary">[Schedule] %1$s-%2$s Break: kept studying for %3$s during the break.</string>
+    <string name="notif_studying_during_break">Studying during break</string>
+
+    <!-- DailyBackupWorker -->
+    <string name="backup_status_file_write_error">error: file could not be written (%1$s)</string>
+    <string name="backup_status_ok_no_new_data">ok (no new data, email skipped)</string>
+    <string name="backup_email_subject">%1$s%2$s - Backup (%3$s)</string>
+    <string name="backup_status_transient_error">error: send failed, will retry</string>
+    <string name="backup_notify_transient_failure">Daily backup email could not be sent, will retry.</string>
+    <string name="backup_status_permanent_error">error: %1$s</string>
+    <string name="backup_notify_permanent_failure">Daily backup email could not be sent: %1$s</string>
+    <string name="backup_status_ok_device_only">ok (device only)</string>
+    <string name="backup_notify_failed_title">Backup Failed</string>
+
+    <!-- NotificationHelper -->
+    <string name="notif_channel_name">Ders Calisma Takibi</string>
+    <string name="notif_channel_description">Pomodoro and schedule notifications</string>
+
+    <!-- StudyForegroundService -->
+    <string name="service_error_prefix">ERROR(%1$d): %2$s: %3$s</string>
+    <string name="service_camera_analysis_off">Camera analysis off</string>
+    <string name="service_state_away_short">Away</string>
+    <string name="service_notification_title">Ders Calisma Takibi is running in the background</string>
+    <string name="service_channel_name">Background Tracking</string>
+    <string name="service_channel_description">Persistent notification showing that background study tracking is running</string>
+    <string name="service_foreground_start_failed">Background notification could not be started (camera permission may not be granted): %1$s</string>
+    <string name="service_camera_error_background">Camera error (background)</string>
+    <string name="service_camera_bind_failed_background">Camera could not connect (background)</string>
+    <string name="service_start_failed">Service could not start (onCreate): %1$s</string>
+
+    <!-- AppBlockAccessibilityService -->
+    <string name="app_block_email_subject">App Blocked During Exam Mode</string>
+    <string name="app_block_email_body">%1$s (%2$s) was attempted to be opened while exam/homework mode was on.</string>
+
+    <!-- ExportHelper -->
+    <string name="csv_header_sessions">date,start,end,studying_sec,away_sec,sleeping_sec,total_sec,speaking_sec,pomodoro_count,notes,tags,productivity</string>
+    <string name="csv_header_usage">app,package_name,total_sec</string>
+    <string name="csv_header_call_sms">type,contact_number,detail,date</string>
+    <string name="csv_row_type_call">call</string>
+    <string name="csv_row_type_sms">sms</string>
+    <string name="csv_header_location">latitude,longitude,date</string>
+    <string name="csv_header_keystroke">app,package_name,text,date</string>
+    <string name="device_report_txt_content">Today\'s data usage\nWi-Fi: %1$.1f MB\nMobile: %2$.1f MB\n</string>
+    <string name="blocked_apps_txt_on">ON</string>
+    <string name="blocked_apps_txt_off">off</string>
+    <string name="blocked_apps_txt_exam_mode">Exam/Homework Mode: %1$s</string>
+    <string name="blocked_apps_txt_locked_apps">Locked apps (%1$d):</string>
+
+    <!-- UpdateInstaller -->
+    <string name="update_installer_title">Ders Calisma Takibi update</string>
+    <string name="update_installer_description">Downloading v%1$s</string>
+</resources>

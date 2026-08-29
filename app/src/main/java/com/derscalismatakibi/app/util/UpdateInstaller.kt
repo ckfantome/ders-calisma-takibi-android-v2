@@ -11,6 +11,7 @@ import android.os.Environment
 import android.provider.Settings
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.core.UpdateChecker
 import java.io.File
 
@@ -40,8 +41,8 @@ object UpdateInstaller {
         if (targetFile.exists()) targetFile.delete()
 
         val request = DownloadManager.Request(Uri.parse(info.downloadUrl))
-            .setTitle("Ders Calisma Takibi guncellemesi")
-            .setDescription("v${info.version} indiriliyor")
+            .setTitle(context.getString(R.string.update_installer_title))
+            .setDescription(context.getString(R.string.update_installer_description, info.version))
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
             .setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, FILE_NAME)
 

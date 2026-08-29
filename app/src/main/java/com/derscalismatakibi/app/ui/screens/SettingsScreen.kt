@@ -33,10 +33,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.backup.BackupScheduler
 import com.derscalismatakibi.app.core.Role
 import com.derscalismatakibi.app.core.UpdateChecker
@@ -101,11 +103,10 @@ fun SettingsScreen(viewModel: StudyViewModel) {
         modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text("Ayarlar", style = MaterialTheme.typography.headlineSmall)
+        Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineSmall)
         if (!isAdmin) {
             Text(
-                "Ogrenci modundasin: sistemi etkileyen ayarlarin cogu gizli. Sadece Tema/Dil/Ses/Bildirim " +
-                    "burada kaliyor - digerlerini gormek/degistirmek icin ust bardaki kilit ikonundan yonetici moduna gec.",
+                stringResource(R.string.settings_student_mode_notice),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
             )
@@ -114,8 +115,8 @@ fun SettingsScreen(viewModel: StudyViewModel) {
         // Ogrenci modunda sistemi etkilemeyen bu ucu HER ZAMAN gorunur+degistirilebilir
         // kalir (kullaniciyla netlesen karar) - geri kalan gruplarin tamami asagida
         // isAdmin ile TAMAMEN gizlenir (salt-okunur degil, hic gorunmez).
-        SettingsGroup("Tema") {
-            val options = listOf("system" to "Sistem", "dark" to "Koyu", "light" to "Acik")
+        SettingsGroup(stringResource(R.string.settings_group_theme)) {
+            val options = listOf("system" to stringResource(R.string.settings_theme_system), "dark" to stringResource(R.string.settings_theme_dark), "light" to stringResource(R.string.settings_theme_light))
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 options.forEachIndexed { index, (value, label) ->
                     SegmentedButton(
@@ -127,8 +128,8 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             }
         }
 
-        SettingsGroup("Dil / Language") {
-            val langOptions = listOf("tr" to "Turkce", "en" to "English")
+        SettingsGroup(stringResource(R.string.settings_group_language)) {
+            val langOptions = listOf("tr" to "Türkçe", "en" to "English")
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 langOptions.forEachIndexed { index, (value, label) ->
                     SegmentedButton(
@@ -139,117 +140,118 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                 }
             }
             Text(
-                "Not: Sadece sistem dilini degistirir (Android 13+). Uygulama ekranlarindaki metinler henuz cevrilmedi.",
+                stringResource(R.string.settings_language_note),
                 style = MaterialTheme.typography.bodySmall,
             )
         }
 
-        SettingsGroup("Ses & Bildirim") {
-            SwitchRow("Sesli Uyari", cfg.soundEnabled, true) {
+        SettingsGroup(stringResource(R.string.settings_group_sound_notifications)) {
+            SwitchRow(stringResource(R.string.settings_sound_alert), cfg.soundEnabled, true) {
                 viewModel.updateConfig(cfg.copy(soundEnabled = it))
             }
-            SwitchRow("Rutin Hatirlatmalar (Pomodoro/Mola)", cfg.routineNotificationsEnabled, true) {
+            SwitchRow(stringResource(R.string.settings_routine_reminders), cfg.routineNotificationsEnabled, true) {
                 viewModel.updateConfig(cfg.copy(routineNotificationsEnabled = it))
             }
-            SwitchRow("Uygulama Kilidi/Sinav Modu Uyarisi", cfg.appLockAlertNotificationsEnabled, true) {
+            SwitchRow(stringResource(R.string.settings_app_lock_exam_alert), cfg.appLockAlertNotificationsEnabled, true) {
                 viewModel.updateConfig(cfg.copy(appLockAlertNotificationsEnabled = it))
             }
-            SwitchRow("Guvenli Bolge Uyarisi", cfg.safeZoneAlertNotificationsEnabled, true) {
+            SwitchRow(stringResource(R.string.settings_safe_zone_alert), cfg.safeZoneAlertNotificationsEnabled, true) {
                 viewModel.updateConfig(cfg.copy(safeZoneAlertNotificationsEnabled = it))
             }
-            SwitchRow("Yedekleme Basarisiz Uyarisi", cfg.backupFailureNotificationsEnabled, true) {
+            SwitchRow(stringResource(R.string.settings_backup_failure_alert), cfg.backupFailureNotificationsEnabled, true) {
                 viewModel.updateConfig(cfg.copy(backupFailureNotificationsEnabled = it))
             }
         }
 
         if (isAdmin) {
-        SettingsGroup("Tespit Esikleri") {
-            LabeledSlider("Goz Kapali Esigi (EAR)", cfg.earClosedThreshold, 0.05f, 0.5f, isAdmin) {
+        SettingsGroup(stringResource(R.string.settings_group_detection_thresholds)) {
+            LabeledSlider(stringResource(R.string.settings_ear_threshold), cfg.earClosedThreshold, 0.05f, 0.5f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(earClosedThreshold = it.toDouble()))
             }
-            LabeledSlider("Maks. Yatay Aci (derece)", cfg.yawMaxDeg, 5f, 90f, isAdmin) {
+            LabeledSlider(stringResource(R.string.settings_max_yaw), cfg.yawMaxDeg, 5f, 90f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(yawMaxDeg = it.toDouble()))
             }
-            LabeledSlider("Maks. Asagi Egim (derece)", cfg.pitchDownMaxDeg, 5f, 90f, isAdmin) {
+            LabeledSlider(stringResource(R.string.settings_max_pitch_down), cfg.pitchDownMaxDeg, 5f, 90f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(pitchDownMaxDeg = it.toDouble()))
             }
-            LabeledSlider("Maks. Yukari Egim (derece)", cfg.pitchUpMaxDeg, 5f, 90f, isAdmin) {
+            LabeledSlider(stringResource(R.string.settings_max_pitch_up), cfg.pitchUpMaxDeg, 5f, 90f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(pitchUpMaxDeg = it.toDouble()))
             }
         }
 
-        SettingsGroup("Onay Sureleri (sn)") {
-            LabeledSlider("Uzakta Onay", cfg.confirmAwaySeconds, 1f, 30f, isAdmin) {
+        SettingsGroup(stringResource(R.string.settings_group_confirm_durations)) {
+            LabeledSlider(stringResource(R.string.settings_confirm_away), cfg.confirmAwaySeconds, 1f, 30f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(confirmAwaySeconds = it.toDouble()))
             }
-            LabeledSlider("Uyku Onay", cfg.confirmSleepSeconds, 1f, 30f, isAdmin) {
+            LabeledSlider(stringResource(R.string.settings_confirm_sleep), cfg.confirmSleepSeconds, 1f, 30f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(confirmSleepSeconds = it.toDouble()))
             }
-            LabeledSlider("Devam Onay", cfg.confirmResumeSeconds, 0.5f, 15f, isAdmin) {
+            LabeledSlider(stringResource(R.string.settings_confirm_resume), cfg.confirmResumeSeconds, 0.5f, 15f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(confirmResumeSeconds = it.toDouble()))
             }
         }
 
-        SettingsGroup("Pomodoro (dk)") {
-            LabeledSlider("Calisma", cfg.pomodoroWorkMin.toFloat(), 1f, 120f, isAdmin) {
+        SettingsGroup(stringResource(R.string.settings_group_pomodoro)) {
+            LabeledSlider(stringResource(R.string.settings_pomodoro_work), cfg.pomodoroWorkMin.toFloat(), 1f, 120f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(pomodoroWorkMin = it.toInt()))
             }
-            LabeledSlider("Mola", cfg.pomodoroBreakMin.toFloat(), 1f, 60f, isAdmin) {
+            LabeledSlider(stringResource(R.string.schedule_kind_break), cfg.pomodoroBreakMin.toFloat(), 1f, 60f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(pomodoroBreakMin = it.toInt()))
             }
-            LabeledSlider("Uzun Mola", cfg.pomodoroLongBreakMin.toFloat(), 1f, 120f, isAdmin) {
+            LabeledSlider(stringResource(R.string.settings_pomodoro_long_break), cfg.pomodoroLongBreakMin.toFloat(), 1f, 120f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(pomodoroLongBreakMin = it.toInt()))
             }
-            LabeledSlider("Uzun Molaya Kadar Dongu", cfg.pomodoroCyclesBeforeLong.toFloat(), 1f, 12f, isAdmin) {
+            LabeledSlider(stringResource(R.string.settings_pomodoro_cycles), cfg.pomodoroCyclesBeforeLong.toFloat(), 1f, 12f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(pomodoroCyclesBeforeLong = it.toInt()))
             }
         }
 
-        SettingsGroup("Hedefler (saat)") {
-            LabeledSlider("Gunluk Hedef", cfg.dailyGoalHours, 0.5f, 24f, isAdmin) {
+        SettingsGroup(stringResource(R.string.settings_group_goals)) {
+            LabeledSlider(stringResource(R.string.settings_daily_goal), cfg.dailyGoalHours, 0.5f, 24f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(dailyGoalHours = it.toDouble()))
             }
-            LabeledSlider("Haftalik Hedef", cfg.weeklyGoalHours, 1f, 168f, isAdmin) {
+            LabeledSlider(stringResource(R.string.settings_weekly_goal), cfg.weeklyGoalHours, 1f, 168f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(weeklyGoalHours = it.toDouble()))
             }
         }
 
-        SettingsGroup("Genel") {
-            SwitchRow("Uzakta Otomatik Duraklat", cfg.autoPauseOnAway, isAdmin) {
+        SettingsGroup(stringResource(R.string.settings_group_general)) {
+            SwitchRow(stringResource(R.string.settings_auto_pause_away), cfg.autoPauseOnAway, isAdmin) {
                 viewModel.updateConfig(cfg.copy(autoPauseOnAway = it))
             }
-            SwitchRow("Uyku Otomatik Duraklat", cfg.autoPauseOnSleep, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_auto_pause_sleep), cfg.autoPauseOnSleep, isAdmin) {
                 viewModel.updateConfig(cfg.copy(autoPauseOnSleep = it))
             }
-            SwitchRow("On Kamerayi Kullan", cfg.useFrontCamera, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_use_front_camera), cfg.useFrontCamera, isAdmin) {
                 viewModel.updateConfig(cfg.copy(useFrontCamera = it))
             }
-            SwitchRow("Oturum Sonunda Not Sor", cfg.sessionNotePrompt, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_note_prompt_on_end), cfg.sessionNotePrompt, isAdmin) {
                 viewModel.updateConfig(cfg.copy(sessionNotePrompt = it))
             }
-            SwitchRow("Konusurken 'Uzakta' Sayilsin", cfg.speakingCountsAsAway, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_speaking_counts_as_away), cfg.speakingCountsAsAway, isAdmin) {
                 viewModel.updateConfig(cfg.copy(speakingCountsAsAway = it))
             }
-            SwitchRow("Cihaz Yeniden Baslayinca Otomatik Baslat", cfg.autoStartOnBootEnabled, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_auto_start_on_boot), cfg.autoStartOnBootEnabled, isAdmin) {
                 viewModel.updateConfig(cfg.copy(autoStartOnBootEnabled = it))
             }
-            SwitchRow("Kapatilinca Otomatik Yeniden Baslat (Surekli Acik Kal)", cfg.keepAliveEnabled, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_keep_alive), cfg.keepAliveEnabled, isAdmin) {
                 viewModel.updateConfig(cfg.copy(keepAliveEnabled = it))
             }
         }
 
-        SettingsGroup("Calisan Sistemler") {
+        SettingsGroup(stringResource(R.string.settings_group_active_systems)) {
             Text(
-                "Her biri ayri bir izleme/analiz sistemini acar-kapar - kapatilan sistem hem " +
-                    "arkaplanda calismayi hem gunluk yedege veri eklenmesini durdurur.",
+                stringResource(R.string.settings_active_systems_explanation),
                 style = MaterialTheme.typography.bodySmall,
             )
-            SwitchRow("Arkaplanda Takip", backgroundActive, isAdmin) { checked ->
+            val cameraPermissionNeededMessage = stringResource(R.string.settings_camera_permission_needed_for_background)
+            val backgroundServiceStartFailedPrefix = stringResource(R.string.settings_background_service_start_failed)
+            SwitchRow(stringResource(R.string.settings_background_tracking), backgroundActive, isAdmin) { checked ->
                 AppLogger.log("Ayarlar", "Arkaplanda Takip anahtari: $checked")
                 if (checked) {
                     if (!hasCameraPermission) {
                         AppLogger.log("Ayarlar", "Kamera izni yok - izin isteniyor")
-                        viewModel.reportCameraError("Arkaplan takibi icin once kamera iznini vermen gerekiyor.")
+                        viewModel.reportCameraError(cameraPermissionNeededMessage)
                         cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                     } else {
                         if (!BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)) {
@@ -263,7 +265,7 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                             ContextCompat.startForegroundService(context, StudyForegroundService.startIntent(context))
                         } catch (e: Exception) {
                             AppLogger.logError("Ayarlar", "startForegroundService cagrisi basarisiz", e)
-                            viewModel.reportCameraError("Arkaplan servisi baslatilamadi: ${e.message}")
+                            viewModel.reportCameraError("$backgroundServiceStartFailedPrefix: ${e.message}")
                         }
                     }
                 } else {
@@ -271,9 +273,7 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                 }
             }
             Text(
-                "Bazi telefon markalarinda (Xiaomi/MIUI, Oppo/ColorOS, Huawei/EMUI, Samsung) arkaplan " +
-                    "takibinin kesintisiz calismasi icin Ayarlar > Uygulamalar > Ders Calisma Takibi > " +
-                    "Pil/Otomatik baslatma bolumunden uygulamaya izin vermen gerekebilir.",
+                stringResource(R.string.settings_oem_battery_note),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -287,48 +287,45 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                             ),
                         )
                     }
-                }) { Text("Otomatik Baslatma Ayarlarini Ac") }
+                }) { Text(stringResource(R.string.app_block_open_autostart_settings)) }
             }
-            SwitchRow("Kamera / MediaPipe Analizi (calisma tespiti)", cfg.cameraAnalysisEnabled, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_camera_analysis), cfg.cameraAnalysisEnabled, isAdmin) {
                 viewModel.updateConfig(cfg.copy(cameraAnalysisEnabled = it))
             }
-            SwitchRow("Konum Takibi (Guvenli Bolge + konum gecmisi)", cfg.locationTrackingEnabled, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_location_tracking), cfg.locationTrackingEnabled, isAdmin) {
                 viewModel.updateConfig(cfg.copy(locationTrackingEnabled = it))
             }
-            SwitchRow("Arama/SMS Ozeti Kaydi", cfg.callSmsLogEnabled, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_call_sms_log), cfg.callSmsLogEnabled, isAdmin) {
                 viewModel.updateConfig(cfg.copy(callSmsLogEnabled = it))
             }
-            SwitchRow("Bildirim Erisimi Kaydi", cfg.notificationLogEnabled, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_notification_log), cfg.notificationLogEnabled, isAdmin) {
                 viewModel.updateConfig(cfg.copy(notificationLogEnabled = it))
             }
-            SwitchRow("Klavye Takibi", cfg.keyboardTrackingEnabled, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_keyboard_tracking), cfg.keyboardTrackingEnabled, isAdmin) {
                 viewModel.updateConfig(cfg.copy(keyboardTrackingEnabled = it))
             }
             Text(
-                "ACIKKEN: diger uygulamalarda yazilan metinler kaydedilir (sifre alanlari HARIC) - " +
-                    "Erisilebilirlik'in 'ekran icerigini okumaz' varsayilanini DEGISTIRIR.",
+                stringResource(R.string.settings_keyboard_tracking_note),
                 style = MaterialTheme.typography.bodySmall,
             )
             if (!hasAccessibility) {
                 Text(
-                    "Calismasi icin \"Erisilebilirlik Servisi\" izni gerekiyor - henuz verilmemis.",
+                    stringResource(R.string.settings_accessibility_not_granted),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )
                 Button(onClick = { context.startActivity(android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)) }) {
-                    Text("Erisilebilirlik Iznini Ver")
+                    Text(stringResource(R.string.settings_grant_accessibility))
                 }
             } else {
-                Text("Erisilebilirlik izni acik - Klavye Takibi calisabilir.", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.settings_accessibility_granted), style = MaterialTheme.typography.bodySmall)
             }
-            Text("Kullanim Suresi Kontrol Sikligi", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.settings_usage_check_frequency_title), style = MaterialTheme.typography.bodyMedium)
             Text(
-                "Gunluk sure siniri konulmus bir uygulama icin ne kadar sik kontrol edilsin - " +
-                    "'Anlik' pil/performans acisindan en pahalisi, 'Pil Dostu'nda sinira ulasinca " +
-                    "engelleme birkac saniye gecikmeli tetiklenebilir.",
+                stringResource(R.string.settings_usage_check_frequency_explanation),
                 style = MaterialTheme.typography.bodySmall,
             )
-            val usageIntervalOptions = listOf(0 to "Anlik", 10 to "Normal", 60 to "Pil Dostu")
+            val usageIntervalOptions = listOf(0 to stringResource(R.string.settings_usage_interval_instant), 10 to stringResource(R.string.settings_usage_interval_normal), 60 to stringResource(R.string.settings_usage_interval_battery_friendly))
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 usageIntervalOptions.forEachIndexed { index, (value, label) ->
                     SegmentedButton(
@@ -341,61 +338,60 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             }
         }
 
-        SettingsGroup("Gonderilen Veriler") {
+        SettingsGroup(stringResource(R.string.settings_group_sent_data)) {
             Text(
-                "Gunluk yedek e-postasina hangi dosyalarin eklenecegini secer - cihaza yazma " +
-                    "bundan bagimsiz HER ZAMAN yapilir, bu sadece e-posta ekini kontrol eder.",
+                stringResource(R.string.settings_sent_data_explanation),
                 style = MaterialTheme.typography.bodySmall,
             )
-            SwitchRow("Calisma Oturumlari (CSV)", cfg.sendSessionCsv, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_send_session_csv), cfg.sendSessionCsv, isAdmin) {
                 viewModel.updateConfig(cfg.copy(sendSessionCsv = it))
             }
-            SwitchRow("Takvim (JSON)", cfg.sendScheduleCsv, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_send_schedule_json), cfg.sendScheduleCsv, isAdmin) {
                 viewModel.updateConfig(cfg.copy(sendScheduleCsv = it))
             }
-            SwitchRow("Uygulama Kullanimi (CSV)", cfg.sendUsageCsv, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_send_usage_csv), cfg.sendUsageCsv, isAdmin) {
                 viewModel.updateConfig(cfg.copy(sendUsageCsv = it))
             }
-            SwitchRow("Arama/SMS Ozeti (CSV)", cfg.sendCallSmsCsv, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_send_call_sms_csv), cfg.sendCallSmsCsv, isAdmin) {
                 viewModel.updateConfig(cfg.copy(sendCallSmsCsv = it))
             }
-            SwitchRow("Cihaz Raporu (TXT)", cfg.sendDeviceReport, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_send_device_report), cfg.sendDeviceReport, isAdmin) {
                 viewModel.updateConfig(cfg.copy(sendDeviceReport = it))
             }
-            SwitchRow("Uygulama Kilidi Listesi (TXT)", cfg.sendBlockedAppsTxt, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_send_blocked_apps_txt), cfg.sendBlockedAppsTxt, isAdmin) {
                 viewModel.updateConfig(cfg.copy(sendBlockedAppsTxt = it))
             }
-            SwitchRow("Uygulama Loglari", cfg.sendAppLog, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_send_app_log), cfg.sendAppLog, isAdmin) {
                 viewModel.updateConfig(cfg.copy(sendAppLog = it))
             }
-            SwitchRow("Konum Gecmisi (CSV)", cfg.sendLocationCsv, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_send_location_csv), cfg.sendLocationCsv, isAdmin) {
                 viewModel.updateConfig(cfg.copy(sendLocationCsv = it))
             }
-            SwitchRow("Klavye Takibi (CSV)", cfg.sendKeystrokeCsv, isAdmin) {
+            SwitchRow(stringResource(R.string.settings_send_keystroke_csv), cfg.sendKeystrokeCsv, isAdmin) {
                 viewModel.updateConfig(cfg.copy(sendKeystrokeCsv = it))
             }
         }
         }
 
         if (isAdmin) {
-            SettingsGroup("Yonetici PIN") {
+            SettingsGroup(stringResource(R.string.settings_group_admin_pin)) {
                 var pinField by remember { mutableStateOf(cfg.appPin) }
                 OutlinedTextField(
                     value = pinField,
                     onValueChange = { pinField = it; viewModel.updateConfig(cfg.copy(appPin = it)) },
-                    label = { Text("Ogrenci -> Yonetici gecisinde istenen PIN") },
+                    label = { Text(stringResource(R.string.settings_admin_pin_label)) },
                     visualTransformation = PasswordVisualTransformation(),
                 )
             }
         }
 
         if (isAdmin) {
-            SettingsGroup("Yedekleme / E-posta") {
+            SettingsGroup(stringResource(R.string.settings_group_backup_email)) {
                 var emailField by remember { mutableStateOf(cfg.backupEmail) }
                 OutlinedTextField(
                     value = emailField,
                     onValueChange = { emailField = it; viewModel.updateConfig(cfg.copy(backupEmail = it)) },
-                    label = { Text("Admin E-posta (gonderen ve alici)") },
+                    label = { Text(stringResource(R.string.settings_admin_email_label)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -403,13 +399,12 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                 OutlinedTextField(
                     value = passwordField,
                     onValueChange = { passwordField = it; viewModel.updateConfig(cfg.copy(backupEmailAppPassword = it)) },
-                    label = { Text("Uygulama Sifresi (Gmail App Password)") },
+                    label = { Text(stringResource(R.string.settings_app_password_label)) },
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Text(
-                    "Gmail icin 2 Adimli Dogrulama acik olmali, normal sifre degil " +
-                        "'Uygulama Sifresi' kullan (myaccount.google.com/apppasswords).",
+                    stringResource(R.string.settings_gmail_app_password_note),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -417,12 +412,11 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                 OutlinedTextField(
                     value = labelField,
                     onValueChange = { labelField = it; viewModel.updateConfig(cfg.copy(backupLabel = it)) },
-                    label = { Text("Etiket / Isim (orn. Ahmet)") },
+                    label = { Text(stringResource(R.string.settings_backup_label_field)) },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Text(
-                    "Ayni hesabi birden fazla kisi/cihaz kullaniyorsa yedekler karismasin diye " +
-                        "mail konusuna ve dosya adlarina eklenir - bos birakilirsa hicbir sey degismez.",
+                    stringResource(R.string.settings_backup_label_explanation),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -440,7 +434,7 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                                 }
                             }
                         },
-                        label = { Text("Saat (0-23)") },
+                        label = { Text(stringResource(R.string.settings_backup_hour_label)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.width(120.dp),
                     )
@@ -456,17 +450,17 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                                 }
                             }
                         },
-                        label = { Text("Dakika (0-59)") },
+                        label = { Text(stringResource(R.string.settings_backup_minute_label)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.width(120.dp),
                     )
                 }
 
-                SwitchRow("Gunluk Otomatik Yedekleme", cfg.dailyBackupEnabled, isAdmin) {
+                SwitchRow(stringResource(R.string.settings_daily_backup_enabled), cfg.dailyBackupEnabled, isAdmin) {
                     viewModel.updateConfig(cfg.copy(dailyBackupEnabled = it))
                 }
 
-                SwitchRow("Araliklarla Otomatik Yedekleme", cfg.intervalBackupEnabled, isAdmin) { enabled ->
+                SwitchRow(stringResource(R.string.settings_interval_backup_enabled), cfg.intervalBackupEnabled, isAdmin) { enabled ->
                     viewModel.updateConfig(cfg.copy(intervalBackupEnabled = enabled))
                     BackupScheduler.rescheduleInterval(context, enabled, cfg.intervalBackupMinutes, cfg.intervalBackupWifiOnly)
                 }
@@ -483,16 +477,16 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                                 }
                             }
                         },
-                        label = { Text("Aralik (dakika, min 15)") },
+                        label = { Text(stringResource(R.string.settings_interval_minutes_label)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.width(200.dp),
                     )
-                    SwitchRow("Sadece Wi-Fi'de Gonder", cfg.intervalBackupWifiOnly, isAdmin) { wifiOnly ->
+                    SwitchRow(stringResource(R.string.settings_wifi_only), cfg.intervalBackupWifiOnly, isAdmin) { wifiOnly ->
                         viewModel.updateConfig(cfg.copy(intervalBackupWifiOnly = wifiOnly))
                         BackupScheduler.rescheduleInterval(context, true, cfg.intervalBackupMinutes, wifiOnly)
                     }
                     Text(
-                        "Bu aralikta yeni veri yoksa e-posta atlanir, sadece cihaza yazma her zaman yapilir.",
+                        stringResource(R.string.settings_interval_wifi_note),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -500,65 +494,66 @@ fun SettingsScreen(viewModel: StudyViewModel) {
 
                 val lastBackupText = if (cfg.lastBackupTimestamp > 0) {
                     val dateStr = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale("tr")).format(Date(cfg.lastBackupTimestamp))
-                    "Son yedekleme: $dateStr - ${cfg.lastBackupStatus}"
+                    stringResource(R.string.settings_last_backup_at, dateStr, cfg.lastBackupStatus)
                 } else {
-                    "Son yedekleme: henuz yapilmadi"
+                    stringResource(R.string.settings_last_backup_never)
                 }
                 Text(lastBackupText, style = MaterialTheme.typography.bodySmall)
 
                 Button(onClick = { BackupScheduler.scheduleOneOffNow(context) }) {
-                    Text("Simdi Yedekle")
+                    Text(stringResource(R.string.settings_backup_now))
                 }
             }
         }
 
         if (isAdmin) {
-        SettingsGroup("Bildirim Erisimi") {
+        SettingsGroup(stringResource(R.string.settings_group_notification_access)) {
             val nlContext = LocalContext.current
             val enabled = androidx.core.app.NotificationManagerCompat.getEnabledListenerPackages(nlContext).contains(nlContext.packageName)
             Text(
-                if (enabled) "Bildirim erisimi acik - diger uygulamalardan gelen bildirimler Loglar'a yaziliyor."
-                else "Diger uygulamalardan gelen bildirimleri kaydetmek icin ozel bir izin gerekiyor (normal izin kutusuyla verilmez).",
+                if (enabled) stringResource(R.string.settings_notification_access_on)
+                else stringResource(R.string.settings_notification_access_off),
                 style = MaterialTheme.typography.bodySmall,
             )
             if (!enabled) {
                 Button(onClick = { nlContext.startActivity(android.content.Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }) {
-                    Text("Ayarlara Git")
+                    Text(stringResource(R.string.usage_stats_go_to_settings))
                 }
             }
         }
 
-        SettingsGroup("Cihaz Yoneticisi") {
+        SettingsGroup(stringResource(R.string.settings_group_device_admin)) {
             val dpmContext = LocalContext.current
             val dpm = dpmContext.getSystemService(android.app.admin.DevicePolicyManager::class.java)
             val adminComponent = android.content.ComponentName(dpmContext, com.derscalismatakibi.app.service.StudyDeviceAdminReceiver::class.java)
             val isAdminActive = dpm?.isAdminActive(adminComponent) == true
             Text(
-                if (isAdminActive) "Aktif - uygulama, once bu izin Ayarlar'dan kapatilmadan kaldirilamaz."
-                else "Kapali - aktif edilirse uygulamayi kaldirmadan once bu izni Ayarlar'dan kapatman gerekir (ekstra korumal).",
+                if (isAdminActive) stringResource(R.string.settings_device_admin_active)
+                else stringResource(R.string.settings_device_admin_inactive),
                 style = MaterialTheme.typography.bodySmall,
             )
             if (!isAdminActive && isAdmin) {
+                val deviceAdminExplanation = stringResource(R.string.settings_device_admin_explanation)
                 Button(onClick = {
                     dpmContext.startActivity(
                         android.content.Intent(android.app.admin.DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
                             putExtra(android.app.admin.DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponent)
                             putExtra(
                                 android.app.admin.DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-                                "Ders Calisma Takibi'nin ebeveyn-denetim ayarlarindan kolayca kaldirilmamasi icin.",
+                                deviceAdminExplanation,
                             )
                         },
                     )
-                }) { Text("Etkinlestir") }
+                }) { Text(stringResource(R.string.settings_device_admin_enable)) }
             }
         }
 
-        SettingsGroup("Guncelleme") {
+        SettingsGroup(stringResource(R.string.settings_group_update)) {
             Text(
-                "Uygulama GitHub uzerinden dagitiliyor (Play Store degil). Yeni bir surum " +
-                    "cikinca acilista otomatik haber verilir; istersen simdi de kontrol edebilirsin.",
+                stringResource(R.string.settings_update_explanation),
                 style = MaterialTheme.typography.bodySmall,
             )
+            val upToDateMessage = stringResource(R.string.settings_update_up_to_date)
             Button(
                 enabled = !checkingUpdate,
                 onClick = {
@@ -575,17 +570,17 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                         if (result != null) {
                             updateInfo = result
                         } else {
-                            updateCheckMessage = "En son surumdesin."
+                            updateCheckMessage = upToDateMessage
                         }
                     }
                 },
-            ) { Text(if (checkingUpdate) "Kontrol ediliyor..." else "Guncellemeleri Kontrol Et") }
+            ) { Text(if (checkingUpdate) stringResource(R.string.settings_update_checking) else stringResource(R.string.settings_update_check)) }
             updateCheckMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
         }
         }
 
-        SettingsGroup("Gizlilik") {
-            Button(onClick = { showPrivacyDialog = true }) { Text("Gizlilik Politikasini Goruntule") }
+        SettingsGroup(stringResource(R.string.settings_group_privacy)) {
+            Button(onClick = { showPrivacyDialog = true }) { Text(stringResource(R.string.settings_view_privacy_policy)) }
         }
     }
 
@@ -593,12 +588,12 @@ fun SettingsScreen(viewModel: StudyViewModel) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showPrivacyDialog = false },
             confirmButton = {
-                androidx.compose.material3.TextButton(onClick = { showPrivacyDialog = false }) { Text("Kapat") }
+                androidx.compose.material3.TextButton(onClick = { showPrivacyDialog = false }) { Text(stringResource(R.string.action_close)) }
             },
-            title = { Text("Gizlilik Politikasi") },
+            title = { Text(stringResource(R.string.settings_group_privacy_policy_title)) },
             text = {
                 Text(
-                    com.derscalismatakibi.app.legal.PrivacyConsent.TEXT,
+                    com.derscalismatakibi.app.legal.PrivacyConsent.text(context),
                     modifier = Modifier.verticalScroll(rememberScrollState()),
                     style = MaterialTheme.typography.bodySmall,
                 )
