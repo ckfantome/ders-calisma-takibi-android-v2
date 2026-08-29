@@ -53,6 +53,7 @@ class SettingsRepository(private val context: Context) {
         val APP_LANGUAGE = stringPreferencesKey("app_language")
         val BACKUP_EMAIL = stringPreferencesKey("backup_email")
         val BACKUP_EMAIL_APP_PASSWORD = stringPreferencesKey("backup_email_app_password")
+        val BACKUP_LABEL = stringPreferencesKey("backup_label")
         val DAILY_BACKUP_ENABLED = booleanPreferencesKey("daily_backup_enabled")
         val BACKUP_HOUR = intPreferencesKey("backup_hour")
         val BACKUP_MINUTE = intPreferencesKey("backup_minute")
@@ -121,6 +122,7 @@ class SettingsRepository(private val context: Context) {
             appLanguage = prefs[Keys.APP_LANGUAGE] ?: defaults.appLanguage,
             backupEmail = prefs[Keys.BACKUP_EMAIL] ?: defaults.backupEmail,
             backupEmailAppPassword = prefs[Keys.BACKUP_EMAIL_APP_PASSWORD] ?: defaults.backupEmailAppPassword,
+            backupLabel = prefs[Keys.BACKUP_LABEL] ?: defaults.backupLabel,
             dailyBackupEnabled = prefs[Keys.DAILY_BACKUP_ENABLED] ?: defaults.dailyBackupEnabled,
             backupHour = prefs[Keys.BACKUP_HOUR] ?: defaults.backupHour,
             backupMinute = prefs[Keys.BACKUP_MINUTE] ?: defaults.backupMinute,
@@ -189,6 +191,7 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.APP_LANGUAGE] = cfg.appLanguage
             prefs[Keys.BACKUP_EMAIL] = cfg.backupEmail
             prefs[Keys.BACKUP_EMAIL_APP_PASSWORD] = cfg.backupEmailAppPassword
+            prefs[Keys.BACKUP_LABEL] = cfg.backupLabel
             prefs[Keys.DAILY_BACKUP_ENABLED] = cfg.dailyBackupEnabled
             prefs[Keys.BACKUP_HOUR] = cfg.backupHour
             prefs[Keys.BACKUP_MINUTE] = cfg.backupMinute

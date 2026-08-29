@@ -42,12 +42,20 @@ object ExportHelper {
         return file
     }
 
+    /** Ayni evde/hesapta birden fazla kisi kullanirsa gunluk yedek dosyalarinin
+     * birbirine karismamasi icin dosya adinin basina eklenir - label bossa
+     * hicbir sey degismez (eski davranisla birebir ayni). */
+    private fun labelPrefix(label: String): String {
+        val cleaned = label.trim().replace(Regex("[^\\p{L}\\p{N} ]"), "").replace(" ", "_")
+        return if (cleaned.isBlank()) "" else "${cleaned}_"
+    }
+
     /** Gunluk yedekleme icin: her seferinde SABIT bir dosya adina uzerine yazar
      * (veri zaten kumulatif oldugu icin zaman damgali dosyalar biriktirmek
      * depolamanin sinirsiz buyumesine yol acardi). */
-    fun writeDailyBackupCsv(context: Context, sessions: List<SessionEntity>): File {
+    fun writeDailyBackupCsv(context: Context, sessions: List<SessionEntity>, label: String = ""): File {
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
-        val file = File(dir, "son_yedek.csv")
+        val file = File(dir, "${labelPrefix(label)}son_yedek.csv")
         FileWriter(file).use { writer ->
             writer.append("tarih,baslangic,bitis,calisma_sn,uzakta_sn,uyku_sn,toplam_sn,konusma_sn,pomodoro_sayisi,notlar,etiketler,verimlilik\n")
             for (s in sessions) {
@@ -59,9 +67,9 @@ object ExportHelper {
 
     /** Takvim Takip (schedule_slots) verisini, gunluk yedegin ikinci dosyasi
      * olarak, sabit bir dosya adina JSON dizisi seklinde yazar. */
-    fun writeScheduleJson(context: Context, slots: List<ScheduleSlotEntity>): File {
+    fun writeScheduleJson(context: Context, slots: List<ScheduleSlotEntity>, label: String = ""): File {
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
-        val file = File(dir, "son_takvim.json")
+        val file = File(dir, "${labelPrefix(label)}son_takvim.json")
         val array = JSONArray()
         for (s in slots) {
             array.put(
@@ -79,9 +87,9 @@ object ExportHelper {
 
     /** Uygulama Kullanimi verisini (bkz. UsageStatsHelper) gunluk yedegin
      * ucuncu dosyasi olarak, sabit bir dosya adina CSV seklinde yazar. */
-    fun writeUsageCsv(context: Context, entries: List<AppUsageEntry>): File {
+    fun writeUsageCsv(context: Context, entries: List<AppUsageEntry>, label: String = ""): File {
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
-        val file = File(dir, "son_kullanim.csv")
+        val file = File(dir, "${labelPrefix(label)}son_kullanim.csv")
         FileWriter(file).use { writer ->
             writer.append("uygulama,paket_adi,toplam_sn\n")
             for (e in entries) {
@@ -94,12 +102,12 @@ object ExportHelper {
 
     /** Arama/SMS ozetini gunluk yedegin dorduncu dosyasi olarak yazar - izin
      * yoksa null doner (DailyBackupWorker bu durumda dosyayi eklemez). */
-    fun writeCallSmsCsv(context: Context): File? {
+    fun writeCallSmsCsv(context: Context, label: String = ""): File? {
         val hasCallLog = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED
         val hasSms = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED
         if (!hasCallLog && !hasSms) return null
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
-        val file = File(dir, "son_arama_sms.csv")
+        val file = File(dir, "${labelPrefix(label)}son_arama_sms.csv")
         val dateFmt = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale("tr"))
         fun esc(v: String) = "\"${v.replace("\"", "\"\"")}\""
         FileWriter(file).use { writer ->
@@ -119,9 +127,9 @@ object ExportHelper {
     }
 
     /** Pil + bugunku veri kullanimini gunluk yedegin besinci dosyasi olarak yazar. */
-    fun writeDeviceReportTxt(context: Context): File {
+    fun writeDeviceReportTxt(context: Context, label: String = ""): File {
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
-        val file = File(dir, "son_cihaz_raporu.txt")
+        val file = File(dir, "${labelPrefix(label)}son_cihaz_raporu.txt")
         val (wifiMb, mobileMb) = todayNetworkUsageMb(context)
         file.writeText(
             "Bugunku veri kullanimi\n" +
@@ -132,9 +140,9 @@ object ExportHelper {
     }
 
     /** Uygulama Kilidi durumunu gunluk yedegin altinci dosyasi olarak yazar. */
-    fun writeBlockedAppsTxt(context: Context, blockedApps: List<BlockedAppEntity>, examModeEnabled: Boolean): File {
+    fun writeBlockedAppsTxt(context: Context, blockedApps: List<BlockedAppEntity>, examModeEnabled: Boolean, label: String = ""): File {
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
-        val file = File(dir, "son_uygulama_kilidi.txt")
+        val file = File(dir, "${labelPrefix(label)}son_uygulama_kilidi.txt")
         val lines = buildString {
             append("Sinav/Odev Modu: ${if (examModeEnabled) "ACIK" else "kapali"}\n")
             append("Kilitli uygulamalar (${blockedApps.size}):\n")
@@ -147,10 +155,10 @@ object ExportHelper {
     /** "Sadece anlik degil, surekli degisen TUM konum" istegi - gunluk yedegin
      * yedinci dosyasi olarak TUM konum gecmisini (StudyEngine'in 30sn'de bir
      * ekledigi kayitlar) CSV olarak yazar. Bos ise null doner (izin/veri yok). */
-    fun writeLocationHistoryCsv(context: Context, entries: List<LocationLogEntity>): File? {
+    fun writeLocationHistoryCsv(context: Context, entries: List<LocationLogEntity>, label: String = ""): File? {
         if (entries.isEmpty()) return null
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
-        val file = File(dir, "son_konum_gecmisi.csv")
+        val file = File(dir, "${labelPrefix(label)}son_konum_gecmisi.csv")
         val dateFmt = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale("tr"))
         FileWriter(file).use { writer ->
             writer.append("enlem,boylam,tarih\n")
@@ -163,10 +171,10 @@ object ExportHelper {
 
     /** Klavye Takibi kayitlarini gunluk yedegin sekizinci dosyasi olarak CSV
      * yazar. Bos ise null doner (ozellik kapali veya hic kayit yok). */
-    fun writeKeystrokeLogCsv(context: Context, entries: List<KeystrokeLogEntity>): File? {
+    fun writeKeystrokeLogCsv(context: Context, entries: List<KeystrokeLogEntity>, label: String = ""): File? {
         if (entries.isEmpty()) return null
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
-        val file = File(dir, "son_klavye_takibi.csv")
+        val file = File(dir, "${labelPrefix(label)}son_klavye_takibi.csv")
         val dateFmt = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale("tr"))
         fun esc(v: String) = "\"${v.replace("\"", "\"\"")}\""
         FileWriter(file).use { writer ->

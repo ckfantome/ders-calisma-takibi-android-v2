@@ -48,6 +48,9 @@ data class AppConfig(
      * kendine e-posta gonder (Gmail SMTP, ayni hesap hem gonderen hem alici). */
     val backupEmail: String = "",
     val backupEmailAppPassword: String = "",
+    /** Ayni evde/hesapta birden fazla kisi kullanirsa yedekleri (mail konusu +
+     * dosya adlari) birbirinden ayirmak icin - bossa hicbir seyi degistirmez. */
+    val backupLabel: String = "",
     val dailyBackupEnabled: Boolean = false,
     val backupHour: Int = 23,
     val backupMinute: Int = 0,

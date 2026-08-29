@@ -413,6 +413,19 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                var labelField by remember { mutableStateOf(cfg.backupLabel) }
+                OutlinedTextField(
+                    value = labelField,
+                    onValueChange = { labelField = it; viewModel.updateConfig(cfg.copy(backupLabel = it)) },
+                    label = { Text("Etiket / Isim (orn. Ahmet)") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(
+                    "Ayni hesabi birden fazla kisi/cihaz kullaniyorsa yedekler karismasin diye " +
+                        "mail konusuna ve dosya adlarina eklenir - bos birakilirsa hicbir sey degismez.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
 
                 Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     var hourField by remember { mutableStateOf(cfg.backupHour.toString()) }
