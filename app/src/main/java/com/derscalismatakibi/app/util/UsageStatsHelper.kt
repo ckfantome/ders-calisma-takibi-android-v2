@@ -19,7 +19,11 @@ data class AppUsageEntry(val label: String, val packageName: String, val totalMi
 data class AppEventEntry(val label: String, val timestamp: Long, val type: String)
 
 object UsageStatsHelper {
-    /** Bugun (00:00 - simdi) acilan/kapanan uygulama olaylari, en yeni once, ilk 100. */
+    /** Bugun (00:00 - simdi) acilan/kapanan TUM uygulama olaylari, en yeni once.
+     * Onceden ilk 100'e kesiliyordu - yogun kullanimda gunun ilerleyen saatlerinde
+     * sabahki olaylar hicbir uyari olmadan listeden dusuyordu. Tek gunluk olay
+     * sayisi (en yogun kullanicida bile) birkac yuzu gecmez, liste zaten
+     * LazyColumn oldugu icin kesmeye gerek yok. */
     fun loadTodayEvents(context: Context): List<AppEventEntry> {
         val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val cal = Calendar.getInstance().apply {
@@ -39,7 +43,7 @@ object UsageStatsHelper {
             if (event.packageName == context.packageName) continue
             result.add(AppEventEntry(appLabel(pm, event.packageName), event.timeStamp, type))
         }
-        return result.asReversed().take(100)
+        return result.asReversed()
     }
     fun hasUsageAccess(context: Context): Boolean {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager

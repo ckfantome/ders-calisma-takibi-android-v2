@@ -100,6 +100,7 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
             if (!hasNewData) {
                 AppLogger.log("Yedekleme", "Araliklarla yedekleme atlandi - son gonderimden bu yana yeni veri yok")
                 settingsRepo.update(cfg.copy(lastBackupStatus = "ok (yeni veri yok, e-posta atlandi)"))
+                clearRawLogsAfterSuccess(db)
                 return Result.success()
             }
         }
@@ -114,6 +115,7 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
                     settingsRepo.update(
                         cfg.copy(lastBackupTimestamp = System.currentTimeMillis(), lastBackupStatus = "ok"),
                     )
+                    clearRawLogsAfterSuccess(db)
                     return Result.success()
                 }
                 is SmtpBackupSender.Result.TransientFailure -> {
@@ -136,6 +138,7 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         settingsRepo.update(
             cfg.copy(lastBackupTimestamp = System.currentTimeMillis(), lastBackupStatus = "ok (sadece cihaza)"),
         )
+        clearRawLogsAfterSuccess(db)
         return Result.success()
     }
 
@@ -144,5 +147,14 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         // bile) - kullanicinin acik istegiyle artik kendi ayri anahtariyla
         // (backupFailureNotificationsEnabled) kapatilabilir hale getirildi.
         helper.notify("Yedekleme Basarisiz", message, notificationsEnabled)
+    }
+
+    /** Konum/klavye takibi verisi bu noktada zaten cihaza (ve varsa e-postaya)
+     * yazildi - DB'de sinirsiz birikip zamanla yedek dosyasini/e-postayi
+     * sisirmemesi icin ham kayitlar temizlenir. Sessions/takvim/kilitli
+     * uygulamalar gibi "kalici" veriler buna DAHIL DEGIL, sadece bu iki ham log. */
+    private suspend fun clearRawLogsAfterSuccess(db: AppDatabase) {
+        try { db.locationLogDao().clear() } catch (t: Throwable) { AppLogger.logError("Yedekleme", "Konum gecmisi temizlenemedi", t) }
+        try { db.keystrokeLogDao().clear() } catch (t: Throwable) { AppLogger.logError("Yedekleme", "Klavye takibi gecmisi temizlenemedi", t) }
     }
 }
