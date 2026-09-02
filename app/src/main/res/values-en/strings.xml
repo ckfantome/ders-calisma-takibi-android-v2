@@ -149,6 +149,8 @@
     <string name="app_block_accessibility_explanation">To detect when a blocked app comes to the foreground, you need to explicitly turn on the \"Accessibility Service\" from Settings. By default this service does NOT read screen content, it only sees which app is in the foreground - if you separately turn on Keystroke Logging below, it also starts recording typed text.</string>
     <string name="app_block_oem_restrictive_note">On this phone brand (Oppo/Xiaomi/Huawei/Vivo) the system service can turn itself off over time even if the permission is on - you also need to add the app to the Autostart list below.</string>
     <string name="app_block_open_autostart_settings">Open Autostart Settings</string>
+    <string name="app_block_restricted_settings_note">On this phone (Android 13+), because the app is installed/updated from GitHub, Android automatically locks the Accessibility permission after every install/update - the toggle stays off even if you open Accessibility Settings directly. First open App Info below, use the ⋮ menu in the top right to pick \"Allow restricted settings\", then go to Accessibility and turn the service on.</string>
+    <string name="app_block_open_app_info_settings">Open App Info</string>
     <string name="app_block_exam_mode_title">Exam/Homework Mode</string>
     <string name="app_block_exam_mode_explanation">While on, EVERYTHING is blocked regardless of the Locked Apps list - only apps in the \'Allowed Apps\' list below and required apps (home screen/phone) can be opened.</string>
     <string name="app_block_screen_pinning_title">+ Fully Pin the Screen</string>

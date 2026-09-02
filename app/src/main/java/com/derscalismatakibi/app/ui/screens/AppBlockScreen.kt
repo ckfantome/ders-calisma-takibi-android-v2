@@ -114,6 +114,17 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
                         Button(onClick = { context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }) {
                             Text(stringResource(R.string.usage_stats_go_to_settings))
                         }
+                        if (android.os.Build.VERSION.SDK_INT >= 33) {
+                            Text(
+                                stringResource(R.string.app_block_restricted_settings_note),
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                            Button(onClick = {
+                                context.startActivity(
+                                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
+                                )
+                            }) { Text(stringResource(R.string.app_block_open_app_info_settings)) }
+                        }
                         if (com.derscalismatakibi.app.util.OemAutostartHelper.isKnownRestrictiveOem()) {
                             Text(
                                 stringResource(R.string.app_block_oem_restrictive_note),

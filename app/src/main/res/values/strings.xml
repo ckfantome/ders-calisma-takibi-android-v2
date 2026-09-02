@@ -149,6 +149,8 @@
     <string name="app_block_accessibility_explanation">Engellenen bir uygulamanin on plana gelisini tespit edebilmek icin \"Erisilebilirlik Servisi\"ni Ayarlar\'dan acikca acman gerekiyor. Varsayilan olarak bu servis ekran icerigini OKUMAZ, sadece hangi uygulamanin on planda oldugunu gorur - Klavye Takibi\'ni asagidan ayrica acarsan yazilan metinleri de kaydetmeye baslar.</string>
     <string name="app_block_oem_restrictive_note">Bu telefon markasinda (Oppo/Xiaomi/Huawei/Vivo) izin acik olsa bile sistem servisi zamanla kapatabiliyor - asagidan Otomatik Baslatma listesine de eklemen gerekiyor.</string>
     <string name="app_block_open_autostart_settings">Otomatik Baslatma Ayarlarini Ac</string>
+    <string name="app_block_restricted_settings_note">Bu telefonda (Android 13+) uygulama GitHub\'dan kuruldugu/guncellendigi icin Erisilebilirlik izni her kurulum/guncellemeden sonra Android tarafindan otomatik olarak kilitlenir - \"Ayarlara Git\" butonu acilsa bile anahtar kapali gelir. Once asagidaki butonla Uygulama Bilgileri sayfasini ac, sag ustteki ⋮ menusunden \"Kisitli ayarlara izin ver\"i sec, sonra Erisilebilirlik\'ten servisi ac.</string>
+    <string name="app_block_open_app_info_settings">Uygulama Bilgilerini Ac</string>
     <string name="app_block_exam_mode_title">Sınav/Ödev Modu</string>
     <string name="app_block_exam_mode_explanation">Acikken Kilitli Uygulamalar listesine bakilmaksizin HER SEY engellenir - sadece asagidaki \'Izin Verilen Uygulamalar\' listesindekiler ve zorunlu (ana ekran/telefon) uygulamalar acilabilir.</string>
     <string name="app_block_screen_pinning_title">+ Ekrani Tamamen Sabitle</string>

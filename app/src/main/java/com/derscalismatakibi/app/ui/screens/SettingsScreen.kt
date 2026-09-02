@@ -547,7 +547,10 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                 }) { Text(stringResource(R.string.settings_device_admin_enable)) }
             }
         }
+        }
 
+        // Guncelleme kontrolu ogrenci modunda da acik: guvenlik ayari degil,
+        // ve ebeveyn yaninda olmasa bile cihazin bug fix'leri almasi faydali.
         SettingsGroup(stringResource(R.string.settings_group_update)) {
             Text(
                 stringResource(R.string.settings_update_explanation),
@@ -577,7 +580,6 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                 },
             ) { Text(if (checkingUpdate) stringResource(R.string.settings_update_checking) else stringResource(R.string.settings_update_check)) }
             updateCheckMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-        }
         }
 
         SettingsGroup(stringResource(R.string.settings_group_privacy)) {
