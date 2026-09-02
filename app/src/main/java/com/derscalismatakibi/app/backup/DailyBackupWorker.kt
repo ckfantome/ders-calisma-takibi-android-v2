@@ -101,7 +101,8 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
             if (!hasNewData) {
                 AppLogger.log("Yedekleme", "Araliklarla yedekleme atlandi - son gonderimden bu yana yeni veri yok")
                 settingsRepo.update(cfg.copy(lastBackupStatus = applicationContext.getString(R.string.backup_status_ok_no_new_data)))
-                clearRawLogsAfterSuccess(db)
+                // Araliklarla tetiklenen calisma - ham loglar SADECE gercek gunluk
+                // yedekleme basarili oldugunda temizlenir, burada silme YOK.
                 return Result.success()
             }
         }
@@ -121,7 +122,9 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
                     settingsRepo.update(
                         cfg.copy(lastBackupTimestamp = System.currentTimeMillis(), lastBackupStatus = "ok"),
                     )
-                    clearRawLogsAfterSuccess(db)
+                    // Silme sadece GERCEK gunluk yedekleme basarisinda - araliklarla
+                    // tetiklenen (incremental) calisma silme islemini tetiklemez.
+                    if (!isIntervalTrigger) clearRawLogsAfterSuccess(db)
                     return Result.success()
                 }
                 is SmtpBackupSender.Result.TransientFailure -> {
@@ -144,7 +147,9 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         settingsRepo.update(
             cfg.copy(lastBackupTimestamp = System.currentTimeMillis(), lastBackupStatus = applicationContext.getString(R.string.backup_status_ok_device_only)),
         )
-        clearRawLogsAfterSuccess(db)
+        // Silme sadece GERCEK gunluk yedekleme basarisinda - araliklarla
+        // tetiklenen (incremental) calisma silme islemini tetiklemez.
+        if (!isIntervalTrigger) clearRawLogsAfterSuccess(db)
         return Result.success()
     }
 

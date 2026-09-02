@@ -320,6 +320,7 @@
     <string name="notif_break_over_title">Mola bitti</string>
     <string name="notif_break_over_body">Calismaya devam etmek icin Pomodoro\'yu baslat.</string>
     <string name="notif_app_lock_accessibility_broken">Sinav/Odev Modu acik ama Erisilebilirlik izni kapali - uygulama engelleme su an CALISMIYOR.</string>
+    <string name="notif_app_lock_accessibility_broken_generic">Erisilebilirlik izni kapali/kopmus - Kilitli Uygulamalar engellemesi su an CALISMIYOR.</string>
     <string name="notif_app_lock_disabled_title">Uygulama Kilidi Devre Disi</string>
     <string name="notif_app_lock_disabled_email_subject">Uygulama Kilidi Devre Disi Kaldi</string>
     <string name="notif_safe_zone_entered">Guvenli bolgeye girildi</string>

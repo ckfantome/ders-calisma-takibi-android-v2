@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -143,6 +144,13 @@ object StudyEngine {
         blockedApps = db.blockedAppDao().observeAll().stateIn(engineScope, SharingStarted.Eagerly, emptyList())
         safeZones = db.safeZoneDao().observeAll().stateIn(engineScope, SharingStarted.Eagerly, emptyList())
 
+        // Ebeveyn Modu (Role) onceden hicbir yerde persist edilmiyordu - her
+        // process restart/reboot/update'te sessizce Role.ADMIN'e (kilit acik)
+        // donuyordu. Burada kalici deger okunup StateFlow'a uygulanir.
+        engineScope.launch {
+            _role.value = settingsRepository.roleFlow.first()
+        }
+
         engineScope.launch {
             settingsRepository.configFlow.collect { newCfg ->
                 cfg = newCfg
@@ -190,31 +198,43 @@ object StudyEngine {
             while (true) {
                 delay(30_000)
                 checkSafeZone()
-                checkExamModeAccessibility()
+                checkAccessibilityWatchdog()
             }
         }
     }
 
-    private var examModeAccessibilityBroken: Boolean? = null
+    private var accessibilityBroken: Boolean? = null
 
-    /** Sinav/Odev Modu acikken Erisilebilirlik Servisi (Uygulama Kilidi'ni
-     * uygulayan servis) kapaliysa engelleme SESSIZCE calismiyor demektir - bu
-     * OPPO/ColorOS gibi OEM'lerin izni kendiliginden geri almasinin bilinen bir
-     * sonucu. Durum degisince (once calisirken kapanmis / tekrar acilmis) ebeveyne
-     * bildirim+e-posta ile haber verilir, aksi halde fark edilmeden gecebilir. */
-    private suspend fun checkExamModeAccessibility() {
-        if (!cfg.examModeEnabled) {
-            examModeAccessibilityBroken = null
-            return
-        }
-        val broken = !com.derscalismatakibi.app.util.AccessibilityHelper.isAppBlockServiceEnabled(appContext)
-        if (broken == examModeAccessibilityBroken) return
-        examModeAccessibilityBroken = broken
+    // ENABLED_ACCESSIBILITY_SERVICES tek basina yetersiz: OS'in "izni verilmis"
+    // kaydini yansitir, servisin GERCEKTEN baglanip calistigini degil - reboot
+    // sonrasi bazi OEM'lerde (MIUI/ColorOS/EMUI/Vivo) bu ikisi ayrisiyor. Bu
+    // yuzden AppBlockAccessibilityService'in her event'te biraktigi heartbeat de
+    // ayrica kontrol edilir; 3 dakikalik esik 30sn'lik poll periyodundan ve
+    // olagan event ariligindan (durgun kullanim) rahat pay birakir.
+    private val accessibilityHeartbeatStaleMs = 3 * 60 * 1000L
+
+    /** Uygulama Kilidi'ni uygulayan Erisilebilirlik Servisi kapali/olu ise
+     * engelleme SESSIZCE calismiyor demektir. Once sadece Sinav/Odev Modu
+     * acikken kontrol ediliyordu; artik SADECE Kilitli Uygulamalar listesini
+     * kullanan (Sinav Modu kapali) ebeveynler de bildirim alir - e-posta uyarisi
+     * ise (mevcut davranis korunarak) hala sadece Sinav Modu acikken gonderilir. */
+    private suspend fun checkAccessibilityWatchdog() {
+        val heartbeatAge = System.currentTimeMillis() - com.derscalismatakibi.app.util.AccessibilityHelper.lastHeartbeat(appContext)
+        val broken = !com.derscalismatakibi.app.util.AccessibilityHelper.isAppBlockServiceEnabled(appContext) ||
+            heartbeatAge > accessibilityHeartbeatStaleMs
+        if (broken == accessibilityBroken) return
+        accessibilityBroken = broken
         if (broken) {
-            val msg = appContext.getString(R.string.notif_app_lock_accessibility_broken)
+            val msg = if (cfg.examModeEnabled) {
+                appContext.getString(R.string.notif_app_lock_accessibility_broken)
+            } else {
+                appContext.getString(R.string.notif_app_lock_accessibility_broken_generic)
+            }
             AppLogger.log("UygulamaKilidi", msg)
             notificationHelper.notify(appContext.getString(R.string.notif_app_lock_disabled_title), msg, cfg.appLockAlertNotificationsEnabled)
-            sendInstantAlertEmail(appContext.getString(R.string.notif_app_lock_disabled_email_subject), msg)
+            if (cfg.examModeEnabled) {
+                sendInstantAlertEmail(appContext.getString(R.string.notif_app_lock_disabled_email_subject), msg)
+            }
         } else {
             AppLogger.log("UygulamaKilidi", "Erisilebilirlik izni tekrar acik - engelleme calisiyor")
         }
@@ -282,40 +302,50 @@ object StudyEngine {
         }
     }
 
-    private var cachedSafePackages: Set<String>? = null
+    private var cachedStaticSafePackages: Set<String>? = null
 
     /** Sinav Modu "her seyi engelle" moduna gecince BILE asla engellenmeyecek
      * paketler - aksi halde varsayilan ana ekran veya telefon/arama da
-     * engellenip cihaz kullanilamaz hale gelebilir. */
+     * engellenip cihaz kullanilamaz hale gelebilir.
+     *
+     * AppBlockAccessibilityService artik TYPE_WINDOW_STATE_CHANGED event'lerini
+     * pencere-tipine (TYPE_APPLICATION) gore filtreliyor, yani systemui/klavye
+     * gibi uygulama-disi pencereler cogunlukla buraya hic ulasmiyor. Bu liste
+     * artik sadece pencere-tipi bilgisinin alinamadigi (event.source null)
+     * durumlar icin ikinci bir guvenlik katmani.  */
     private fun essentialSafePackages(): Set<String> {
-        cachedSafePackages?.let { return it }
-        val pm = appContext.packageManager
-        // com.android.systemui (durum cubugu/bildirim paneli/genel gorunum/hizli
-        // ayarlar) TYPE_WINDOW_STATE_CHANGED tetikliyor - guvenli listede olmazsa
-        // Sinav Modu bunu da "engellenen uygulama" sayip ustune BlockedActivity
-        // aciyordu; kullaniciya uygulamanin/Sinav Modu'nun kendiliginden
-        // kapaniyormus/bozuluyormus gibi gorunmesinin gercek cihazda dogrulanan
-        // nedeni budur (canli test sirasinda yakalandi).
-        val result = mutableSetOf(appContext.packageName, "com.android.systemui")
-        try {
-            pm.resolveActivity(android.content.Intent(android.content.Intent.ACTION_MAIN).addCategory(android.content.Intent.CATEGORY_HOME), android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)
-                ?.activityInfo?.packageName?.let { result.add(it) }
-        } catch (_: Exception) {}
-        try {
-            pm.resolveActivity(android.content.Intent(android.content.Intent.ACTION_DIAL), 0)
-                ?.activityInfo?.packageName?.let { result.add(it) }
-        } catch (_: Exception) {}
-        result.add("com.android.settings")
+        val staticPackages = cachedStaticSafePackages ?: run {
+            val pm = appContext.packageManager
+            // com.android.systemui (durum cubugu/bildirim paneli/genel gorunum/hizli
+            // ayarlar) TYPE_WINDOW_STATE_CHANGED tetikliyor - guvenli listede olmazsa
+            // Sinav Modu bunu da "engellenen uygulama" sayip ustune BlockedActivity
+            // aciyordu; kullaniciya uygulamanin/Sinav Modu'nun kendiliginden
+            // kapaniyormus/bozuluyormus gibi gorunmesinin gercek cihazda dogrulanan
+            // nedeni budur (canli test sirasinda yakalandi).
+            val result = mutableSetOf(appContext.packageName, "com.android.systemui")
+            try {
+                pm.resolveActivity(android.content.Intent(android.content.Intent.ACTION_MAIN).addCategory(android.content.Intent.CATEGORY_HOME), android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)
+                    ?.activityInfo?.packageName?.let { result.add(it) }
+            } catch (_: Exception) {}
+            try {
+                pm.resolveActivity(android.content.Intent(android.content.Intent.ACTION_DIAL), 0)
+                    ?.activityInfo?.packageName?.let { result.add(it) }
+            } catch (_: Exception) {}
+            result.add("com.android.settings")
+            cachedStaticSafePackages = result
+            result
+        }
         // Ekran klavyesinin KENDI paketi de on plana gelince TYPE_WINDOW_STATE_CHANGED
         // tetikliyor - guvenli listede olmazsa, izinli bir uygulamada bile klavye
         // acilir acilmaz BlockedActivity'ye yonlendirilip yazi yazmak IMKANSIZ hale
-        // geliyordu (gercek cihaz/emulator testinde dogrulandi).
-        try {
+        // geliyordu (gercek cihaz/emulator testinde dogrulandi). Kullanici klavye
+        // degistirebildigi icin ARTIK her cagride canli okunuyor, tek seferlik
+        // cache'lenmiyor.
+        val currentIme = try {
             android.provider.Settings.Secure.getString(appContext.contentResolver, android.provider.Settings.Secure.DEFAULT_INPUT_METHOD)
-                ?.substringBefore('/')?.let { result.add(it) }
-        } catch (_: Exception) {}
-        cachedSafePackages = result
-        return result
+                ?.substringBefore('/')
+        } catch (_: Exception) { null }
+        return if (currentIme != null) staticPackages + currentIme else staticPackages
     }
 
     fun currentConfig(): AppConfig = cfg
@@ -333,6 +363,7 @@ object StudyEngine {
     fun tryUnlockAdmin(pin: String): Boolean {
         if (pin == cfg.appPin) {
             _role.value = Role.ADMIN
+            engineScope.launch { settingsRepository.saveRole(Role.ADMIN) }
             AppLogger.log("Rol", "Yonetici moduna gecildi")
             return true
         }
@@ -342,6 +373,7 @@ object StudyEngine {
 
     fun switchToStudent() {
         _role.value = Role.STUDENT
+        engineScope.launch { settingsRepository.saveRole(Role.STUDENT) }
         AppLogger.log("Rol", "Ogrenci moduna gecildi")
     }
 

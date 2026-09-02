@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.derscalismatakibi.app.core.AppConfig
+import com.derscalismatakibi.app.core.Role
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -100,6 +101,20 @@ class SettingsRepository(private val context: Context) {
         val SEND_APP_LOG = booleanPreferencesKey("send_app_log")
         val SEND_LOCATION_CSV = booleanPreferencesKey("send_location_csv")
         val SEND_KEYSTROKE_CSV = booleanPreferencesKey("send_keystroke_csv")
+        val CURRENT_ROLE = stringPreferencesKey("current_role")
+    }
+
+    /** Ebeveyn/Ogrenci modu (Role) - AppConfig'in disinda, kendi kucuk
+     * anahtariyla ayrica saklanir (AppConfig().copy(...) ile her ayar
+     * degisikliginde yeniden yazilan buyuk update()'e baglamamak icin).
+     * Persist edilmezse her process restart/reboot/update'te sessizce
+     * Role.ADMIN'e (kilit acik) donuyordu - bu KRITIK bir bug idi. */
+    val roleFlow: Flow<Role> = context.dataStore.data.map { prefs ->
+        if (prefs[Keys.CURRENT_ROLE] == Role.STUDENT.name) Role.STUDENT else Role.ADMIN
+    }
+
+    suspend fun saveRole(role: Role) {
+        context.dataStore.edit { prefs -> prefs[Keys.CURRENT_ROLE] = role.name }
     }
 
     val configFlow: Flow<AppConfig> = context.dataStore.data.map { prefs ->

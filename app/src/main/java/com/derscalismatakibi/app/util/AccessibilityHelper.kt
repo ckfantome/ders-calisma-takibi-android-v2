@@ -15,4 +15,23 @@ object AccessibilityHelper {
         val enabled = Settings.Secure.getString(context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES) ?: return false
         return enabled.split(':').any { it.equals(expected, ignoreCase = true) }
     }
+
+    /** ENABLED_ACCESSIBILITY_SERVICES sadece OS'in "izni verilmis" kaydini yansitir -
+     * reboot sonrasi bazi OEM'lerde (MIUI/ColorOS/EMUI/Vivo) servis listede
+     * "etkin" gorunse bile OS tarafindan gercekten baglanip calistirilmamis
+     * olabilir. Bu yuzden AppBlockAccessibilityService her event aldiginda
+     * (ve baglandiginda) buraya bir "hala canliyim" zaman damgasi yazar; DataStore
+     * degil duz SharedPreferences kullanilir ki StudyEngine'in 30sn'lik bekci
+     * dongusu bunu senkron/hizli okuyabilsin (bkz. SettingsRepository.LocalePrefs
+     * ayni desen icin). */
+    private const val HEARTBEAT_PREFS_NAME = "accessibility_heartbeat"
+    private const val KEY_LAST_HEARTBEAT = "last_heartbeat_ms"
+
+    fun recordHeartbeat(context: Context) {
+        context.getSharedPreferences(HEARTBEAT_PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putLong(KEY_LAST_HEARTBEAT, System.currentTimeMillis()).apply()
+    }
+
+    fun lastHeartbeat(context: Context): Long =
+        context.getSharedPreferences(HEARTBEAT_PREFS_NAME, Context.MODE_PRIVATE).getLong(KEY_LAST_HEARTBEAT, 0L)
 }

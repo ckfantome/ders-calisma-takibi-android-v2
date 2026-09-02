@@ -320,6 +320,7 @@
     <string name="notif_break_over_title">Break over</string>
     <string name="notif_break_over_body">Start Pomodoro to keep studying.</string>
     <string name="notif_app_lock_accessibility_broken">Exam/Homework Mode is on but Accessibility permission is off - app blocking is NOT working right now.</string>
+    <string name="notif_app_lock_accessibility_broken_generic">Accessibility permission is off/broken - Blocked Apps enforcement is NOT working right now.</string>
     <string name="notif_app_lock_disabled_title">App Lock Disabled</string>
     <string name="notif_app_lock_disabled_email_subject">App Lock Became Disabled</string>
     <string name="notif_safe_zone_entered">Entered safe zone</string>

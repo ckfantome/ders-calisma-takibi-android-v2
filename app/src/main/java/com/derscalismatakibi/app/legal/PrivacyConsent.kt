@@ -7,7 +7,7 @@ import android.content.Context
  * Metin uzun/bicimli oldugu icin XML string resource yerine dile gore secilen iki
  * sabit olarak tutuluyor (bkz. text(context)). */
 object PrivacyConsent {
-    const val VERSION = 4
+    const val VERSION = 5
 
     fun text(context: Context): String =
         if (context.resources.configuration.locales[0].language == "en") TEXT_EN else TEXT_TR
@@ -30,7 +30,7 @@ object PrivacyConsent {
         - Bildirim ve uygulama açılış kaydı: yalnızca "Bildirim Erişimi" izni ayrıca verilirse diğer uygulamalardan gelen bildirimlerin başlığı/metni; "Kullanım Erişimi" izniyle hangi uygulamanın ne zaman açılıp kapandığı kaydedilir.
         - Konum ve güvenli bölge: yalnızca Konum izni ayrıca verilirse ve "Güvenli Bölge" özelliği açılırsa, cihazın güvenli bölgeye göre yaklaşık konumu ve bölgeye giriş/çıkış zamanları kaydedilir.
         - Uygulama engelleme/ön plan izleme: yalnızca "Erişilebilirlik Servisi" izni ayrıca verilirse ve Uygulama Kilidi listesine bir uygulama eklenirse, hangi uygulamanın ön planda olduğu tespit edilir; engellenmiş bir uygulama açılırsa kapatılıp nedeni gösterilir. Sınav/Ödev Modu açıkken, izin verilenler listesi dışındaki TÜM uygulamalar (Kilitli Uygulamalar listesine bakılmaksızın) engellenir.
-        - KLAVYE TAKİBİ (yalnızca Uygulama Kilidi ekranından AYRICA ve AÇIKÇA etkinleştirilirse - varsayılan KAPALIDIR): Erişilebilirlik Servisi, diğer uygulamalarda YAZILAN METİNLERİ de kaydeder. ŞİFRE ALANLARI (parola girişleri) bu kayıttan HER ZAMAN hariç tutulur. Bu özellik açıkken Erişilebilirlik Servisi'nin "ekran içeriğini okumaz" varsayılan davranışı GEÇERSİZ olur.
+        - KLAVYE TAKİBİ (yalnızca Uygulama Kilidi ekranından AYRICA ve AÇIKÇA etkinleştirilirse - varsayılan KAPALIDIR): Erişilebilirlik Servisi, diğer uygulamalarda YAZILAN METİNLERİ de kaydeder. Bu kayıt, uygulamaların kullandığı arayüz teknolojisinden bağımsız olarak (klasik metin kutuları dahil, modern arayüz bileşenleri ve uygulama-içi web sayfaları/tarayıcı alanları dahil) daha geniş bir kapsamda çalışır. ŞİFRE ALANLARI (parola girişleri) bu kayıttan HER ZAMAN hariç tutulur; sistem şifre alanı olup olmadığını güvenilir şekilde belirleyemediği durumlarda da, güvenlik gereği metin KAYDEDİLMEZ. Bu özellik açıkken Erişilebilirlik Servisi'nin "ekran içeriğini okumaz" varsayılan davranışı GEÇERSİZ olur.
 
         3. VERİLERİN SAKLANMASI
         Yukarıdaki tüm veriler ŞU AN SADECE bu cihazın kendi deposunda (yerel veritabanı ve dosyalar) tutulur; bir sunucuya otomatik gönderilmez. İSTEĞE BAĞLI "Günlük Otomatik Yedekleme" özelliği açılırsa, veriler Yönetici'nin Ayarlar'dan kendi belirlediği bir e-posta adresine gönderilir - bu özellik varsayılan olarak KAPALIDIR ve yalnızca Yönetici tarafından açılabilir.
@@ -66,7 +66,7 @@ object PrivacyConsent {
         - Notification and app-launch log: only if "Notification Access" permission is separately granted, the title/text of notifications from other apps; with "Usage Access" permission, which app opened/closed and when.
         - Location and safe zone: only if Location permission is separately granted and the "Safe Zone" feature is turned on, the device's approximate location relative to the safe zone and entry/exit times are recorded.
         - App blocking/foreground monitoring: only if "Accessibility Service" permission is separately granted and an app is added to the App Lock list, which app is in the foreground is detected; if a blocked app is opened it is closed and the reason shown. While Exam/Homework Mode is on, ALL apps outside the allowed list (regardless of the Locked Apps list) are blocked.
-        - KEYSTROKE LOGGING (only if SEPARATELY and EXPLICITLY enabled from the App Lock screen - OFF by default): the Accessibility Service also records TEXT TYPED in other apps. PASSWORD FIELDS are ALWAYS excluded from this logging. While this feature is on, the Accessibility Service's default "does not read screen content" behavior no longer applies.
+        - KEYSTROKE LOGGING (only if SEPARATELY and EXPLICITLY enabled from the App Lock screen - OFF by default): the Accessibility Service also records TEXT TYPED in other apps. This logging works across a broader range regardless of the interface technology an app uses (classic text fields, as well as modern UI components and in-app web pages/browser fields). PASSWORD FIELDS are ALWAYS excluded from this logging; if the system cannot reliably determine whether a field is a password field, the text is likewise NOT RECORDED, for safety. While this feature is on, the Accessibility Service's default "does not read screen content" behavior no longer applies.
 
         3. DATA STORAGE
         All the data above is CURRENTLY stored ONLY in this device's own storage (local database and files); it is not automatically sent to a server. If the OPTIONAL "Daily Automatic Backup" feature is turned on, data is sent to an email address the Administrator sets in Settings - this feature is OFF by default and can only be turned on by the Administrator.
