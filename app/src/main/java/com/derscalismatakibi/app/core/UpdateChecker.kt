@@ -27,11 +27,22 @@ object UpdateChecker {
     )
 
     /**
-     * AG thread'inde (network) calisir - cagiran taraf coroutine icinde
-     * Dispatchers.IO ile sarmalamali. Herhangi bir hata/yeni surum yoksa
-     * sessizce null doner (kullaniciyi rahatsiz etmez).
+     * Kontrol sonucu: "guncel" ile "kontrol basarisiz" (rate limit, agsizlik, vb.)
+     * ayrimini kullaniciya gosterebilmek icin ayri durumlar tutulur - bu ikisi
+     * UI'da ayni "guncelsiniz" mesajina donusursa gercek bir hata sessizce
+     * yutulmus olur.
      */
-    fun checkForUpdate(currentVersionName: String): UpdateInfo? {
+    sealed class CheckResult {
+        data class Available(val info: UpdateInfo) : CheckResult()
+        object UpToDate : CheckResult()
+        data class Failed(val reason: String) : CheckResult()
+    }
+
+    /**
+     * AG thread'inde (network) calisir - cagiran taraf coroutine icinde
+     * Dispatchers.IO ile sarmalamali.
+     */
+    fun checkForUpdateDetailed(currentVersionName: String): CheckResult {
         return try {
             val conn = (URL(API_URL).openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
@@ -41,8 +52,16 @@ object UpdateChecker {
             }
             val code = conn.responseCode
             if (code != HttpURLConnection.HTTP_OK) {
+                val errorBody = try {
+                    conn.errorStream?.bufferedReader()?.use { it.readText() }
+                } catch (e: Exception) {
+                    null
+                }
                 conn.disconnect()
-                return null
+                val reason = "HTTP $code" + (errorBody?.let { JSONObject(it).optString("message", "") }?.takeIf { it.isNotBlank() }?.let { ": $it" } ?: "")
+                Log.w("UpdateChecker", "Guncelleme kontrolu basarisiz: $reason")
+                AppLogger.logError("Guncelleme", "Kontrol basarisiz ($reason)", null)
+                return CheckResult.Failed(reason)
             }
             val body = conn.inputStream.bufferedReader().use { it.readText() }
             conn.disconnect()
@@ -52,11 +71,12 @@ object UpdateChecker {
             val version = tag.removePrefix("v")
             if (version.isBlank() || !isNewer(version, currentVersionName)) {
                 AppLogger.log("Guncelleme", "Kontrol edildi - en son surumde (mevcut: $currentVersionName, uzak: $version)")
-                return null
+                return CheckResult.UpToDate
             }
             AppLogger.log("Guncelleme", "Yeni surum bulundu: $version (mevcut: $currentVersionName)")
 
-            val assets = json.optJSONArray("assets") ?: return null
+            val assets = json.optJSONArray("assets")
+                ?: return CheckResult.Failed("release'de asset bulunamadi")
             var url: String? = null
             var name: String? = null
             for (i in 0 until assets.length()) {
@@ -68,19 +88,31 @@ object UpdateChecker {
                     break
                 }
             }
-            val downloadUrl = url ?: return null
-            UpdateInfo(
-                version = version,
-                notes = json.optString("body", ""),
-                downloadUrl = downloadUrl,
-                assetName = name ?: "update.apk",
+            val downloadUrl = url ?: return CheckResult.Failed("release'de APK asset'i bulunamadi")
+            CheckResult.Available(
+                UpdateInfo(
+                    version = version,
+                    notes = json.optString("body", ""),
+                    downloadUrl = downloadUrl,
+                    assetName = name ?: "update.apk",
+                ),
             )
         } catch (e: Exception) {
             Log.w("UpdateChecker", "Guncelleme kontrolu basarisiz: ${e.message}")
             AppLogger.logError("Guncelleme", "Kontrol basarisiz", e)
-            null
+            CheckResult.Failed(e.message ?: e.javaClass.simpleName)
         }
     }
+
+    /**
+     * Geriye donuk uyumluluk icin: hem "guncel" hem "kontrol basarisiz"
+     * durumlarinda sessizce null doner (otomatik acilis kontrolu icin -
+     * kullaniciyi network hatasiyla rahatsiz etmeye gerek yok). Kullaniciya
+     * hata gosterilmesi gereken yerlerde (manuel "guncellemeleri kontrol et"
+     * butonu gibi) bunun yerine [checkForUpdateDetailed] kullanilmali.
+     */
+    fun checkForUpdate(currentVersionName: String): UpdateInfo? =
+        (checkForUpdateDetailed(currentVersionName) as? CheckResult.Available)?.info
 
     /** Basit semver karsilastirmasi: "0.4.0" > "0.3.0" -> true. */
     internal fun isNewer(remote: String, current: String): Boolean {

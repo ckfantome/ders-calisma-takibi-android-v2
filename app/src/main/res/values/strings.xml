@@ -287,6 +287,7 @@
     <string name="settings_group_update">Guncelleme</string>
     <string name="settings_update_explanation">Uygulama GitHub uzerinden dagitiliyor (Play Store degil). Yeni bir surum cikinca acilista otomatik haber verilir; istersen simdi de kontrol edebilirsin.</string>
     <string name="settings_update_up_to_date">En son surumdesin.</string>
+    <string name="settings_update_check_failed">Kontrol basarisiz oldu, tekrar deneyin.</string>
     <string name="settings_update_checking">Kontrol ediliyor...</string>
     <string name="settings_update_check">Guncellemeleri Kontrol Et</string>
     <string name="settings_group_privacy">Gizlilik</string>

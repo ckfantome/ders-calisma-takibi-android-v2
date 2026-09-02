@@ -554,6 +554,7 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                 style = MaterialTheme.typography.bodySmall,
             )
             val upToDateMessage = stringResource(R.string.settings_update_up_to_date)
+            val checkFailedMessage = stringResource(R.string.settings_update_check_failed)
             Button(
                 enabled = !checkingUpdate,
                 onClick = {
@@ -565,12 +566,12 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                         } catch (e: Exception) {
                             "0.0.0"
                         }
-                        val result = withContext(Dispatchers.IO) { UpdateChecker.checkForUpdate(currentVersion) }
+                        val result = withContext(Dispatchers.IO) { UpdateChecker.checkForUpdateDetailed(currentVersion) }
                         checkingUpdate = false
-                        if (result != null) {
-                            updateInfo = result
-                        } else {
-                            updateCheckMessage = upToDateMessage
+                        when (result) {
+                            is UpdateChecker.CheckResult.Available -> updateInfo = result.info
+                            is UpdateChecker.CheckResult.UpToDate -> updateCheckMessage = upToDateMessage
+                            is UpdateChecker.CheckResult.Failed -> updateCheckMessage = "$checkFailedMessage (${result.reason})"
                         }
                     }
                 },

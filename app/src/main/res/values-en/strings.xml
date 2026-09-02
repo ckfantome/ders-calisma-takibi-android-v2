@@ -287,6 +287,7 @@
     <string name="settings_group_update">Update</string>
     <string name="settings_update_explanation">The app is distributed via GitHub (not the Play Store). When a new version is released you\'re notified automatically on launch; you can also check now if you want.</string>
     <string name="settings_update_up_to_date">You\'re on the latest version.</string>
+    <string name="settings_update_check_failed">Check failed, try again.</string>
     <string name="settings_update_checking">Checking...</string>
     <string name="settings_update_check">Check for Updates</string>
     <string name="settings_group_privacy">Privacy</string>
