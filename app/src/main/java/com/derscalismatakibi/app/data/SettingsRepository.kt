@@ -87,6 +87,7 @@ class SettingsRepository(private val context: Context) {
         val AUTO_START_ON_BOOT_ENABLED = booleanPreferencesKey("auto_start_on_boot_enabled")
         val KEEP_ALIVE_ENABLED = booleanPreferencesKey("keep_alive_enabled")
         val SCREEN_PINNING_ENABLED = booleanPreferencesKey("screen_pinning_enabled")
+        val FULLY_HIDDEN_MODE_ENABLED = booleanPreferencesKey("fully_hidden_mode_enabled")
         val CAMERA_ANALYSIS_ENABLED = booleanPreferencesKey("camera_analysis_enabled")
         val LOCATION_TRACKING_ENABLED = booleanPreferencesKey("location_tracking_enabled")
         val CALL_SMS_LOG_ENABLED = booleanPreferencesKey("call_sms_log_enabled")
@@ -170,6 +171,7 @@ class SettingsRepository(private val context: Context) {
             autoStartOnBootEnabled = prefs[Keys.AUTO_START_ON_BOOT_ENABLED] ?: defaults.autoStartOnBootEnabled,
             keepAliveEnabled = prefs[Keys.KEEP_ALIVE_ENABLED] ?: defaults.keepAliveEnabled,
             screenPinningEnabled = prefs[Keys.SCREEN_PINNING_ENABLED] ?: defaults.screenPinningEnabled,
+            fullyHiddenModeEnabled = prefs[Keys.FULLY_HIDDEN_MODE_ENABLED] ?: defaults.fullyHiddenModeEnabled,
             cameraAnalysisEnabled = prefs[Keys.CAMERA_ANALYSIS_ENABLED] ?: defaults.cameraAnalysisEnabled,
             locationTrackingEnabled = prefs[Keys.LOCATION_TRACKING_ENABLED] ?: defaults.locationTrackingEnabled,
             callSmsLogEnabled = prefs[Keys.CALL_SMS_LOG_ENABLED] ?: defaults.callSmsLogEnabled,
@@ -239,6 +241,7 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.AUTO_START_ON_BOOT_ENABLED] = cfg.autoStartOnBootEnabled
             prefs[Keys.KEEP_ALIVE_ENABLED] = cfg.keepAliveEnabled
             prefs[Keys.SCREEN_PINNING_ENABLED] = cfg.screenPinningEnabled
+            prefs[Keys.FULLY_HIDDEN_MODE_ENABLED] = cfg.fullyHiddenModeEnabled
             prefs[Keys.CAMERA_ANALYSIS_ENABLED] = cfg.cameraAnalysisEnabled
             prefs[Keys.LOCATION_TRACKING_ENABLED] = cfg.locationTrackingEnabled
             prefs[Keys.CALL_SMS_LOG_ENABLED] = cfg.callSmsLogEnabled

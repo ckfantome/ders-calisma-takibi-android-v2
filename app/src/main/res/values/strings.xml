@@ -155,6 +155,10 @@
     <string name="app_block_exam_mode_explanation">Acikken Kilitli Uygulamalar listesine bakilmaksizin HER SEY engellenir - sadece asagidaki \'Izin Verilen Uygulamalar\' listesindekiler ve zorunlu (ana ekran/telefon) uygulamalar acilabilir.</string>
     <string name="app_block_screen_pinning_title">+ Ekrani Tamamen Sabitle</string>
     <string name="app_block_screen_pinning_explanation">Sinav Modu acikken telefon SADECE bu uygulamaya kilitlenir - \'Izin Verilen Uygulamalar\' listesi de dahil BASKA HICBIR SEY acilamaz (ana ekran/Son Kullanilanlar da devre disi). Erisilebilirlik izninin OEM tarafindan kapatilmasindan etkilenmez.</string>
+    <string name="app_block_fully_hidden_mode_title">Tam Gizli Mod</string>
+    <string name="app_block_fully_hidden_mode_explanation">Acikken uygulama simgesi baslatici/ana ekran ve Son Kullanilanlar\'dan TAMAMEN kaldirilir - ogrenci uygulamayi telefonda goremez.</string>
+    <string name="app_block_fully_hidden_mode_confirm_title">Tam Gizli Mod\'u ac?</string>
+    <string name="app_block_fully_hidden_mode_confirm_text">Uygulama simgesi baslatici/ana ekrandan ve Son Kullanilanlar\'dan kaybolacak. Geri donmenin TEK yolu, takip bildirimine (arkaplan servisi calisirken durum cubugunda gorunen bildirim) dokunmaktir. Arkaplan servisi herhangi bir nedenle calismiyorsa (orn. kapatilmis/oldurulmus ise) bu bildirim de olmaz ve uygulamayi bu yoldan tekrar acamazsiniz - bu durumda telefon Ayarlar &gt; Uygulamalar listesinden erismeniz gerekebilir. Devam etmek istiyor musunuz?</string>
     <string name="app_block_allowed_apps_title">Izin Verilen Uygulamalar (Sinav Modunda)</string>
     <string name="app_block_allowed_apps_explanation">Sinav/Odev Modu acikken bunlar disinda hicbir uygulama acilamaz (orn. Hesap Makinesi).</string>
     <string name="app_block_no_allowed_apps">Henuz izin verilen uygulama eklenmedi.</string>

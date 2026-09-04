@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -57,6 +59,7 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
     val blocked by viewModel.blockedApps.collectAsState()
 
     var hasAccess by remember { mutableStateOf(isAccessibilityServiceEnabled(context)) }
+    var showHiddenModeConfirm by remember { mutableStateOf(false) }
     var installedApps by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
     val resumeTrigger = rememberResumeTrigger()
 
@@ -173,6 +176,32 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
                             }
                             Switch(checked = cfg.screenPinningEnabled, onCheckedChange = { if (isAdmin) viewModel.updateConfig(cfg.copy(screenPinningEnabled = it)) }, enabled = isAdmin)
                         }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                                Text(stringResource(R.string.app_block_fully_hidden_mode_title), style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    stringResource(R.string.app_block_fully_hidden_mode_explanation),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                            Switch(
+                                checked = cfg.fullyHiddenModeEnabled,
+                                onCheckedChange = { checked ->
+                                    if (isAdmin) {
+                                        if (checked) {
+                                            showHiddenModeConfirm = true
+                                        } else {
+                                            viewModel.updateConfig(cfg.copy(fullyHiddenModeEnabled = false))
+                                        }
+                                    }
+                                },
+                                enabled = isAdmin,
+                            )
+                        }
                     }
                 }
             }
@@ -263,6 +292,21 @@ fun AppBlockScreen(viewModel: StudyViewModel) {
                 }
             }
         }
+    }
+
+    if (showHiddenModeConfirm) {
+        AlertDialog(
+            onDismissRequest = { showHiddenModeConfirm = false },
+            title = { Text(stringResource(R.string.app_block_fully_hidden_mode_confirm_title)) },
+            text = { Text(stringResource(R.string.app_block_fully_hidden_mode_confirm_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.updateConfig(cfg.copy(fullyHiddenModeEnabled = true))
+                    showHiddenModeConfirm = false
+                }) { Text(stringResource(R.string.action_yes)) }
+            },
+            dismissButton = { TextButton(onClick = { showHiddenModeConfirm = false }) { Text(stringResource(R.string.action_cancel)) } },
+        )
     }
 }
 

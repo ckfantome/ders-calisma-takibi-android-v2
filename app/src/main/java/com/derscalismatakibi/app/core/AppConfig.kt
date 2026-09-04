@@ -91,6 +91,12 @@ data class AppConfig(
      * cunku mevcut istisna-listeli davranisi degistiriyor - admin bilerek acar. */
     val screenPinningEnabled: Boolean = false,
 
+    /** Tam Gizli Mod: acikken uygulama simgesi baslatici/ana ekran ve Son
+     * Kullanilanlar'dan TAMAMEN kaldirilir - ogrenci uygulamayi telefonda
+     * goremez. Geri donusun TEK yolu Arkaplan Servisi'nin devam eden
+     * bildirimi (bkz. StudyForegroundService). Varsayilan KAPALI. */
+    val fullyHiddenModeEnabled: Boolean = false,
+
     // --- Calisan Sistemler: her biri ayri bir izleme/analiz sistemini acar-kapar. ---
     /** Kamera + MediaPipe yuz analizi (calisma tespiti). Kapaliyken arkaplan
      * servisi kamerayi hic acmadan (konum/klavye/uygulama kilidi icin) calisir. */

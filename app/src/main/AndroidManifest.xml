@@ -76,12 +76,25 @@
             android:name=".MainActivity"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.DersCalismaTakibi">
+            android:theme="@style/Theme.DersCalismaTakibi" />
+
+        <!-- Baslatici simgesi bu alias uzerinden gosterilir - Tam Gizli Mod
+             acikken MainActivityAlias'in component-enabled durumu kapatilarak
+             simge baslatici/ana ekrandan kaldirilir. MainActivity'nin kendisi
+             (ve ona dogrudan giden PendingIntent'ler, orn. takip bildirimi)
+             bundan etkilenmez. -->
+        <activity-alias
+            android:name=".MainActivityAlias"
+            android:targetActivity=".MainActivity"
+            android:exported="true"
+            android:enabled="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
 
         <service
             android:name=".service.StudyForegroundService"

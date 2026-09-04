@@ -155,6 +155,10 @@
     <string name="app_block_exam_mode_explanation">While on, EVERYTHING is blocked regardless of the Locked Apps list - only apps in the \'Allowed Apps\' list below and required apps (home screen/phone) can be opened.</string>
     <string name="app_block_screen_pinning_title">+ Fully Pin the Screen</string>
     <string name="app_block_screen_pinning_explanation">While Exam Mode is on, the phone is locked to ONLY this app - NOTHING ELSE can be opened, including the \'Allowed Apps\' list (home screen/Recents also disabled). Not affected by the OEM turning off the Accessibility permission.</string>
+    <string name="app_block_fully_hidden_mode_title">Fully Hidden Mode</string>
+    <string name="app_block_fully_hidden_mode_explanation">While on, the app icon is COMPLETELY removed from the launcher/home screen and Recents - the student cannot see the app on the phone.</string>
+    <string name="app_block_fully_hidden_mode_confirm_title">Turn on Fully Hidden Mode?</string>
+    <string name="app_block_fully_hidden_mode_confirm_text">The app icon will disappear from the launcher/home screen and Recents. The ONLY way back in is tapping the tracking notification (visible in the status bar while the background service is running). If the background service is not running for any reason (e.g. it was force-stopped/killed), this notification will also be absent and you will not be able to reopen the app this way - in that case you may need to access it via phone Settings &gt; Apps. Do you want to continue?</string>
     <string name="app_block_allowed_apps_title">Allowed Apps (During Exam Mode)</string>
     <string name="app_block_allowed_apps_explanation">While Exam/Homework Mode is on, no app other than these can be opened (e.g. Calculator).</string>
     <string name="app_block_no_allowed_apps">No allowed app added yet.</string>

@@ -26,8 +26,8 @@ android {
         // bagimliliklar - Compose/CameraX/OpenCV - zaten API 21'i destekliyor).
         minSdk = 24
         targetSdk = 34
-        versionCode = 50
-        versionName = "0.48.2"
+        versionCode = 51
+        versionName = "0.49.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

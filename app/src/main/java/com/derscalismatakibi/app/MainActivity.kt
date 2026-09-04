@@ -1,6 +1,9 @@
 package com.derscalismatakibi.app
 
+import android.app.ActivityManager
+import android.content.ComponentName
 import android.content.Context
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -72,11 +75,53 @@ class MainActivity : ComponentActivity() {
                     recreate()
                 }
             }
+            // Tam Gizli Mod: baslatici simgesini tasiyan MainActivityAlias'in
+            // component-enabled durumu, ayar degistikce burada senkronize edilir.
+            // Idempotent oldugu icin her recomposition/cold-start'ta ayni degeri
+            // yeniden uygulamak zararsiz - hatta faydali (onResume()'daki yeniden
+            // uygulamayla birlikte, olasi bir surec-olumu sonrasi drift'e karsi
+            // kendi kendini onarir).
+            LaunchedEffect(cfg.fullyHiddenModeEnabled) {
+                applyFullyHiddenMode(cfg.fullyHiddenModeEnabled)
+            }
             DersCalismaTakibiTheme(darkTheme = darkTheme) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     AppNavigation()
                 }
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Compose LaunchedEffect ilk karede henuz tetiklenmemis olabilir (orn.
+        // gorev bildirimden yeniden acildiginda) - burada zaten kalici olan
+        // ayari senkron olarak yeniden uyguluyoruz, yedek/onarici katman.
+        if (::viewModel.isInitialized) {
+            applyFullyHiddenMode(com.derscalismatakibi.app.core.StudyEngine.currentConfig().fullyHiddenModeEnabled)
+        }
+    }
+
+    /** Tam Gizli Mod acikken baslatici simgesini tasiyan alias'i devre disi
+     * birakir ve gorevi Son Kullanilanlar'dan haric tutar; kapaliyken ikisini
+     * de geri geri acar. MainActivity'nin kendisi (ve ona giden PendingIntent'ler,
+     * orn. takip bildirimi) bundan etkilenmez - sadece alias'in enabled durumu
+     * degisir. */
+    private fun applyFullyHiddenMode(hidden: Boolean) {
+        val aliasComponent = ComponentName(this, "com.derscalismatakibi.app.MainActivityAlias")
+        val newState = if (hidden) {
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+        } else {
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+        }
+        runCatching {
+            packageManager.setComponentEnabledSetting(aliasComponent, newState, PackageManager.DONT_KILL_APP)
+        }
+        runCatching {
+            val am = getSystemService(ActivityManager::class.java)
+            am?.appTasks?.firstOrNull()?.setExcludeFromRecents(hidden)
+        }.onFailure {
+            AppLogger.logError("TamGizliMod", "setExcludeFromRecents basarisiz", it)
         }
     }
 
