@@ -509,13 +509,18 @@ fun SettingsScreen(viewModel: StudyViewModel) {
         // yedeklemeyi hemen tetikleyen bir aksiyon - guncelleme kontrolu
         // ogrenci moduna acildigi (bkz. v0.48.2) mantigin aynisi.
         SettingsGroup(stringResource(R.string.settings_group_backup_now)) {
-            val lastBackupText = if (cfg.lastBackupTimestamp > 0) {
-                val dateStr = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale("tr")).format(Date(cfg.lastBackupTimestamp))
-                stringResource(R.string.settings_last_backup_at, dateStr, cfg.lastBackupStatus)
-            } else {
-                stringResource(R.string.settings_last_backup_never)
+            // Son yedekleme tarihi/durumu SADECE admin'e gosterilir - ogrenci
+            // "Simdi Yedekle" butonunu kullanabilir ama ne zaman/basariyla
+            // yedeklendigini goremez.
+            if (isAdmin) {
+                val lastBackupText = if (cfg.lastBackupTimestamp > 0) {
+                    val dateStr = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale("tr")).format(Date(cfg.lastBackupTimestamp))
+                    stringResource(R.string.settings_last_backup_at, dateStr, cfg.lastBackupStatus)
+                } else {
+                    stringResource(R.string.settings_last_backup_never)
+                }
+                Text(lastBackupText, style = MaterialTheme.typography.bodySmall)
             }
-            Text(lastBackupText, style = MaterialTheme.typography.bodySmall)
 
             Button(onClick = { BackupScheduler.scheduleOneOffNow(context) }) {
                 Text(stringResource(R.string.settings_backup_now))
