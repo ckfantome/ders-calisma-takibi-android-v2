@@ -30,10 +30,8 @@ import com.derscalismatakibi.app.core.fmtHms
 import com.derscalismatakibi.app.ui.rememberResumeTrigger
 import com.derscalismatakibi.app.util.AppEventEntry
 import com.derscalismatakibi.app.util.AppUsageEntry
+import com.derscalismatakibi.app.util.DateTimeFormats
 import com.derscalismatakibi.app.util.UsageStatsHelper
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * YENI ozellik (masaustunde karsiligi yok): "baska uygulamalara girersem
@@ -54,7 +52,6 @@ fun UsageStatsScreen() {
     var entries by remember { mutableStateOf<List<AppUsageEntry>>(emptyList()) }
     var events by remember { mutableStateOf<List<AppEventEntry>>(emptyList()) }
     var showEvents by remember { mutableStateOf(false) }
-    val timeFmt = remember { SimpleDateFormat("HH:mm:ss", Locale.getDefault()) }
     val resumeTrigger = rememberResumeTrigger()
 
     // Kullanici Ayarlar'dan izin verip bu ekrana donebilir - resumeTrigger sayesinde
@@ -123,7 +120,7 @@ fun UsageStatsScreen() {
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                 ) {
                                     Text("${ev.label} - ${ev.type}", style = MaterialTheme.typography.bodyMedium)
-                                    Text(timeFmt.format(Date(ev.timestamp)), style = MaterialTheme.typography.bodyMedium)
+                                    Text(DateTimeFormats.display(ev.timestamp), style = MaterialTheme.typography.bodyMedium)
                                 }
                             }
                         }

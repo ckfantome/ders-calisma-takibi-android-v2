@@ -26,9 +26,6 @@ import com.derscalismatakibi.app.core.Role
 import com.derscalismatakibi.app.data.AppDatabase
 import com.derscalismatakibi.app.viewmodel.StudyViewModel
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * Klavye Takibi kayitlarini gosterir (bkz. AppConfig.keyboardTrackingEnabled,
@@ -44,7 +41,6 @@ fun KeyboardLogScreen(viewModel: StudyViewModel) {
     val scope = rememberCoroutineScope()
     val dao = remember { AppDatabase.getInstance(context).keystrokeLogDao() }
     val entries by dao.observeRecent().collectAsState(initial = emptyList())
-    val dateFmt = remember { SimpleDateFormat("dd.MM HH:mm:ss", Locale("tr")) }
 
     // ONEMLI: burada 'return@Column' KULLANILMAZ - LocationScreen.kt'de
     // gercek cihaz/emulator testinde dogrulanan Compose composer-grup bozulmasi
@@ -72,7 +68,7 @@ fun KeyboardLogScreen(viewModel: StudyViewModel) {
                             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Text(e.appLabel, style = MaterialTheme.typography.bodyMedium)
-                                    Text(dateFmt.format(Date(e.timestamp)), style = MaterialTheme.typography.bodySmall)
+                                    Text(com.derscalismatakibi.app.util.DateTimeFormats.display(e.timestamp), style = MaterialTheme.typography.bodySmall)
                                 }
                                 Text(e.text, style = MaterialTheme.typography.bodySmall)
                             }

@@ -50,6 +50,12 @@ class DailyBackupWorkerDeletionInstrumentedTest {
                     backupEmailAppPassword = "",
                     dailyBackupEnabled = true,
                     lastBackupTimestamp = 0L,
+                    // lastRealDailyBackupTimestamp da sifirlanmali - aksi halde ayni
+                    // emulatorde tekrar calistirilan onceki bir test calismasindan kalan
+                    // deger, yeni 24-saat-kurali kapisinin (bkz. DailyBackupWorker.
+                    // maybeDeleteOldRecords) silmeyi yanlislikla atlamasina yol acabilir.
+                    lastRealDailyBackupTimestamp = 0L,
+                    autoDeleteOldRecordsEnabled = true,
                 ),
             )
         }
@@ -93,5 +99,31 @@ class DailyBackupWorkerDeletionInstrumentedTest {
 
         assertTrue("location log must be cleared after a real daily backup success", db.locationLogDao().all().isEmpty())
         assertTrue("keystroke log must be cleared after a real daily backup success", db.keystrokeLogDao().observeRecent().first().isEmpty())
+    }
+
+    @Test
+    fun autoDeleteDisabledNeverClearsRawLogs() = runBlocking {
+        SettingsRepository(context).let { repo ->
+            repo.update(repo.configFlow.first().copy(autoDeleteOldRecordsEnabled = false))
+        }
+        val worker = TestListenableWorkerBuilder<DailyBackupWorker>(context).build()
+
+        worker.doWork()
+
+        assertTrue("location log must survive when auto-delete toggle is off", db.locationLogDao().all().isNotEmpty())
+        assertTrue("keystroke log must survive when auto-delete toggle is off", db.keystrokeLogDao().observeRecent().first().isNotEmpty())
+    }
+
+    @Test
+    fun lessThan24hSinceLastRealBackupSkipsDeletion() = runBlocking {
+        SettingsRepository(context).let { repo ->
+            repo.update(repo.configFlow.first().copy(lastRealDailyBackupTimestamp = System.currentTimeMillis()))
+        }
+        val worker = TestListenableWorkerBuilder<DailyBackupWorker>(context).build()
+
+        worker.doWork()
+
+        assertTrue("location log must survive a real backup less than 24h after the previous one", db.locationLogDao().all().isNotEmpty())
+        assertTrue("keystroke log must survive a real backup less than 24h after the previous one", db.keystrokeLogDao().observeRecent().first().isNotEmpty())
     }
 }

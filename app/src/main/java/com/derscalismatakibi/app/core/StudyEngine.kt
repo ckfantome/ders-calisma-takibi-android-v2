@@ -81,8 +81,16 @@ object StudyEngine {
     private val _uiState = MutableStateFlow(StudyUiState())
     val uiState: StateFlow<StudyUiState> = _uiState.asStateFlow()
 
-    lateinit var configState: StateFlow<AppConfig>
-        private set
+    // MutableStateFlow (lateinit-DataStore-tabanli configFlow.stateIn() DEGIL): updateConfig()
+    // artik bunu SENKRON gunceller, boylece UI hizli ardisik iki alani (orn. otomatik
+    // doldurmayla ayni anda email+sifre) degistirdiginde ikinci cagri, DataStore'un
+    // yazma+yeniden-okuma round-trip'ini beklemeden BIRINCI cagrinin degerini gorur.
+    // Onceden configState dogrudan configFlow'dan turetiliyordu (asenkron), bu da iki
+    // hizli updateConfig() cagrisinin ikisinin de AYNI eski cfg anlik goruntusunden
+    // .copy() yapip birbirinin degisikligini DataStore'a yazarken ezmesine yol aciyordu
+    // (son yazan kazanir - orn. backupEmail/backupEmailAppPassword sessizce kaybolabiliyordu).
+    private val _configState = MutableStateFlow(AppConfig())
+    val configState: StateFlow<AppConfig> = _configState.asStateFlow()
 
     private val _role = MutableStateFlow(Role.ADMIN)
     val role: StateFlow<Role> = _role.asStateFlow()
@@ -139,7 +147,6 @@ object StudyEngine {
         stateMachine = HysteresisStateMachine(cfg)
         pomodoro = PomodoroTimer(cfg)
 
-        configState = settingsRepository.configFlow.stateIn(engineScope, SharingStarted.Eagerly, AppConfig())
         scheduleSlots = db.scheduleDao().observeAll().stateIn(engineScope, SharingStarted.Eagerly, emptyList())
         blockedApps = db.blockedAppDao().observeAll().stateIn(engineScope, SharingStarted.Eagerly, emptyList())
         safeZones = db.safeZoneDao().observeAll().stateIn(engineScope, SharingStarted.Eagerly, emptyList())
@@ -154,6 +161,7 @@ object StudyEngine {
         engineScope.launch {
             settingsRepository.configFlow.collect { newCfg ->
                 cfg = newCfg
+                _configState.value = newCfg
                 stateMachine.setConfig(newCfg)
                 pomodoro.setConfig(newCfg)
                 speakingDetector.setParams(newCfg.speakingWindowSize, newCfg.speakingMarStdThreshold, newCfg.speakingMarMinThreshold)
@@ -352,6 +360,10 @@ object StudyEngine {
 
     fun updateConfig(newCfg: AppConfig) {
         AppLogger.log("StudyEngine", "Ayarlar guncellendi")
+        // cfg/configState SENKRON guncellenir (DataStore round-trip'inin sonucunu
+        // beklemeden) - ayrintili gerekce ic ice yorum icin configState alanina bak.
+        cfg = newCfg
+        _configState.value = newCfg
         engineScope.launch { settingsRepository.update(newCfg) }
     }
 

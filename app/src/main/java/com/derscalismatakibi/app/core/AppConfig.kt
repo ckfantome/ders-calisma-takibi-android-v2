@@ -63,6 +63,17 @@ data class AppConfig(
     val lastBackupTimestamp: Long = 0L,
     /** "" | "ok" | "ok (sadece cihaza)" | "error: ..." */
     val lastBackupStatus: String = "",
+    /** SADECE gercek (interval DEGIL) bir gunluk yedekleme basariyla tamamlandiginda
+     * guncellenir - lastBackupTimestamp'tan farkli olarak araliklarla tetiklenen
+     * calismalari SAYMAZ. Eski kayit silme ozelliginin "son gercek yedeklemeden
+     * bu yana 24 saat gecti mi" kontrolu icin kullanilir. */
+    val lastRealDailyBackupTimestamp: Long = 0L,
+    /** Ayarlar'daki "Eski Kayitlari Otomatik Sil" anahtari. Acikken, ham konum/klavye
+     * takibi kayitlari SADECE gercek bir gunluk yedekleme basariyla tamamlandiginda VE
+     * son gercek yedeklemeden bu yana en az 24 saat gectiginde silinir - bagimsiz bir
+     * zamanlayici YOKTUR. Varsayilan ACIK (mevcut, onceden anahtarsiz/kosulsuz calisan
+     * davranisla ayni). */
+    val autoDeleteOldRecordsEnabled: Boolean = true,
     /** legal/PrivacyConsent.kt -> KVKK/gizlilik onayi. */
     val privacyConsentAccepted: Boolean = false,
     val privacyConsentVersion: Int = 0,

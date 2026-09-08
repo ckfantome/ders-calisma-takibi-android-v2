@@ -32,9 +32,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.derscalismatakibi.app.R
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 data class CallEntry(val name: String, val type: String, val durationSec: Long, val date: Long)
 data class SmsEntry(val address: String, val preview: String, val date: Long)
@@ -70,7 +67,6 @@ fun CallLogScreen() {
     var calls by remember { mutableStateOf<List<CallEntry>>(emptyList()) }
     var sms by remember { mutableStateOf<List<SmsEntry>>(emptyList()) }
     var showSms by remember { mutableStateOf(false) }
-    val dateFmt = remember { SimpleDateFormat("dd.MM HH:mm", Locale.getDefault()) }
 
     LaunchedEffect(hasCallPerm, hasSmsPerm) {
         if (hasCallPerm) calls = loadCalls(context)
@@ -104,7 +100,7 @@ fun CallLogScreen() {
                         Card(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                                 Text("${c.name} - ${c.type}", style = MaterialTheme.typography.bodyMedium)
-                                Text("${dateFmt.format(Date(c.date))} · ${c.durationSec}$durationSecSuffix", style = MaterialTheme.typography.bodySmall)
+                                Text("${com.derscalismatakibi.app.util.DateTimeFormats.display(c.date)} · ${c.durationSec}$durationSecSuffix", style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
@@ -115,7 +111,7 @@ fun CallLogScreen() {
                         Card(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                                 Text(s.address, style = MaterialTheme.typography.bodyMedium)
-                                Text("${dateFmt.format(Date(s.date))} · ${s.preview}", style = MaterialTheme.typography.bodySmall)
+                                Text("${com.derscalismatakibi.app.util.DateTimeFormats.display(s.date)} · ${s.preview}", style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }

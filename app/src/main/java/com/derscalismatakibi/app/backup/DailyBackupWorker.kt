@@ -51,7 +51,7 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         // yoksa sessizce atla, yedeklemenin geri kalanini engelleme.
         val usageFile = if (UsageStatsHelper.hasUsageAccess(applicationContext)) {
             try {
-                ExportHelper.writeUsageCsv(applicationContext, UsageStatsHelper.loadTodayUsage(applicationContext), cfg.backupLabel)
+                ExportHelper.writeUsageCsv(applicationContext, UsageStatsHelper.loadTodaySessions(applicationContext), cfg.backupLabel)
             } catch (t: Throwable) {
                 null
             }
@@ -119,12 +119,17 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
             when (val sendResult = SmtpBackupSender.send(cfg.backupEmail, cfg.backupEmailAppPassword, attachments, subject = subject)) {
                 is SmtpBackupSender.Result.Success -> {
                     AppLogger.log("Yedekleme", "E-posta basariyla gonderildi (${attachments.size} ek)")
+                    val now = System.currentTimeMillis()
                     settingsRepo.update(
-                        cfg.copy(lastBackupTimestamp = System.currentTimeMillis(), lastBackupStatus = "ok"),
+                        cfg.copy(
+                            lastBackupTimestamp = now,
+                            lastBackupStatus = "ok",
+                            lastRealDailyBackupTimestamp = if (!isIntervalTrigger) now else cfg.lastRealDailyBackupTimestamp,
+                        ),
                     )
                     // Silme sadece GERCEK gunluk yedekleme basarisinda - araliklarla
                     // tetiklenen (incremental) calisma silme islemini tetiklemez.
-                    if (!isIntervalTrigger) clearRawLogsAfterSuccess(db)
+                    if (!isIntervalTrigger) maybeDeleteOldRecords(cfg, now, db)
                     return Result.success()
                 }
                 is SmtpBackupSender.Result.TransientFailure -> {
@@ -144,12 +149,17 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
 
         // E-posta kapali/eksik - sadece cihaza yedekleme basarili sayilir.
         AppLogger.log("Yedekleme", "Sadece cihaza yazildi (e-posta kapali/eksik ayar)")
+        val now = System.currentTimeMillis()
         settingsRepo.update(
-            cfg.copy(lastBackupTimestamp = System.currentTimeMillis(), lastBackupStatus = applicationContext.getString(R.string.backup_status_ok_device_only)),
+            cfg.copy(
+                lastBackupTimestamp = now,
+                lastBackupStatus = applicationContext.getString(R.string.backup_status_ok_device_only),
+                lastRealDailyBackupTimestamp = if (!isIntervalTrigger) now else cfg.lastRealDailyBackupTimestamp,
+            ),
         )
         // Silme sadece GERCEK gunluk yedekleme basarisinda - araliklarla
         // tetiklenen (incremental) calisma silme islemini tetiklemez.
-        if (!isIntervalTrigger) clearRawLogsAfterSuccess(db)
+        if (!isIntervalTrigger) maybeDeleteOldRecords(cfg, now, db)
         return Result.success()
     }
 
@@ -158,6 +168,26 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         // bile) - kullanicinin acik istegiyle artik kendi ayri anahtariyla
         // (backupFailureNotificationsEnabled) kapatilabilir hale getirildi.
         helper.notify(applicationContext.getString(R.string.backup_notify_failed_title), message, notificationsEnabled)
+    }
+
+    /** Eski Kayitlari Otomatik Sil ayari: SADECE bu fonksiyonun cagrildigi yerden
+     * (yani zaten gercek/interval-olmayan bir gunluk yedekleme basariyla
+     * tamamlandiginda) tetiklenir - bagimsiz bir zamanlayici/timer/cron YOKTUR.
+     * Ayar kapaliysa hicbir sey silinmez. Ayar acik olsa bile, bir onceki gercek
+     * yedeklemeden (cfg.lastRealDailyBackupTimestamp, BU calismadan ONCEKI deger)
+     * bu yana 24 saatten az gectiyse yine silinmez - amac, art arda hizli
+     * "Simdi Yedekle" tetiklemelerinin her seferinde silme yapmasini engellemek. */
+    private suspend fun maybeDeleteOldRecords(cfg: com.derscalismatakibi.app.core.AppConfig, now: Long, db: AppDatabase) {
+        if (!cfg.autoDeleteOldRecordsEnabled) {
+            AppLogger.log("Yedekleme", "Eski kayit silme kapali - atlaniyor")
+            return
+        }
+        val previous = cfg.lastRealDailyBackupTimestamp
+        if (previous != 0L && now - previous < 24L * 60 * 60 * 1000) {
+            AppLogger.log("Yedekleme", "Eski kayit silme atlandi - son gercek yedeklemeden bu yana 24 saat gecmedi")
+            return
+        }
+        clearRawLogsAfterSuccess(db)
     }
 
     /** Konum/klavye takibi verisi bu noktada zaten cihaza (ve varsa e-postaya)

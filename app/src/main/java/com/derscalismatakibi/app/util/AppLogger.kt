@@ -11,9 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * Merkezi, kalici log sistemi. "Beta" kullanim icin: sadece hatalar degil,
@@ -28,7 +25,6 @@ import java.util.Locale
 object AppLogger {
     private const val MAX_MEMORY_LINES = 1000
     private const val MAX_FILE_BYTES = 5L * 1024 * 1024 // 5MB - asilirsa en eski yari atilir.
-    private val timeFmt = SimpleDateFormat("HH:mm:ss.SSS", Locale.US)
     private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _logs = MutableStateFlow<List<String>>(emptyList())
@@ -45,7 +41,7 @@ object AppLogger {
     }
 
     fun log(tag: String, message: String) {
-        val line = "${timeFmt.format(Date())} [$tag] $message"
+        val line = "${DateTimeFormats.logTimestamp(System.currentTimeMillis())} [$tag] $message"
         android.util.Log.d(tag, message)
         _logs.value = (_logs.value + line).let { if (it.size > MAX_MEMORY_LINES) it.takeLast(MAX_MEMORY_LINES) else it }
         ioScope.launch { appendToFile(line) }
@@ -53,7 +49,7 @@ object AppLogger {
 
     fun logError(tag: String, message: String, t: Throwable? = null) {
         val suffix = t?.let { " - ${it::class.simpleName}: ${it.message}" } ?: ""
-        val line = "${timeFmt.format(Date())} [$tag] HATA: $message$suffix"
+        val line = "${DateTimeFormats.logTimestamp(System.currentTimeMillis())} [$tag] HATA: $message$suffix"
         android.util.Log.w(tag, message, t)
         _logs.value = (_logs.value + line).let { if (it.size > MAX_MEMORY_LINES) it.takeLast(MAX_MEMORY_LINES) else it }
         ioScope.launch { appendToFile(line) }

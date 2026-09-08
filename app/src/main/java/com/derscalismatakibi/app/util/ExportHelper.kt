@@ -87,15 +87,22 @@ object ExportHelper {
     }
 
     /** Uygulama Kullanimi verisini (bkz. UsageStatsHelper) gunluk yedegin
-     * ucuncu dosyasi olarak, sabit bir dosya adina CSV seklinde yazar. */
-    fun writeUsageCsv(context: Context, entries: List<AppUsageEntry>, label: String = ""): File {
+     * ucuncu dosyasi olarak, sabit bir dosya adina CSV seklinde yazar.
+     * Ayni uygulamanin farkli kullanim araliklari TEK bir toplam satira
+     * BIRLESTIRILMEZ - her oturum, uygulamadaki Kullanim ekraninin "olaylar"
+     * sekmesindeki gibi ayri bir satir olarak, kronolojik sirayla (baslangica
+     * gore artan) yazilir. */
+    fun writeUsageCsv(context: Context, sessions: List<AppUsageSession>, label: String = ""): File {
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
         val file = File(dir, "${labelPrefix(label)}son_kullanim.csv")
         FileWriter(file).use { writer ->
             writer.append(context.getString(R.string.csv_header_usage) + "\n")
-            for (e in entries) {
-                fun esc(v: String) = "\"${v.replace("\"", "\"\"")}\""
-                writer.append("${esc(e.label)},${esc(e.packageName)},${e.totalMillis / 1000.0}\n")
+            fun esc(v: String) = "\"${v.replace("\"", "\"\"")}\""
+            for (s in sessions) {
+                writer.append(
+                    "${esc(s.label)},${esc(s.packageName)},${esc(DateTimeFormats.display(s.startMillis))}," +
+                        "${esc(DateTimeFormats.display(s.endMillis))},${(s.endMillis - s.startMillis) / 1000.0}\n",
+                )
             }
         }
         return file

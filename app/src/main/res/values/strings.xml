@@ -275,6 +275,8 @@
     <string name="settings_backup_hour_label">Saat (0-23)</string>
     <string name="settings_backup_minute_label">Dakika (0-59)</string>
     <string name="settings_daily_backup_enabled">Gunluk Otomatik Yedekleme</string>
+    <string name="settings_auto_delete_old_records">Eski Kayitlari Otomatik Sil</string>
+    <string name="settings_auto_delete_old_records_explanation">Acikken, ham konum/klavye takibi kayitlari SADECE gercek bir gunluk yedekleme basariyla tamamlandiginda silinir (araliklarla yedekleme bunu tetiklemez). Son gercek yedeklemeden bu yana 24 saatten az gectiyse yine silinmez. Yedekleme hic yapilmazsa (2 gun, 3 gun gecse bile) hicbir sey silinmez - bagimsiz bir zamanlayici yoktur.</string>
     <string name="settings_interval_backup_enabled">Araliklarla Otomatik Yedekleme</string>
     <string name="settings_interval_minutes_label">Aralik (dakika, min 15)</string>
     <string name="settings_wifi_only">Sadece Wi-Fi\'de Gonder</string>
@@ -383,7 +385,7 @@
 
     <!-- ExportHelper -->
     <string name="csv_header_sessions">tarih,baslangic,bitis,calisma_sn,uzakta_sn,uyku_sn,toplam_sn,konusma_sn,pomodoro_sayisi,notlar,etiketler,verimlilik</string>
-    <string name="csv_header_usage">uygulama,paket_adi,toplam_sn</string>
+    <string name="csv_header_usage">uygulama,paket_adi,baslangic,bitis,sure_sn</string>
     <string name="csv_header_call_sms">tur,kisi_numara,detay,tarih</string>
     <string name="csv_row_type_call">arama</string>
     <string name="csv_row_type_sms">sms</string>

@@ -460,6 +460,15 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                     viewModel.updateConfig(cfg.copy(dailyBackupEnabled = it))
                 }
 
+                SwitchRow(stringResource(R.string.settings_auto_delete_old_records), cfg.autoDeleteOldRecordsEnabled, isAdmin) {
+                    viewModel.updateConfig(cfg.copy(autoDeleteOldRecordsEnabled = it))
+                }
+                Text(
+                    stringResource(R.string.settings_auto_delete_old_records_explanation),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
                 SwitchRow(stringResource(R.string.settings_interval_backup_enabled), cfg.intervalBackupEnabled, isAdmin) { enabled ->
                     viewModel.updateConfig(cfg.copy(intervalBackupEnabled = enabled))
                     BackupScheduler.rescheduleInterval(context, enabled, cfg.intervalBackupMinutes, cfg.intervalBackupWifiOnly)

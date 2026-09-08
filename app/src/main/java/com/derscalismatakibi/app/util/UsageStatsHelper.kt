@@ -18,6 +18,7 @@ import java.util.Calendar
  */
 data class AppUsageEntry(val label: String, val packageName: String, val totalMillis: Long)
 data class AppEventEntry(val label: String, val timestamp: Long, val type: String)
+data class AppUsageSession(val label: String, val packageName: String, val startMillis: Long, val endMillis: Long)
 
 object UsageStatsHelper {
     /** Bugun (00:00 - simdi) acilan/kapanan TUM uygulama olaylari, en yeni once.
@@ -46,6 +47,39 @@ object UsageStatsHelper {
         }
         return result.asReversed()
     }
+    /** Bugunku (00:00 - simdi) kullanim oturumlari, ayni uygulamanin farkli
+     * kullanim araliklari TOPLAMA/BIRLESTIRME yapilmadan kronolojik sirayla,
+     * ayri kayitlar olarak dondurulur (orn. Chrome 09:15->09:45, VS Code
+     * 09:45->10:30, Chrome 10:30->11:05 - Chrome icin TEK bir "toplam 2 saat"
+     * degil, iki ayri oturum). Ham acilis/kapanis olaylarini (loadTodayEvents
+     * ile ayni UsageEvents sorgusu) paket bazinda esletirerek uretilir. Henuz
+     * kapanmamis (su an on planda olan) acik bir oturum varsa DAHIL EDILMEZ -
+     * rapor sadece TAMAMLANMIS oturumlari icerir. */
+    fun loadTodaySessions(context: Context): List<AppUsageSession> {
+        val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
+        val pm = context.packageManager
+        val events = usm.queryEvents(cal.timeInMillis, System.currentTimeMillis())
+        val event = UsageEvents.Event()
+        val pendingStart = mutableMapOf<String, Long>()
+        val sessions = mutableListOf<AppUsageSession>()
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            if (event.packageName == context.packageName) continue
+            when (event.eventType) {
+                UsageEvents.Event.MOVE_TO_FOREGROUND -> pendingStart.putIfAbsent(event.packageName, event.timeStamp)
+                UsageEvents.Event.MOVE_TO_BACKGROUND -> {
+                    val start = pendingStart.remove(event.packageName) ?: continue
+                    sessions.add(AppUsageSession(appLabel(pm, event.packageName), event.packageName, start, event.timeStamp))
+                }
+                else -> continue
+            }
+        }
+        return sessions.sortedBy { it.startMillis }
+    }
+
     fun hasUsageAccess(context: Context): Boolean {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
         val mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName)

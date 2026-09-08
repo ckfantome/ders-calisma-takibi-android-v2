@@ -275,6 +275,8 @@
     <string name="settings_backup_hour_label">Hour (0-23)</string>
     <string name="settings_backup_minute_label">Minute (0-59)</string>
     <string name="settings_daily_backup_enabled">Daily Automatic Backup</string>
+    <string name="settings_auto_delete_old_records">Auto-Delete Old Records</string>
+    <string name="settings_auto_delete_old_records_explanation">While on, raw location/keystroke tracking records are deleted ONLY when a real daily backup completes successfully (interval backups never trigger this). If less than 24 hours have passed since the last real backup, nothing is deleted either. If no backup ever runs (even after 2, 3+ days), nothing is deleted - there is no independent timer.</string>
     <string name="settings_interval_backup_enabled">Interval Automatic Backup</string>
     <string name="settings_interval_minutes_label">Interval (minutes, min 15)</string>
     <string name="settings_wifi_only">Send Only on Wi-Fi</string>
@@ -383,7 +385,7 @@
 
     <!-- ExportHelper -->
     <string name="csv_header_sessions">date,start,end,studying_sec,away_sec,sleeping_sec,total_sec,speaking_sec,pomodoro_count,notes,tags,productivity</string>
-    <string name="csv_header_usage">app,package_name,total_sec</string>
+    <string name="csv_header_usage">app,package_name,start,end,duration_sec</string>
     <string name="csv_header_call_sms">type,contact_number,detail,date</string>
     <string name="csv_row_type_call">call</string>
     <string name="csv_row_type_sms">sms</string>
