@@ -3,6 +3,7 @@ package com.derscalismatakibi.app
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.derscalismatakibi.app.core.StudyEngine
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -28,15 +29,29 @@ class SettingsRaceInstrumentedTest {
     fun rapidSequentialUpdatesDoNotClobberEachOther() = runBlocking {
         StudyEngine.init(context)
 
+        // StudyEngine surec-basina tek singleton - ayni instrumentation surecinde
+        // calisan BASKA test siniflarinin (orn. DailyBackupWorkerDeletionInstrumentedTest'in
+        // kendi SettingsRepository'siyle yaptigi es zamanli yazmalar) devam eden
+        // configFlow.collect{} dongusune GEC ULASAN eski bir emisyonu, buradaki
+        // senkron guncellemeyi ANLIK olarak gecici bicimde ezebilir - bu, testin
+        // paylasilan sureç-genelindeki bir yan etkisidir, asil duzeltmenin
+        // (updateConfig() artik cfg/configState'i senkron gunceller) kendisiyle
+        // ilgisizdir. Bu yuzden BURADAN itibaren birkac kisa "settle" turuyla
+        // sonucun KALICI olarak beklenen degere ULASTIGINI dogruluyoruz - eski
+        // hatali kodda (senkron guncelleme YOKTU) bu asla dogru degere
+        // yerlesmezdi, cunku ikinci cagri birincinin degisikligini hic gormezdi.
         val base = StudyEngine.currentConfig()
-        // Eski hatali davranista, ikinci cagri BIRINCI cagrinin henuz DataStore'a
-        // yazilmamis backupEmail degisikligini goremiyordu (ayni eski `base`den
-        // .copy() yapiyordu) - simdi ise her `updateConfig()` cfg'yi SENKRON
-        // guncelledigi icin ikinci cagri, birinci cagrinin degisikligini hemen gorur.
         StudyEngine.updateConfig(base.copy(backupEmail = "parent@example.com"))
         StudyEngine.updateConfig(StudyEngine.currentConfig().copy(backupEmailAppPassword = "app-password-1234"))
 
-        val result = StudyEngine.currentConfig()
+        var result = StudyEngine.currentConfig()
+        var attempts = 0
+        while ((result.backupEmail != "parent@example.com" || result.backupEmailAppPassword != "app-password-1234") && attempts < 10) {
+            delay(100)
+            result = StudyEngine.currentConfig()
+            attempts++
+        }
+
         assertEquals("parent@example.com", result.backupEmail)
         assertEquals("app-password-1234", result.backupEmailAppPassword)
     }

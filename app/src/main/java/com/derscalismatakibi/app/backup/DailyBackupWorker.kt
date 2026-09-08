@@ -92,20 +92,14 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
             keystrokeFile.takeIf { cfg.sendKeystrokeCsv },
         )
 
-        // Araliklarla tetiklenen calismalarda son e-postadan bu yana yeni oturum
-        // yoksa e-postayi atla - kisa araliklarda (orn. 15dk) ayni veriyi tekrar
-        // tekrar postalayip kutuyu spam'lememek icin. Sabit-saat gunluk calisma ve
-        // "Simdi Yedekle" butonu bu kontrolden MUAF - her zaman gonderilir.
-        if (isIntervalTrigger) {
-            val hasNewData = (db.sessionDao().maxCreatedAt() ?: 0L) > cfg.lastBackupTimestamp
-            if (!hasNewData) {
-                AppLogger.log("Yedekleme", "Araliklarla yedekleme atlandi - son gonderimden bu yana yeni veri yok")
-                settingsRepo.update(cfg.copy(lastBackupStatus = applicationContext.getString(R.string.backup_status_ok_no_new_data)))
-                // Araliklarla tetiklenen calisma - ham loglar SADECE gercek gunluk
-                // yedekleme basarili oldugunda temizlenir, burada silme YOK.
-                return Result.success()
-            }
-        }
+        // NOT: Araliklarla tetiklenen calismalar ONCEDEN "son gonderimden bu yana
+        // yeni SESSION (bitmis calisma blogu) yoksa e-postayi atla" kontrolunden
+        // geciyordu - ancak bir session genelde 15dk'dan uzun surdugu icin bu
+        // kontrol neredeyse HER interval calismasinda e-postayi sessizce
+        // atliyordu (kullanicinin "15dk'da bir yedekle" ayarladigi halde hicbir
+        // mail gelmemesinin kok nedeni). Interval tetiklemeler artik gunluk/manuel
+        // ile ayni sekilde HER ZAMAN e-posta gonderir - ham log SILME'si ayri bir
+        // kontroldur ve interval tetiklemede hala tetiklenmez (asagida).
 
         // 2) E-posta, sadece acik ve dolu ayarlanmissa.
         if ((cfg.dailyBackupEnabled || cfg.intervalBackupEnabled) && cfg.backupEmail.isNotBlank() && cfg.backupEmailAppPassword.isNotBlank()) {

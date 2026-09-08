@@ -126,4 +126,29 @@ class DailyBackupWorkerDeletionInstrumentedTest {
         assertTrue("location log must survive a real backup less than 24h after the previous one", db.locationLogDao().all().isNotEmpty())
         assertTrue("keystroke log must survive a real backup less than 24h after the previous one", db.keystrokeLogDao().observeRecent().first().isNotEmpty())
     }
+
+    /** Kok neden: interval tetiklemeler "son gonderimden bu yana yeni SESSION
+     * yoksa atla" kontrolunden geciyordu - bir session genelde 15dk'dan uzun
+     * surdugu icin bu kontrol neredeyse HER interval calismasinda backup'i
+     * (ve dolayisiyla e-postayi) sessizce atliyordu. Burada lastBackupTimestamp'i
+     * GELECEGE ayarlayip (yani "yeni session YOK" durumunu zorlayip) interval
+     * tetiklemenin yine de basariya ulastigini (eski "yeni veri yok, atlandi"
+     * statusune DUSMEDIGINI) dogruluyoruz. */
+    @Test
+    fun intervalTriggerNoLongerSkipsWhenNoNewSession() = runBlocking {
+        SettingsRepository(context).let { repo ->
+            repo.update(repo.configFlow.first().copy(lastBackupTimestamp = System.currentTimeMillis() + 60_000L))
+        }
+        val worker = TestListenableWorkerBuilder<DailyBackupWorker>(context)
+            .setInputData(workDataOf(BackupScheduler.WORK_DATA_KEY_IS_INTERVAL_TRIGGER to true))
+            .build()
+
+        worker.doWork()
+
+        val statusAfter = SettingsRepository(context).configFlow.first().lastBackupStatus
+        assertTrue(
+            "interval trigger must no longer report the old 'skipped, no new data' status: was '$statusAfter'",
+            !statusAfter.contains("yeni veri yok") && !statusAfter.contains("no new data"),
+        )
+    }
 }

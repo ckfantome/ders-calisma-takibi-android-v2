@@ -267,6 +267,7 @@
     <string name="settings_group_admin_pin">Yonetici PIN</string>
     <string name="settings_admin_pin_label">Ogrenci -&gt; Yonetici gecisinde istenen PIN</string>
     <string name="settings_group_backup_email">Yedekleme / E-posta</string>
+    <string name="settings_group_backup_now">Yedekleme</string>
     <string name="settings_admin_email_label">Admin E-posta (gonderen ve alici)</string>
     <string name="settings_app_password_label">Uygulama Sifresi (Gmail App Password)</string>
     <string name="settings_gmail_app_password_note">Gmail icin 2 Adimli Dogrulama acik olmali, normal sifre degil \'Uygulama Sifresi\' kullan (myaccount.google.com/apppasswords).</string>

@@ -267,6 +267,7 @@
     <string name="settings_group_admin_pin">Administrator PIN</string>
     <string name="settings_admin_pin_label">PIN required for Student -&gt; Administrator switch</string>
     <string name="settings_group_backup_email">Backup / Email</string>
+    <string name="settings_group_backup_now">Backup</string>
     <string name="settings_admin_email_label">Admin Email (sender and recipient)</string>
     <string name="settings_app_password_label">App Password (Gmail App Password)</string>
     <string name="settings_gmail_app_password_note">2-Step Verification must be on for Gmail, use an \'App Password\' instead of your normal password (myaccount.google.com/apppasswords).</string>
