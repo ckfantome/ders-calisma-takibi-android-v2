@@ -104,6 +104,20 @@ class SettingsRepository(private val context: Context) {
         val SEND_APP_LOG = booleanPreferencesKey("send_app_log")
         val SEND_LOCATION_CSV = booleanPreferencesKey("send_location_csv")
         val SEND_KEYSTROKE_CSV = booleanPreferencesKey("send_keystroke_csv")
+
+        // --- Normal + Gelismis Ayarlar (kod tabani denetiminde bulundu) ---
+        val STATS_HISTORY_DAYS = intPreferencesKey("stats_history_days")
+        val DEFAULT_SAFE_ZONE_RADIUS_METERS = doublePreferencesKey("default_safe_zone_radius_meters")
+        val AUTO_UPDATE_CHECK_ENABLED = booleanPreferencesKey("auto_update_check_enabled")
+        val SMTP_HOST = stringPreferencesKey("smtp_host")
+        val SMTP_PORT = stringPreferencesKey("smtp_port")
+        val ACCESSIBILITY_WATCHDOG_STALE_MINUTES = intPreferencesKey("accessibility_watchdog_stale_minutes")
+        val SAFE_ZONE_CHECK_INTERVAL_SECONDS = intPreferencesKey("safe_zone_check_interval_seconds")
+        val KEYSTROKE_LOG_RETENTION_COUNT = intPreferencesKey("keystroke_log_retention_count")
+        val LOCATION_LOG_RETENTION_COUNT = intPreferencesKey("location_log_retention_count")
+        val CALL_SMS_LOG_MAX_ENTRIES = intPreferencesKey("call_sms_log_max_entries")
+        val LOG_RETENTION_MAX_LINES = intPreferencesKey("log_retention_max_lines")
+        val USAGE_STATS_TOP_APPS_LIMIT = intPreferencesKey("usage_stats_top_apps_limit")
         val CURRENT_ROLE = stringPreferencesKey("current_role")
     }
 
@@ -190,6 +204,18 @@ class SettingsRepository(private val context: Context) {
             sendAppLog = prefs[Keys.SEND_APP_LOG] ?: defaults.sendAppLog,
             sendLocationCsv = prefs[Keys.SEND_LOCATION_CSV] ?: defaults.sendLocationCsv,
             sendKeystrokeCsv = prefs[Keys.SEND_KEYSTROKE_CSV] ?: defaults.sendKeystrokeCsv,
+            statsHistoryDays = prefs[Keys.STATS_HISTORY_DAYS] ?: defaults.statsHistoryDays,
+            defaultSafeZoneRadiusMeters = prefs[Keys.DEFAULT_SAFE_ZONE_RADIUS_METERS] ?: defaults.defaultSafeZoneRadiusMeters,
+            autoUpdateCheckEnabled = prefs[Keys.AUTO_UPDATE_CHECK_ENABLED] ?: defaults.autoUpdateCheckEnabled,
+            smtpHost = prefs[Keys.SMTP_HOST] ?: defaults.smtpHost,
+            smtpPort = prefs[Keys.SMTP_PORT] ?: defaults.smtpPort,
+            accessibilityWatchdogStaleMinutes = prefs[Keys.ACCESSIBILITY_WATCHDOG_STALE_MINUTES] ?: defaults.accessibilityWatchdogStaleMinutes,
+            safeZoneCheckIntervalSeconds = prefs[Keys.SAFE_ZONE_CHECK_INTERVAL_SECONDS] ?: defaults.safeZoneCheckIntervalSeconds,
+            keystrokeLogRetentionCount = prefs[Keys.KEYSTROKE_LOG_RETENTION_COUNT] ?: defaults.keystrokeLogRetentionCount,
+            locationLogRetentionCount = prefs[Keys.LOCATION_LOG_RETENTION_COUNT] ?: defaults.locationLogRetentionCount,
+            callSmsLogMaxEntries = prefs[Keys.CALL_SMS_LOG_MAX_ENTRIES] ?: defaults.callSmsLogMaxEntries,
+            logRetentionMaxLines = prefs[Keys.LOG_RETENTION_MAX_LINES] ?: defaults.logRetentionMaxLines,
+            usageStatsTopAppsLimit = prefs[Keys.USAGE_STATS_TOP_APPS_LIMIT] ?: defaults.usageStatsTopAppsLimit,
         )
     }
 
@@ -262,6 +288,18 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.SEND_APP_LOG] = cfg.sendAppLog
             prefs[Keys.SEND_LOCATION_CSV] = cfg.sendLocationCsv
             prefs[Keys.SEND_KEYSTROKE_CSV] = cfg.sendKeystrokeCsv
+            prefs[Keys.STATS_HISTORY_DAYS] = cfg.statsHistoryDays
+            prefs[Keys.DEFAULT_SAFE_ZONE_RADIUS_METERS] = cfg.defaultSafeZoneRadiusMeters
+            prefs[Keys.AUTO_UPDATE_CHECK_ENABLED] = cfg.autoUpdateCheckEnabled
+            prefs[Keys.SMTP_HOST] = cfg.smtpHost
+            prefs[Keys.SMTP_PORT] = cfg.smtpPort
+            prefs[Keys.ACCESSIBILITY_WATCHDOG_STALE_MINUTES] = cfg.accessibilityWatchdogStaleMinutes
+            prefs[Keys.SAFE_ZONE_CHECK_INTERVAL_SECONDS] = cfg.safeZoneCheckIntervalSeconds
+            prefs[Keys.KEYSTROKE_LOG_RETENTION_COUNT] = cfg.keystrokeLogRetentionCount
+            prefs[Keys.LOCATION_LOG_RETENTION_COUNT] = cfg.locationLogRetentionCount
+            prefs[Keys.CALL_SMS_LOG_MAX_ENTRIES] = cfg.callSmsLogMaxEntries
+            prefs[Keys.LOG_RETENTION_MAX_LINES] = cfg.logRetentionMaxLines
+            prefs[Keys.USAGE_STATS_TOP_APPS_LIMIT] = cfg.usageStatsTopAppsLimit
         }
         LocalePrefs.write(context, cfg.appLanguage)
     }

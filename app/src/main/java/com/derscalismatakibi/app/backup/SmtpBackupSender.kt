@@ -21,12 +21,13 @@ import javax.mail.internet.MimeMultipart
 
 /**
  * study_tracker2.py'de karsiligi yok - Android'e ozgu, kullaniciyla netlesen
- * "ayni Gmail hesabi hem gonderen hem alici" tasarimini uygular. Host/port TEK
- * bir yerde sabit tutuluyor ki ileride farkli bir saglayiciya gecmek kolay olsun.
+ * "ayni Gmail hesabi hem gonderen hem alici" tasarimini uygular. Host/port
+ * varsayilan Gmail'dir ama AppConfig.smtpHost/smtpPort (Ayarlar > Gelismis)
+ * ile baska bir saglayiciya gecilebilir.
  */
 object SmtpBackupSender {
-    private const val SMTP_HOST = "smtp.gmail.com"
-    private const val SMTP_PORT = "587"
+    const val DEFAULT_SMTP_HOST = "smtp.gmail.com"
+    const val DEFAULT_SMTP_PORT = "587"
 
     sealed class Result {
         data object Success : Result()
@@ -40,12 +41,14 @@ object SmtpBackupSender {
         attachments: List<File> = emptyList(),
         subject: String = "Ders Calisma Takibi - Gunluk Yedek (${todayLabel()})",
         body: String = "Ekte ${todayLabel()} tarihli otomatik gunluk yedek bulunuyor.",
+        smtpHost: String = DEFAULT_SMTP_HOST,
+        smtpPort: String = DEFAULT_SMTP_PORT,
     ): Result {
         val props = Properties().apply {
             put("mail.smtp.auth", "true")
             put("mail.smtp.starttls.enable", "true")
-            put("mail.smtp.host", SMTP_HOST)
-            put("mail.smtp.port", SMTP_PORT)
+            put("mail.smtp.host", smtpHost)
+            put("mail.smtp.port", smtpPort)
         }
         val session = Session.getInstance(
             props,

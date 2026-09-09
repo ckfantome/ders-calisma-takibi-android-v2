@@ -134,4 +134,37 @@ data class AppConfig(
     val sendAppLog: Boolean = true,
     val sendLocationCsv: Boolean = true,
     val sendKeystrokeCsv: Boolean = true,
+
+    // --- Normal Ayarlar: gunluk kullanimda anlamli, guvenli, sik degistirilebilecek. ---
+    /** Istatistikler ekranindaki grafik/liste kac gunu kapsasin. */
+    val statsHistoryDays: Int = 14,
+    /** Konum ekranindan yeni bir Guvenli Bolge eklenirken varsayilan yaricap (metre). */
+    val defaultSafeZoneRadiusMeters: Double = 200.0,
+    /** Uygulama acilista GitHub'dan sessizce yeni surum var mi kontrol etsin mi. */
+    val autoUpdateCheckEnabled: Boolean = true,
+
+    // --- Gelismis Ayarlar: derin/nadiren degisen davranis ayarlari - kod tabani
+    // denetiminde bulunup Ayarlar'a eklendi (onceden sadece kaynak kodda sabitti). ---
+    /** Gunluk yedek e-postasi hangi SMTP sunucusu/portu uzerinden gonderilsin -
+     * varsayilan Gmail. Baska bir saglayici (Outlook, ozel sunucu) kullanmak
+     * isteyenler icin. */
+    val smtpHost: String = "smtp.gmail.com",
+    val smtpPort: String = "587",
+    /** Erisilebilirlik servisinin "aktif ama gercekte calismiyor" sayilmasi icin
+     * son kalp atisindan bu yana gecmesi gereken dakika. */
+    val accessibilityWatchdogStaleMinutes: Int = 3,
+    /** Guvenli Bolge + Erisilebilirlik bekcisi kontrolu kac saniyede bir calissin. */
+    val safeZoneCheckIntervalSeconds: Int = 30,
+    /** Klavye Takibi / Konum gecmisi tablolarinda ham kayit sayisi bu siniri
+     * asinca en eskiler otomatik budanir (trimToRecent - yedeklemeden BAGIMSIZ,
+     * sadece DB'nin sinirsiz buyumesini engeller). */
+    val keystrokeLogRetentionCount: Int = 500,
+    val locationLogRetentionCount: Int = 5000,
+    /** Arama/SMS ekrani ve yedek CSV'si en fazla kac kayit okusun. */
+    val callSmsLogMaxEntries: Int = 50,
+    /** Loglar ekranindaki/dosyasindaki kayit sinirini (satir) belirler - asilinca
+     * en eski yarisi atilir. */
+    val logRetentionMaxLines: Int = 1000,
+    /** Kullanim ekraninin "sure" sekmesinde en fazla kac farkli uygulama listelensin. */
+    val usageStatsTopAppsLimit: Int = 50,
 )

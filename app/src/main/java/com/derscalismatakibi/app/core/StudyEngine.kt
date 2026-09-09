@@ -204,7 +204,7 @@ object StudyEngine {
         // konumu kontrol eder, sadece icerde/disarda DURUMU DEGISINCE loglar/bildirir.
         engineScope.launch {
             while (true) {
-                delay(30_000)
+                delay(cfg.safeZoneCheckIntervalSeconds.coerceAtLeast(5) * 1000L)
                 checkSafeZone()
                 checkAccessibilityWatchdog()
             }
@@ -217,9 +217,9 @@ object StudyEngine {
     // kaydini yansitir, servisin GERCEKTEN baglanip calistigini degil - reboot
     // sonrasi bazi OEM'lerde (MIUI/ColorOS/EMUI/Vivo) bu ikisi ayrisiyor. Bu
     // yuzden AppBlockAccessibilityService'in her event'te biraktigi heartbeat de
-    // ayrica kontrol edilir; 3 dakikalik esik 30sn'lik poll periyodundan ve
-    // olagan event ariligindan (durgun kullanim) rahat pay birakir.
-    private val accessibilityHeartbeatStaleMs = 3 * 60 * 1000L
+    // ayrica kontrol edilir; Ayarlar > Gelismis'teki esik (varsayilan 3 dakika)
+    // poll periyodundan ve olagan event ariligindan (durgun kullanim) rahat pay
+    // birakacak sekilde secilmelidir.
 
     /** Uygulama Kilidi'ni uygulayan Erisilebilirlik Servisi kapali/olu ise
      * engelleme SESSIZCE calismiyor demektir. Once sadece Sinav/Odev Modu
@@ -228,8 +228,9 @@ object StudyEngine {
      * ise (mevcut davranis korunarak) hala sadece Sinav Modu acikken gonderilir. */
     private suspend fun checkAccessibilityWatchdog() {
         val heartbeatAge = System.currentTimeMillis() - com.derscalismatakibi.app.util.AccessibilityHelper.lastHeartbeat(appContext)
+        val staleMs = cfg.accessibilityWatchdogStaleMinutes.coerceAtLeast(1) * 60 * 1000L
         val broken = !com.derscalismatakibi.app.util.AccessibilityHelper.isAppBlockServiceEnabled(appContext) ||
-            heartbeatAge > accessibilityHeartbeatStaleMs
+            heartbeatAge > staleMs
         if (broken == accessibilityBroken) return
         accessibilityBroken = broken
         if (broken) {
@@ -265,7 +266,7 @@ object StudyEngine {
         // Guvenli Bolge tanimli olup olmadigina bakilmaksizin.
         try {
             db.locationLogDao().insert(LocationLogEntity(lat = loc.latitude, lng = loc.longitude, timestamp = System.currentTimeMillis()))
-            db.locationLogDao().trimToRecent()
+            db.locationLogDao().trimToRecent(cfg.locationLogRetentionCount.coerceAtLeast(1))
         } catch (t: Throwable) {
             AppLogger.logError("Konum", "Konum gecmisi yazilamadi", t)
         }
@@ -702,7 +703,7 @@ object StudyEngine {
     suspend fun dailyTotals(limit: Int = 30): List<DailyTotal> = db.sessionDao().dailyTotals(limit)
 
     private var usageCacheTimestamp = 0L
-    private var usageCache: List<com.derscalismatakibi.app.util.AppUsageEntry> = emptyList()
+    private var usageCache: Map<String, Long> = emptyMap()
 
     /** UsageStatsManager sorgusu (tum kurulu uygulamalarin gunluk kullanimi +
      * her biri icin ayri PackageManager.getApplicationLabel binder cagrisi) agir -
@@ -710,15 +711,19 @@ object StudyEngine {
      * (dakikada onlarca kez) calisiyordu. Ayarlar > Calisan Sistemler'deki
      * "Kullanim Suresi Kontrol Sikligi" (usageCheckIntervalSeconds) - 0 ise her
      * seferinde tazelenir (Anlik), aksi halde son sorgu o kadar taze ise
-     * onbellekten donulur (kontrol birkac saniye gecikmeli tetiklenebilir). */
+     * onbellekten donulur (kontrol birkac saniye gecikmeli tetiklenebilir).
+     * loadTodayUsageRaw() kullanilir (loadTodayUsage() DEGIL) - o gosterim
+     * amacli bir sinira sahip, yogun kullanimda sinirli uygulamanin kendisi o
+     * listeden dusup sure sinirinin sessizce calismamasina yol acabiliyordu
+     * (bulunan ve duzeltilen gercek bir bug). */
     private fun todaysUsageMinutes(pkg: String): Long {
         val intervalMs = cfg.usageCheckIntervalSeconds * 1000L
         val now = System.currentTimeMillis()
         if (intervalMs <= 0 || now - usageCacheTimestamp >= intervalMs) {
-            usageCache = UsageStatsHelper.loadTodayUsage(appContext)
+            usageCache = UsageStatsHelper.loadTodayUsageRaw(appContext)
             usageCacheTimestamp = now
         }
-        return usageCache.find { it.packageName == pkg }?.totalMillis?.div(60000) ?: 0L
+        return (usageCache[pkg] ?: 0L) / 60000
     }
 
     /** Uygulama Kilidi: hem AppBlockAccessibilityService hem (ileride) UI ayni

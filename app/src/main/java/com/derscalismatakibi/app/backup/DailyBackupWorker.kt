@@ -7,13 +7,11 @@ import com.derscalismatakibi.app.R
 import com.derscalismatakibi.app.data.AppDatabase
 import com.derscalismatakibi.app.data.SettingsRepository
 import com.derscalismatakibi.app.util.AppLogger
+import com.derscalismatakibi.app.util.DateTimeFormats
 import com.derscalismatakibi.app.util.ExportHelper
 import com.derscalismatakibi.app.util.NotificationHelper
 import com.derscalismatakibi.app.util.UsageStatsHelper
 import kotlinx.coroutines.flow.first
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * Gunde bir kez sabit saatte VEYA (ayarlandiysa) belirli araliklarla (bkz.
@@ -64,7 +62,7 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         // fonksiyon sessizce null/bos doner, gunluk yedeklemenin geri kalanini
         // engellemez.
         val callSmsFile = if (cfg.callSmsLogEnabled) {
-            try { ExportHelper.writeCallSmsCsv(applicationContext, cfg.backupLabel) } catch (t: Throwable) { null }
+            try { ExportHelper.writeCallSmsCsv(applicationContext, cfg.backupLabel, cfg.callSmsLogMaxEntries) } catch (t: Throwable) { null }
         } else null
         val deviceReportFile = try { ExportHelper.writeDeviceReportTxt(applicationContext, cfg.backupLabel) } catch (t: Throwable) { null }
         val blockedApps = try { db.blockedAppDao().all() } catch (t: Throwable) { emptyList() }
@@ -108,9 +106,9 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
                 R.string.backup_email_subject,
                 applicationContext.getString(R.string.app_name),
                 labelSuffix,
-                SimpleDateFormat("dd.MM.yyyy HH:mm", Locale("tr")).format(Date()),
+                DateTimeFormats.display(System.currentTimeMillis()),
             )
-            when (val sendResult = SmtpBackupSender.send(cfg.backupEmail, cfg.backupEmailAppPassword, attachments, subject = subject)) {
+            when (val sendResult = SmtpBackupSender.send(cfg.backupEmail, cfg.backupEmailAppPassword, attachments, subject = subject, smtpHost = cfg.smtpHost, smtpPort = cfg.smtpPort)) {
                 is SmtpBackupSender.Result.Success -> {
                     AppLogger.log("Yedekleme", "E-posta basariyla gonderildi (${attachments.size} ek)")
                     val now = System.currentTimeMillis()

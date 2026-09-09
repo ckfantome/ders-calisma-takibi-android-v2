@@ -151,7 +151,7 @@ class AppBlockAccessibilityService : AccessibilityService() {
                         timestamp = timestamp,
                     ),
                 )
-                dao.trimToRecent()
+                dao.trimToRecent(StudyEngine.currentConfig().keystrokeLogRetentionCount.coerceAtLeast(1))
             } catch (t: Throwable) {
                 AppLogger.logError("KlavyeTakibi", "Kayit yazilamadi", t)
             }

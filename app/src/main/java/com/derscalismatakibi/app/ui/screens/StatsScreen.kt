@@ -15,6 +15,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,19 +49,20 @@ import java.util.Locale
  */
 @Composable
 fun StatsScreen(viewModel: StudyViewModel) {
+    val cfg by viewModel.configState.collectAsState()
     var totals by remember { mutableStateOf<List<DailyTotal>>(emptyList()) }
     var weeklySeconds by remember { mutableStateOf(0.0) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val chartEntryModelProducer = remember { ChartEntryModelProducer() }
-    // Grafikte en fazla son 14 gun gosterilir - okunabilirlik icin (liste asagida
-    // hala tum 30 gunu gosterir).
-    val chartDays = remember(totals) { totals.take(14).asReversed() }
+    // Grafik + liste araligi Ayarlar > Istatistikler Gecmisi (statsHistoryDays) ile
+    // kontrol edilir - varsayilan 14 gun (Ayarlar'dan degistirilebilir).
+    val chartDays = remember(totals) { totals.asReversed() }
     val chartDateFmt = remember { SimpleDateFormat("dd.MM", Locale.US) }
     val isoDateFmt = remember { SimpleDateFormat("yyyy-MM-dd", Locale.US) }
 
-    LaunchedEffect(Unit) {
-        totals = viewModel.dailyTotals(30)
+    LaunchedEffect(cfg.statsHistoryDays) {
+        totals = viewModel.dailyTotals(cfg.statsHistoryDays)
         weeklySeconds = viewModel.weeklyStudySeconds()
     }
     LaunchedEffect(chartDays) {

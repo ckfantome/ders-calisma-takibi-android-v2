@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,6 +49,7 @@ import com.derscalismatakibi.app.util.UsageStatsHelper
 @Composable
 fun UsageStatsScreen() {
     val context = LocalContext.current
+    val cfg by com.derscalismatakibi.app.core.StudyEngine.configState.collectAsState()
     var hasAccess by remember { mutableStateOf(UsageStatsHelper.hasUsageAccess(context)) }
     var entries by remember { mutableStateOf<List<AppUsageEntry>>(emptyList()) }
     var events by remember { mutableStateOf<List<AppEventEntry>>(emptyList()) }
@@ -56,10 +58,10 @@ fun UsageStatsScreen() {
 
     // Kullanici Ayarlar'dan izin verip bu ekrana donebilir - resumeTrigger sayesinde
     // ekrana her ON_RESUME'da (composable ayni kalsa bile) tekrar kontrol edilir.
-    LaunchedEffect(resumeTrigger) {
+    LaunchedEffect(resumeTrigger, cfg.usageStatsTopAppsLimit) {
         hasAccess = UsageStatsHelper.hasUsageAccess(context)
         if (hasAccess) {
-            entries = UsageStatsHelper.loadTodayUsage(context)
+            entries = UsageStatsHelper.loadTodayUsage(context, cfg.usageStatsTopAppsLimit)
             events = UsageStatsHelper.loadTodayEvents(context)
         }
     }

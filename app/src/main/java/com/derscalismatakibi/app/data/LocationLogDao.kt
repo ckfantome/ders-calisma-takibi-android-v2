@@ -19,8 +19,9 @@ interface LocationLogDao {
     @Query("DELETE FROM location_logs")
     suspend fun clear()
 
-    // ponytail: 5000 sabit sinir (30sn'de bir ekleniyor, ~1.7 gunluk veri),
-    // gerektiginde artir - sinirsiz buyume yerine en eskiyi budar.
-    @Query("DELETE FROM location_logs WHERE id NOT IN (SELECT id FROM location_logs ORDER BY timestamp DESC LIMIT 5000)")
-    suspend fun trimToRecent()
+    // Sinirsiz buyume yerine en eskiyi budar - saklanacak kayit sayisi Ayarlar >
+    // Gelismis'ten (locationLogRetentionCount, varsayilan 5000 - 30sn'de bir
+    // ekleniyor, ~1.7 gunluk veriye denk gelir) kontrol edilir.
+    @Query("DELETE FROM location_logs WHERE id NOT IN (SELECT id FROM location_logs ORDER BY timestamp DESC LIMIT :limit)")
+    suspend fun trimToRecent(limit: Int)
 }

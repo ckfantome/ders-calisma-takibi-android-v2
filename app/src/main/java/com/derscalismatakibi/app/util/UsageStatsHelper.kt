@@ -86,7 +86,14 @@ object UsageStatsHelper {
         return mode == AppOpsManager.MODE_ALLOWED
     }
 
-    fun loadTodayUsage(context: Context): List<AppUsageEntry> {
+    /** Bugunku (00:00 - simdi) her uygulamanin ham UsageStatsManager kaydi,
+     * paket adina gore gruplanmis - HICBIR sinir/sirlama uygulanmadan. Gunluk
+     * sure siniri gibi TEK bir paketin gercek suresine ihtiyac duyan cagrilar
+     * (bkz. StudyEngine.todaysUsageMinutes) buradan gecmeli - asagidaki
+     * loadTodayUsage()'in gosterim amacli sinirlamasindan ETKILENMEMELI,
+     * aksi halde yogun kullanimda (50+ farkli uygulama) sinirli uygulamanin
+     * kendisi listeden dusup sure sinirinin SESSIZCE calismamasina yol acabilir. */
+    fun loadTodayUsageRaw(context: Context): Map<String, Long> {
         val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val cal = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)
@@ -97,13 +104,22 @@ object UsageStatsHelper {
         val start = cal.timeInMillis
         val end = System.currentTimeMillis()
         val stats = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, start, end) ?: emptyList()
-        val pm = context.packageManager
         return stats
             .filter { it.totalTimeInForeground > 0 && it.packageName != context.packageName }
             .groupBy { it.packageName }
-            .map { (pkg, list) -> AppUsageEntry(label = appLabel(pm, pkg), packageName = pkg, totalMillis = list.sumOf { s -> s.totalTimeInForeground }) }
+            .mapValues { (_, list) -> list.sumOf { s -> s.totalTimeInForeground } }
+    }
+
+    /** Kullanim ekraninin "sure" sekmesi icin - gosterim amacli, en fazla
+     * [limit] farkli uygulama (varsayilan 50, Ayarlar > Gelismis'ten
+     * usageStatsTopAppsLimit ile degistirilebilir). Sinir enforcement
+     * (gunluk sure siniri) icin KULLANILMAMALI - bkz. loadTodayUsageRaw. */
+    fun loadTodayUsage(context: Context, limit: Int = 50): List<AppUsageEntry> {
+        val pm = context.packageManager
+        return loadTodayUsageRaw(context)
+            .map { (pkg, totalMillis) -> AppUsageEntry(label = appLabel(pm, pkg), packageName = pkg, totalMillis = totalMillis) }
             .sortedByDescending { it.totalMillis }
-            .take(50)
+            .take(limit)
     }
 
     private fun appLabel(pm: PackageManager, pkg: String): String = try {

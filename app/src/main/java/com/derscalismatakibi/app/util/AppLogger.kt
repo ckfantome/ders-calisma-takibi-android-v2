@@ -23,7 +23,10 @@ import java.io.File
  * (uygulama/servis yeniden baslasa da kaybolmasin diye) tutulur.
  */
 object AppLogger {
-    private const val MAX_MEMORY_LINES = 1000
+    /** Ayarlar > Gelismis'teki logRetentionMaxLines - StudyEngine henuz
+     * baslatilmamissa (cok erken cagri) varsayilan 1000'e duser. */
+    private fun maxMemoryLines(): Int =
+        runCatching { com.derscalismatakibi.app.core.StudyEngine.currentConfig().logRetentionMaxLines }.getOrDefault(1000).coerceAtLeast(100)
     private const val MAX_FILE_BYTES = 5L * 1024 * 1024 // 5MB - asilirsa en eski yari atilir.
     private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -43,7 +46,7 @@ object AppLogger {
     fun log(tag: String, message: String) {
         val line = "${DateTimeFormats.logTimestamp(System.currentTimeMillis())} [$tag] $message"
         android.util.Log.d(tag, message)
-        _logs.value = (_logs.value + line).let { if (it.size > MAX_MEMORY_LINES) it.takeLast(MAX_MEMORY_LINES) else it }
+        _logs.value = (_logs.value + line).let { if (it.size > maxMemoryLines()) it.takeLast(maxMemoryLines()) else it }
         ioScope.launch { appendToFile(line) }
     }
 
@@ -51,7 +54,7 @@ object AppLogger {
         val suffix = t?.let { " - ${it::class.simpleName}: ${it.message}" } ?: ""
         val line = "${DateTimeFormats.logTimestamp(System.currentTimeMillis())} [$tag] HATA: $message$suffix"
         android.util.Log.w(tag, message, t)
-        _logs.value = (_logs.value + line).let { if (it.size > MAX_MEMORY_LINES) it.takeLast(MAX_MEMORY_LINES) else it }
+        _logs.value = (_logs.value + line).let { if (it.size > maxMemoryLines()) it.takeLast(maxMemoryLines()) else it }
         ioScope.launch { appendToFile(line) }
     }
 

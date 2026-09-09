@@ -68,9 +68,9 @@ fun CallLogScreen() {
     var sms by remember { mutableStateOf<List<SmsEntry>>(emptyList()) }
     var showSms by remember { mutableStateOf(false) }
 
-    LaunchedEffect(hasCallPerm, hasSmsPerm) {
-        if (hasCallPerm) calls = loadCalls(context)
-        if (hasSmsPerm) sms = loadSms(context)
+    LaunchedEffect(hasCallPerm, hasSmsPerm, cfg.callSmsLogMaxEntries) {
+        if (hasCallPerm) calls = loadCalls(context, cfg.callSmsLogMaxEntries)
+        if (hasSmsPerm) sms = loadSms(context, cfg.callSmsLogMaxEntries)
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -121,14 +121,14 @@ fun CallLogScreen() {
     }
 }
 
-fun loadCalls(context: android.content.Context): List<CallEntry> {
+fun loadCalls(context: android.content.Context, maxEntries: Int = 50): List<CallEntry> {
     val result = mutableListOf<CallEntry>()
     context.contentResolver.query(
         CallLog.Calls.CONTENT_URI,
         arrayOf(CallLog.Calls.CACHED_NAME, CallLog.Calls.NUMBER, CallLog.Calls.TYPE, CallLog.Calls.DURATION, CallLog.Calls.DATE),
         null, null, "${CallLog.Calls.DATE} DESC",
     )?.use { cursor ->
-        while (cursor.moveToNext() && result.size < 50) {
+        while (cursor.moveToNext() && result.size < maxEntries) {
             val name = cursor.getString(0) ?: cursor.getString(1) ?: context.getString(R.string.call_log_unknown)
             val type = when (cursor.getInt(2)) {
                 CallLog.Calls.INCOMING_TYPE -> context.getString(R.string.call_log_type_incoming)
@@ -142,14 +142,14 @@ fun loadCalls(context: android.content.Context): List<CallEntry> {
     return result
 }
 
-fun loadSms(context: android.content.Context): List<SmsEntry> {
+fun loadSms(context: android.content.Context, maxEntries: Int = 50): List<SmsEntry> {
     val result = mutableListOf<SmsEntry>()
     context.contentResolver.query(
         Telephony.Sms.CONTENT_URI,
         arrayOf(Telephony.Sms.ADDRESS, Telephony.Sms.BODY, Telephony.Sms.DATE),
         null, null, "${Telephony.Sms.DATE} DESC",
     )?.use { cursor ->
-        while (cursor.moveToNext() && result.size < 50) {
+        while (cursor.moveToNext() && result.size < maxEntries) {
             val address = cursor.getString(0) ?: context.getString(R.string.call_log_unknown)
             val body = (cursor.getString(1) ?: "").take(50)
             result.add(SmsEntry(address, body, cursor.getLong(2)))

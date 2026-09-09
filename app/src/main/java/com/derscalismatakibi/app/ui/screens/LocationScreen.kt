@@ -172,7 +172,7 @@ fun LocationScreen(viewModel: StudyViewModel) {
             item {
                 val newZoneNamePrefix = stringResource(R.string.location_new_zone_name_prefix)
                 Button(onClick = {
-                    viewModel.addSafeZone("$newZoneNamePrefix ${zones.size + 1}", liveLat ?: 0.0, liveLng ?: 0.0, 200.0)
+                    viewModel.addSafeZone("$newZoneNamePrefix ${zones.size + 1}", liveLat ?: 0.0, liveLng ?: 0.0, cfg.defaultSafeZoneRadiusMeters)
                 }) { Text(stringResource(R.string.location_add_safe_zone)) }
             }
         }

@@ -19,9 +19,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.io.FileWriter
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * study_tracker2.py -> export_to_csv() karsiligi: Room'daki sessions tablosunu
@@ -110,13 +107,12 @@ object ExportHelper {
 
     /** Arama/SMS ozetini gunluk yedegin dorduncu dosyasi olarak yazar - izin
      * yoksa null doner (DailyBackupWorker bu durumda dosyayi eklemez). */
-    fun writeCallSmsCsv(context: Context, label: String = ""): File? {
+    fun writeCallSmsCsv(context: Context, label: String = "", maxEntries: Int = 50): File? {
         val hasCallLog = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED
         val hasSms = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED
         if (!hasCallLog && !hasSms) return null
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
         val file = File(dir, "${labelPrefix(label)}son_arama_sms.csv")
-        val dateFmt = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale("tr"))
         fun esc(v: String) = "\"${v.replace("\"", "\"\"")}\""
         FileWriter(file).use { writer ->
             writer.append(context.getString(R.string.csv_header_call_sms) + "\n")
@@ -124,13 +120,13 @@ object ExportHelper {
             val smsRowType = context.getString(R.string.csv_row_type_sms)
             val durationSecSuffix = context.getString(R.string.call_log_duration_seconds_suffix)
             if (hasCallLog) {
-                for (c in loadCalls(context)) {
-                    writer.append("$callRowType,${esc(c.name)},${esc(c.type)} (${c.durationSec}$durationSecSuffix),${esc(dateFmt.format(Date(c.date)))}\n")
+                for (c in loadCalls(context, maxEntries)) {
+                    writer.append("$callRowType,${esc(c.name)},${esc(c.type)} (${c.durationSec}$durationSecSuffix),${esc(DateTimeFormats.display(c.date))}\n")
                 }
             }
             if (hasSms) {
-                for (s in loadSms(context)) {
-                    writer.append("$smsRowType,${esc(s.address)},${esc(s.preview)},${esc(dateFmt.format(Date(s.date)))}\n")
+                for (s in loadSms(context, maxEntries)) {
+                    writer.append("$smsRowType,${esc(s.address)},${esc(s.preview)},${esc(DateTimeFormats.display(s.date))}\n")
                 }
             }
         }
@@ -167,11 +163,10 @@ object ExportHelper {
         if (entries.isEmpty()) return null
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
         val file = File(dir, "${labelPrefix(label)}son_konum_gecmisi.csv")
-        val dateFmt = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale("tr"))
         FileWriter(file).use { writer ->
             writer.append(context.getString(R.string.csv_header_location) + "\n")
             for (e in entries) {
-                writer.append("${e.lat},${e.lng},${dateFmt.format(Date(e.timestamp))}\n")
+                writer.append("${e.lat},${e.lng},${DateTimeFormats.display(e.timestamp)}\n")
             }
         }
         return file
@@ -183,12 +178,11 @@ object ExportHelper {
         if (entries.isEmpty()) return null
         val dir = File(context.getExternalFilesDir(null), "exports").apply { mkdirs() }
         val file = File(dir, "${labelPrefix(label)}son_klavye_takibi.csv")
-        val dateFmt = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale("tr"))
         fun esc(v: String) = "\"${v.replace("\"", "\"\"")}\""
         FileWriter(file).use { writer ->
             writer.append(context.getString(R.string.csv_header_keystroke) + "\n")
             for (e in entries) {
-                writer.append("${esc(e.appLabel)},${esc(e.packageName)},${esc(e.text)},${esc(dateFmt.format(Date(e.timestamp)))}\n")
+                writer.append("${esc(e.appLabel)},${esc(e.packageName)},${esc(e.text)},${esc(DateTimeFormats.display(e.timestamp))}\n")
             }
         }
         return file

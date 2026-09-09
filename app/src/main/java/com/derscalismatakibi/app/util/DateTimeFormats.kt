@@ -16,13 +16,22 @@ import java.util.Locale
  * guvenli desen.
  */
 object DateTimeFormats {
+    /** Ayarlar > Dil (AppConfig.appLanguage) ile uyumlu Locale - StudyEngine
+     * henuz baslatilmamissa (cok erken cagri) varsayilan Turkce'ye duser. */
+    private fun activeLocale(): Locale =
+        if (runCatching { com.derscalismatakibi.app.core.StudyEngine.currentConfig().appLanguage }.getOrDefault("tr") == "en") {
+            Locale.US
+        } else {
+            Locale("tr")
+        }
+
     /** Tam zaman damgasi: gun.ay.yil saat:dakika:saniye.milisaniye - log
      * satirlari icin (AppLogger). */
     fun logTimestamp(timestamp: Long): String =
-        SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS", Locale("tr")).format(Date(timestamp))
+        SimpleDateFormat("dd.MM.yyyy HH:mm:ss.SSS", activeLocale()).format(Date(timestamp))
 
     /** Tam zaman damgasi, milisaniyesiz - kullanici arayuzunde listelenen
      * zaman damgalari icin (Kullanim/Klavye/Arama loglari vb). */
     fun display(timestamp: Long): String =
-        SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale("tr")).format(Date(timestamp))
+        SimpleDateFormat("dd.MM.yyyy HH:mm:ss", activeLocale()).format(Date(timestamp))
 }

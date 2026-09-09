@@ -142,8 +142,10 @@ fun AppNavigation() {
         }
     }
 
-    // Acilista bir kere, sessizce (kullaniciyi rahatsiz etmeden) guncelleme kontrolu.
-    LaunchedEffect(Unit) {
+    // Acilista bir kere, sessizce (kullaniciyi rahatsiz etmeden) guncelleme kontrolu -
+    // Ayarlar > Guncelleme'deki "Otomatik Guncelleme Kontrolu" anahtariyla kapatilabilir.
+    LaunchedEffect(consentCfg.autoUpdateCheckEnabled) {
+        if (!consentCfg.autoUpdateCheckEnabled) return@LaunchedEffect
         val currentVersion = try {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "0.0.0"
         } catch (e: Exception) {

@@ -54,9 +54,6 @@ import com.derscalismatakibi.app.viewmodel.StudyViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * study_tracker2.py -> SettingsDialog (FIELD_META) icin basitlestirilmis Android
@@ -177,6 +174,22 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             LabeledSlider(stringResource(R.string.settings_max_pitch_up), cfg.pitchUpMaxDeg, 5f, 90f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(pitchUpMaxDeg = it.toDouble()))
             }
+            // Konusma tespiti eslikleri - onceden AppConfig'te vardi ve StudyEngine'de
+            // gercekten kullaniliyordu ama hicbir ekrandan degistirilemiyordu (sadece
+            // "Konusma Uzakta Sayilsin" acik/kapa anahtari vardi) - kod tabani
+            // denetiminde bulunan gercek bir eksiklik, buraya eklendi.
+            LabeledSlider(stringResource(R.string.settings_speaking_mar_std), cfg.speakingMarStdThreshold, 0.005f, 0.05f, isAdmin) {
+                viewModel.updateConfig(cfg.copy(speakingMarStdThreshold = it.toDouble()))
+            }
+            LabeledSlider(stringResource(R.string.settings_speaking_mar_min), cfg.speakingMarMinThreshold, 0.01f, 0.08f, isAdmin) {
+                viewModel.updateConfig(cfg.copy(speakingMarMinThreshold = it.toDouble()))
+            }
+            LabeledSlider(stringResource(R.string.settings_speaking_window_size), cfg.speakingWindowSize.toFloat(), 4f, 30f, isAdmin) {
+                viewModel.updateConfig(cfg.copy(speakingWindowSize = it.toInt()))
+            }
+            LabeledSlider(stringResource(R.string.settings_confirm_speaking), cfg.confirmSpeakingSeconds, 1f, 30f, isAdmin) {
+                viewModel.updateConfig(cfg.copy(confirmSpeakingSeconds = it.toDouble()))
+            }
         }
 
         SettingsGroup(stringResource(R.string.settings_group_confirm_durations)) {
@@ -236,6 +249,12 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             }
             SwitchRow(stringResource(R.string.settings_keep_alive), cfg.keepAliveEnabled, isAdmin) {
                 viewModel.updateConfig(cfg.copy(keepAliveEnabled = it))
+            }
+            LabeledSlider(stringResource(R.string.settings_stats_history_days), cfg.statsHistoryDays.toFloat(), 7f, 90f, isAdmin) {
+                viewModel.updateConfig(cfg.copy(statsHistoryDays = it.toInt()))
+            }
+            LabeledSlider(stringResource(R.string.settings_default_safe_zone_radius), cfg.defaultSafeZoneRadiusMeters, 25f, 2000f, isAdmin) {
+                viewModel.updateConfig(cfg.copy(defaultSafeZoneRadiusMeters = it.toDouble()))
             }
         }
 
@@ -335,6 +354,55 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                         enabled = isAdmin,
                     ) { Text(label) }
                 }
+            }
+        }
+
+        // Gelismis Ayarlar: kod tabani denetiminde bulunan, derin/nadiren
+        // degisen davranis ayarlari - onceden sadece kaynak kodda sabitti.
+        // Sadece Yonetici gorur/degistirir (isAdmin ile disaridaki tum ekran
+        // zaten kapali - buraya ozel bir gizleme gerekmiyor).
+        SettingsGroup(stringResource(R.string.settings_group_advanced)) {
+            Text(
+                stringResource(R.string.settings_advanced_explanation),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            var smtpHostField by remember { mutableStateOf(cfg.smtpHost) }
+            OutlinedTextField(
+                value = smtpHostField,
+                onValueChange = { smtpHostField = it; viewModel.updateConfig(cfg.copy(smtpHost = it)) },
+                label = { Text(stringResource(R.string.settings_smtp_host)) },
+                enabled = isAdmin,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            var smtpPortField by remember { mutableStateOf(cfg.smtpPort) }
+            OutlinedTextField(
+                value = smtpPortField,
+                onValueChange = { smtpPortField = it; viewModel.updateConfig(cfg.copy(smtpPort = it)) },
+                label = { Text(stringResource(R.string.settings_smtp_port)) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                enabled = isAdmin,
+                modifier = Modifier.width(160.dp),
+            )
+            LabeledSlider(stringResource(R.string.settings_accessibility_watchdog_stale_minutes), cfg.accessibilityWatchdogStaleMinutes.toFloat(), 1f, 30f, isAdmin) {
+                viewModel.updateConfig(cfg.copy(accessibilityWatchdogStaleMinutes = it.toInt()))
+            }
+            LabeledSlider(stringResource(R.string.settings_safe_zone_check_interval), cfg.safeZoneCheckIntervalSeconds.toFloat(), 10f, 300f, isAdmin) {
+                viewModel.updateConfig(cfg.copy(safeZoneCheckIntervalSeconds = it.toInt()))
+            }
+            LabeledSlider(stringResource(R.string.settings_keystroke_log_retention), cfg.keystrokeLogRetentionCount.toFloat(), 50f, 5000f, isAdmin) {
+                viewModel.updateConfig(cfg.copy(keystrokeLogRetentionCount = it.toInt()))
+            }
+            LabeledSlider(stringResource(R.string.settings_location_log_retention), cfg.locationLogRetentionCount.toFloat(), 500f, 20000f, isAdmin) {
+                viewModel.updateConfig(cfg.copy(locationLogRetentionCount = it.toInt()))
+            }
+            LabeledSlider(stringResource(R.string.settings_call_sms_max_entries), cfg.callSmsLogMaxEntries.toFloat(), 10f, 500f, isAdmin) {
+                viewModel.updateConfig(cfg.copy(callSmsLogMaxEntries = it.toInt()))
+            }
+            LabeledSlider(stringResource(R.string.settings_log_retention_max_lines), cfg.logRetentionMaxLines.toFloat(), 100f, 10000f, isAdmin) {
+                viewModel.updateConfig(cfg.copy(logRetentionMaxLines = it.toInt()))
+            }
+            LabeledSlider(stringResource(R.string.settings_usage_stats_top_apps_limit), cfg.usageStatsTopAppsLimit.toFloat(), 10f, 300f, isAdmin) {
+                viewModel.updateConfig(cfg.copy(usageStatsTopAppsLimit = it.toInt()))
             }
         }
 
@@ -514,7 +582,7 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             // yedeklendigini goremez.
             if (isAdmin) {
                 val lastBackupText = if (cfg.lastBackupTimestamp > 0) {
-                    val dateStr = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale("tr")).format(Date(cfg.lastBackupTimestamp))
+                    val dateStr = com.derscalismatakibi.app.util.DateTimeFormats.display(cfg.lastBackupTimestamp)
                     stringResource(R.string.settings_last_backup_at, dateStr, cfg.lastBackupStatus)
                 } else {
                     stringResource(R.string.settings_last_backup_never)
@@ -577,6 +645,9 @@ fun SettingsScreen(viewModel: StudyViewModel) {
                 stringResource(R.string.settings_update_explanation),
                 style = MaterialTheme.typography.bodySmall,
             )
+            SwitchRow(stringResource(R.string.settings_auto_update_check), cfg.autoUpdateCheckEnabled, isAdmin) {
+                viewModel.updateConfig(cfg.copy(autoUpdateCheckEnabled = it))
+            }
             val upToDateMessage = stringResource(R.string.settings_update_up_to_date)
             val checkFailedMessage = stringResource(R.string.settings_update_check_failed)
             Button(
