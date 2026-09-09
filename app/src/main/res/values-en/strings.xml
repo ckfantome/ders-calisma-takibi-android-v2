@@ -246,6 +246,7 @@
     <string name="settings_smtp_port">SMTP Port</string>
     <string name="settings_accessibility_watchdog_stale_minutes">Accessibility Watchdog - Heartbeat Threshold (min)</string>
     <string name="settings_safe_zone_check_interval">Safe Zone Check Frequency (s)</string>
+    <string name="settings_location_update_interval">Location Update Frequency (s)</string>
     <string name="settings_keystroke_log_retention">Keystroke Log Retention (entries)</string>
     <string name="settings_location_log_retention">Location History Retention (entries)</string>
     <string name="settings_call_sms_max_entries">Call/SMS Max Entries</string>
@@ -374,7 +375,10 @@
     <!-- DailyBackupWorker -->
     <string name="backup_status_file_write_error">error: file could not be written (%1$s)</string>
     <string name="backup_status_ok_no_new_data">ok (no new data, email skipped)</string>
-    <string name="backup_email_subject">%1$s%2$s - Backup (%3$s)</string>
+    <string name="backup_email_subject">%1$s%2$s - %4$s Backup (%3$s)</string>
+    <string name="backup_trigger_type_daily">Daily</string>
+    <string name="backup_trigger_type_interval">Interval</string>
+    <string name="backup_trigger_type_manual">Manual</string>
     <string name="backup_status_transient_error">error: send failed, will retry</string>
     <string name="backup_notify_transient_failure">Daily backup email could not be sent, will retry.</string>
     <string name="backup_status_permanent_error">error: %1$s</string>

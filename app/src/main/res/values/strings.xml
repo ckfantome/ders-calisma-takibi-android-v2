@@ -246,6 +246,7 @@
     <string name="settings_smtp_port">SMTP Portu</string>
     <string name="settings_accessibility_watchdog_stale_minutes">Erisilebilirlik Bekcisi - Kalp Atisi Esigi (dk)</string>
     <string name="settings_safe_zone_check_interval">Guvenli Bolge Kontrol Sikligi (sn)</string>
+    <string name="settings_location_update_interval">Konum Guncelleme Sikligi (sn)</string>
     <string name="settings_keystroke_log_retention">Klavye Takibi Kayit Sinirlama (adet)</string>
     <string name="settings_location_log_retention">Konum Gecmisi Kayit Sinirlama (adet)</string>
     <string name="settings_call_sms_max_entries">Arama/SMS En Fazla Kayit (adet)</string>
@@ -374,7 +375,10 @@
     <!-- DailyBackupWorker -->
     <string name="backup_status_file_write_error">error: dosya yazilamadi (%1$s)</string>
     <string name="backup_status_ok_no_new_data">ok (yeni veri yok, e-posta atlandi)</string>
-    <string name="backup_email_subject">%1$s%2$s - Yedek (%3$s)</string>
+    <string name="backup_email_subject">%1$s%2$s - %4$s Yedek (%3$s)</string>
+    <string name="backup_trigger_type_daily">Gunluk</string>
+    <string name="backup_trigger_type_interval">Araliklarla</string>
+    <string name="backup_trigger_type_manual">Manuel</string>
     <string name="backup_status_transient_error">error: gonderim basarisiz, tekrar denenecek</string>
     <string name="backup_notify_transient_failure">Gunluk yedekleme e-postasi gonderilemedi, tekrar denenecek.</string>
     <string name="backup_status_permanent_error">error: %1$s</string>

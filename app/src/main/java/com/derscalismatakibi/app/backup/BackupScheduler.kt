@@ -34,6 +34,13 @@ object BackupScheduler {
     /** DailyBackupWorker'a "bu calisma araliklarla tetiklendi, veri degismediyse
      * e-posta atlanabilir" bilgisini tasir - bkz. DailyBackupWorker.KEY_IS_INTERVAL_TRIGGER. */
     const val WORK_DATA_KEY_IS_INTERVAL_TRIGGER = "is_interval_trigger"
+    /** Yedekleme e-postasi basligina "hangi yedekleme (gunluk/araliklarla/manuel)
+     * bu maili tetikledi" bilgisini eklemek icin - silme davranisini ETKILEMEZ,
+     * bu hala tamamen WORK_DATA_KEY_IS_INTERVAL_TRIGGER'a bagli kalir. */
+    const val WORK_DATA_KEY_TRIGGER_TYPE = "trigger_type"
+    const val TRIGGER_TYPE_DAILY = "daily"
+    const val TRIGGER_TYPE_INTERVAL = "interval"
+    const val TRIGGER_TYPE_MANUAL = "manual"
     private const val MIN_INTERVAL_MINUTES = 15L
 
     /** Uygulama surec basina bir kez (StudyTrackerApp.onCreate) cagrilir. Ayarlarda
@@ -68,7 +75,9 @@ object BackupScheduler {
 
     /** "Simdi Yedekle" test butonu - bir gun beklemeden ayarlari dogrulamak icin. */
     fun scheduleOneOffNow(context: Context) {
-        val request = OneTimeWorkRequestBuilder<DailyBackupWorker>().build()
+        val request = OneTimeWorkRequestBuilder<DailyBackupWorker>()
+            .setInputData(workDataOf(WORK_DATA_KEY_TRIGGER_TYPE to TRIGGER_TYPE_MANUAL))
+            .build()
         WorkManager.getInstance(context.applicationContext)
             .enqueueUniqueWork(UNIQUE_WORK_NAME_MANUAL, ExistingWorkPolicy.REPLACE, request)
     }
@@ -76,6 +85,7 @@ object BackupScheduler {
     private fun enqueue(context: Context, hour: Int, minute: Int, policy: ExistingPeriodicWorkPolicy) {
         val request = PeriodicWorkRequestBuilder<DailyBackupWorker>(24, TimeUnit.HOURS)
             .setInitialDelay(initialDelayMillis(hour, minute), TimeUnit.MILLISECONDS)
+            .setInputData(workDataOf(WORK_DATA_KEY_TRIGGER_TYPE to TRIGGER_TYPE_DAILY))
             .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
             .build()
@@ -97,7 +107,12 @@ object BackupScheduler {
         val safeMinutes = minutes.toLong().coerceAtLeast(MIN_INTERVAL_MINUTES)
         val networkType = if (wifiOnly) NetworkType.UNMETERED else NetworkType.CONNECTED
         val request = PeriodicWorkRequestBuilder<DailyBackupWorker>(safeMinutes, TimeUnit.MINUTES)
-            .setInputData(workDataOf(WORK_DATA_KEY_IS_INTERVAL_TRIGGER to true))
+            .setInputData(
+                workDataOf(
+                    WORK_DATA_KEY_IS_INTERVAL_TRIGGER to true,
+                    WORK_DATA_KEY_TRIGGER_TYPE to TRIGGER_TYPE_INTERVAL,
+                ),
+            )
             .setConstraints(Constraints.Builder().setRequiredNetworkType(networkType).build())
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
             .build()

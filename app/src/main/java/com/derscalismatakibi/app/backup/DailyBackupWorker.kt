@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.first
 class DailyBackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext, params) {
     override suspend fun doWork(): Result {
         val isIntervalTrigger = inputData.getBoolean(BackupScheduler.WORK_DATA_KEY_IS_INTERVAL_TRIGGER, false)
+        val triggerType = inputData.getString(BackupScheduler.WORK_DATA_KEY_TRIGGER_TYPE)
+            ?: if (isIntervalTrigger) BackupScheduler.TRIGGER_TYPE_INTERVAL else BackupScheduler.TRIGGER_TYPE_DAILY
         AppLogger.log("Yedekleme", if (isIntervalTrigger) "Araliklarla yedekleme baslatildi" else "Gunluk yedekleme baslatildi")
         val settingsRepo = SettingsRepository(applicationContext)
         val cfg = settingsRepo.configFlow.first()
@@ -102,11 +104,19 @@ class DailyBackupWorker(appContext: Context, params: WorkerParameters) : Corouti
         // 2) E-posta, sadece acik ve dolu ayarlanmissa.
         if ((cfg.dailyBackupEnabled || cfg.intervalBackupEnabled) && cfg.backupEmail.isNotBlank() && cfg.backupEmailAppPassword.isNotBlank()) {
             val labelSuffix = if (cfg.backupLabel.isNotBlank()) " - ${cfg.backupLabel}" else ""
+            val triggerLabel = applicationContext.getString(
+                when (triggerType) {
+                    BackupScheduler.TRIGGER_TYPE_INTERVAL -> R.string.backup_trigger_type_interval
+                    BackupScheduler.TRIGGER_TYPE_MANUAL -> R.string.backup_trigger_type_manual
+                    else -> R.string.backup_trigger_type_daily
+                },
+            )
             val subject = applicationContext.getString(
                 R.string.backup_email_subject,
                 applicationContext.getString(R.string.app_name),
                 labelSuffix,
                 DateTimeFormats.display(System.currentTimeMillis()),
+                triggerLabel,
             )
             when (val sendResult = SmtpBackupSender.send(cfg.backupEmail, cfg.backupEmailAppPassword, attachments, subject = subject, smtpHost = cfg.smtpHost, smtpPort = cfg.smtpPort)) {
                 is SmtpBackupSender.Result.Success -> {

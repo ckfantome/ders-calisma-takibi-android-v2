@@ -200,8 +200,16 @@ object StudyEngine {
                 processScheduleTracking()
             }
         }
-        // Ebeveyn-denetim: guvenli bolge (geofence) - 30sn'de bir son bilinen
-        // konumu kontrol eder, sadece icerde/disarda DURUMU DEGISINCE loglar/bildirir.
+        // Ebeveyn-denetim: guvenli bolge (geofence) - kendi ayri araligiyla
+        // (Ayarlar > Gelismis > Konum guncelleme araligi) aktif GPS/network fix
+        // ister, konum gecmisine yazar. Guvenli bolge KARSILASTIRMASI ise asagidaki
+        // ayri, daha sik calisan dongude son alinan bu konumu kullanir.
+        engineScope.launch {
+            while (true) {
+                delay(cfg.locationUpdateIntervalSeconds.coerceAtLeast(5) * 1000L)
+                refreshLocation()
+            }
+        }
         engineScope.launch {
             while (true) {
                 delay(cfg.safeZoneCheckIntervalSeconds.coerceAtLeast(5) * 1000L)
@@ -250,27 +258,90 @@ object StudyEngine {
     }
 
     private var insideAnySafeZone: Boolean? = null
+    private var lastLocation: android.location.Location? = null
 
-    private suspend fun checkSafeZone() {
+    /** Aktif olarak TUM etkin saglayicilardan (GPS + network) taze bir konum
+     * ister ve en dogru (accuracy degeri en kucuk) olani secer - onceki surumde
+     * lm.getProviders(true).firstNotNullOfOrNull{getLastKnownLocation} kullanilip
+     * GPS/NETWORK ayrimi ve dogruluk hic gozetilmeden ilk bulunan (genelde eski/
+     * kaba NETWORK cache'i) donuyordu; bu da dakikalarca 100-1800m hatali "hayalet"
+     * konumlarin (ev yerine karsi sokak/mahalle) kaydedilmesine yol aciyordu.
+     * `timeoutMs` icinde hicbir saglayici cevap vermezse en iyi (accuracy'e gore)
+     * son bilinen cache'e duser - onceki davranistan daha iyi ama garanti degil. */
+    private suspend fun requestFreshLocation(
+        lm: android.location.LocationManager,
+        timeoutMs: Long = 15_000L,
+    ): android.location.Location? {
+        val providers = try { lm.getProviders(true) } catch (_: SecurityException) { return null }
+        if (providers.isEmpty()) return null
+        val fresh = try {
+            kotlinx.coroutines.withTimeoutOrNull(timeoutMs) {
+                kotlinx.coroutines.suspendCancellableCoroutine<android.location.Location?> { cont ->
+                    val results = mutableListOf<android.location.Location>()
+                    var remaining = providers.size
+                    val listeners = mutableMapOf<String, android.location.LocationListener>()
+                    fun finishIfDone() {
+                        remaining--
+                        if (remaining <= 0 && cont.isActive) {
+                            val best = results.minByOrNull { if (it.hasAccuracy()) it.accuracy else Float.MAX_VALUE }
+                            cont.resumeWith(Result.success(best))
+                        }
+                    }
+                    for (p in providers) {
+                        val listener = object : android.location.LocationListener {
+                            override fun onLocationChanged(location: android.location.Location) {
+                                results.add(location)
+                                try { lm.removeUpdates(this) } catch (_: Exception) {}
+                                finishIfDone()
+                            }
+                            @Deprecated("Deprecated in Java")
+                            override fun onStatusChanged(p0: String?, p1: Int, p2: android.os.Bundle?) {}
+                            override fun onProviderEnabled(p0: String) {}
+                            override fun onProviderDisabled(p0: String) { finishIfDone() }
+                        }
+                        listeners[p] = listener
+                        try {
+                            lm.requestSingleUpdate(p, listener, android.os.Looper.getMainLooper())
+                        } catch (_: Exception) { finishIfDone() }
+                    }
+                    cont.invokeOnCancellation {
+                        for ((_, l) in listeners) try { lm.removeUpdates(l) } catch (_: Exception) {}
+                    }
+                }
+            }
+        } catch (_: SecurityException) { null }
+        if (fresh != null) return fresh
+        // Zaman asimi - hicbir saglayici taze fix veremedi, en iyi (accuracy'e
+        // gore) son bilinen cache'e dus (tamamen bos donmektense).
+        return try {
+            providers.mapNotNull { lm.getLastKnownLocation(it) }
+                .minByOrNull { if (it.hasAccuracy()) it.accuracy else Float.MAX_VALUE }
+        } catch (_: SecurityException) { null }
+    }
+
+    private suspend fun refreshLocation() {
         if (!cfg.locationTrackingEnabled) return
         if (android.content.pm.PackageManager.PERMISSION_GRANTED !=
             androidx.core.content.ContextCompat.checkSelfPermission(appContext, android.Manifest.permission.ACCESS_FINE_LOCATION)
         ) return
         val lm = appContext.getSystemService(Context.LOCATION_SERVICE) as? android.location.LocationManager ?: return
-        val loc = try {
-            lm.getProviders(true).firstNotNullOfOrNull { lm.getLastKnownLocation(it) }
-        } catch (_: SecurityException) { null } ?: return
+        val loc = requestFreshLocation(lm) ?: return
+        lastLocation = loc
 
         // "Sadece anlik degil, surekli degisen TUM konum" gunluk yedek e-postasina
-        // eklenebilsin diye HER kontrolde (30sn'de bir) konum gecmisine yazilir -
-        // Guvenli Bolge tanimli olup olmadigina bakilmaksizin.
+        // eklenebilsin diye HER yenilemede konum gecmisine yazilir - Guvenli Bolge
+        // tanimli olup olmadigina bakilmaksizin.
         try {
             db.locationLogDao().insert(LocationLogEntity(lat = loc.latitude, lng = loc.longitude, timestamp = System.currentTimeMillis()))
             db.locationLogDao().trimToRecent(cfg.locationLogRetentionCount.coerceAtLeast(1))
         } catch (t: Throwable) {
             AppLogger.logError("Konum", "Konum gecmisi yazilamadi", t)
         }
+    }
 
+    private suspend fun checkSafeZone() {
+        if (!cfg.locationTrackingEnabled) return
+        val loc = lastLocation ?: return
         val zones = try { db.safeZoneDao().all().filter { it.enabled } } catch (t: Throwable) { emptyList() }
         if (zones.isEmpty()) return
         val nearest = zones.minByOrNull {

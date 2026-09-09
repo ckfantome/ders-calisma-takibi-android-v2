@@ -153,8 +153,13 @@ data class AppConfig(
     /** Erisilebilirlik servisinin "aktif ama gercekte calismiyor" sayilmasi icin
      * son kalp atisindan bu yana gecmesi gereken dakika. */
     val accessibilityWatchdogStaleMinutes: Int = 3,
-    /** Guvenli Bolge + Erisilebilirlik bekcisi kontrolu kac saniyede bir calissin. */
+    /** Guvenli Bolge KARSILASTIRMASI + Erisilebilirlik bekcisi kontrolu kac
+     * saniyede bir calissin (asagidaki locationUpdateIntervalSeconds'tan AYRI -
+     * bu sadece son alinan konumla bolge karsilastirmasi yapar, GPS'i tetiklemez). */
     val safeZoneCheckIntervalSeconds: Int = 30,
+    /** Aktif GPS/network konum yenilemesi kac saniyede bir istensin. Dusuk deger
+     * daha guncel/dogru konum ama daha fazla pil kullanimi demektir. */
+    val locationUpdateIntervalSeconds: Int = 30,
     /** Klavye Takibi / Konum gecmisi tablolarinda ham kayit sayisi bu siniri
      * asinca en eskiler otomatik budanir (trimToRecent - yedeklemeden BAGIMSIZ,
      * sadece DB'nin sinirsiz buyumesini engeller). */

